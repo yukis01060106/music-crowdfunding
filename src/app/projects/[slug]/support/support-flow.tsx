@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { FundingModel, Reward } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
@@ -26,13 +27,12 @@ export function SupportFlow({
   projectSlug,
   fundingModel,
   rewards,
-  initialRewardId,
 }: {
   projectSlug: string;
   fundingModel: FundingModel;
   rewards: Reward[];
-  initialRewardId?: string;
 }) {
+  const initialRewardId = useSearchParams().get("reward");
   const available = rewards.filter((r) => r.limit === undefined || r.backers < r.limit);
   const [step, setStep] = useState<Step>("reward");
   const [rewardId, setRewardId] = useState(

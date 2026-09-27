@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProject } from "@/lib/data";
+import { Suspense } from "react";
+import { getProject, getPublicProjects } from "@/lib/data";
 import { SupportFlow } from "./support-flow";
 
 export const metadata: Metadata = { title: "支援する", robots: { index: false } };
 
-// 支援はログインユーザーごとに内容が変わるので、静的生成しない
-export default async function SupportPage({ params, searchParams }: PageProps<"/projects/[slug]/support">) {
+// 画面の枠だけを静的生成し、選択中のリターン（?reward=）はブラウザ側で読む
+export async function generateStaticParams() {
+  const projects = await getPublicProjects();
+  return projects.filter((p) => p.status === "live").map((p) => ({ slug: p.slug }));
+}
+
+export default async function SupportPage({ params }: PageProps<"/projects/[slug]/support">) {
   const { slug } = await params;
-  const { reward } = await searchParams;
   const project = await getProject(slug);
   if (!project || project.status !== "live") notFound();
 
@@ -19,12 +24,9 @@ export default async function SupportPage({ params, searchParams }: PageProps<"/
         ← プロジェクトに戻る
       </Link>
       <h1 className="mt-2 text-xl font-bold leading-snug">{project.title}</h1>
-      <SupportFlow
-        projectSlug={project.slug}
-        fundingModel={project.fundingModel}
-        rewards={project.rewards}
-        initialRewardId={typeof reward === "string" ? reward : undefined}
-      />
+      <Suspense>
+        <SupportFlow projectSlug={project.slug} fundingModel={project.fundingModel} rewards={project.rewards} />
+      </Suspense>
     </div>
   );
 }

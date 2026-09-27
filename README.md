@@ -3,11 +3,17 @@
 CAMPFIRE / Makuake / muevo を参考にした、音楽特化のクラウドファンディングサイトのひな形です。
 いまはモックデータで動いています。
 
+**デモ：https://yukis01060106.github.io/music-crowdfunding/**
+
 ```bash
 npm install
 npm run dev      # http://localhost:3000
 npm run build    # 本番ビルド（どのページが静的生成か一覧が出る）
+npm run deploy:pages  # デモを GitHub Pages に公開（gh-pages ブランチを上書き）
 ```
+
+GitHub Pages のデモは、`GITHUB_PAGES=1` で完全な静的サイトとして書き出したものです（`next.config.ts`）。
+静的ファイルしか置けないため、ログイン・決済などの機能を入れたら Vercel などに移します。
 
 ## 技術構成と方針
 
