@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { MobileMenu } from "./mobile-menu";
 
 const NAV = [
-  { href: "/projects", label: "プロジェクトをさがす" },
-  { href: "/membership", label: "メンバーシップ" },
-  { href: "/start", label: "プロジェクトをはじめる" },
-  { href: "/help", label: "はじめての方へ" },
+  { href: "/projects", label: "プロジェクトをさがす", en: "Projects" },
+  { href: "/membership", label: "メンバーシップ", en: "Membership" },
+  { href: "/start", label: "プロジェクトをはじめる", en: "For artists" },
+  { href: "/help", label: "はじめての方へ", en: "Guide" },
 ];
 
 export function SiteHeader() {
@@ -45,23 +46,7 @@ export function SiteHeader() {
           <Link href="/login" className="rounded-full bg-ink px-5 py-2.5 font-bold tracking-wider text-white hover:bg-brand">
             ログイン
           </Link>
-          <details className="relative md:hidden">
-            <summary
-              className="flex h-11 w-11 list-none items-center justify-center rounded-full bg-ink text-white"
-              aria-label="メニュー"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              </svg>
-            </summary>
-            <nav className="absolute right-0 top-13 w-60 space-y-1 bg-ink p-3 text-white shadow-xl">
-              {[...NAV, { href: "/mypage", label: "マイページ" }, { href: "/creator", label: "実行者管理画面" }].map((n) => (
-                <Link key={n.href} href={n.href} className="block px-3 py-2.5 tracking-wider hover:bg-white/10">
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
-          </details>
+          <MobileMenu items={NAV} />
         </div>
       </div>
     </header>
