@@ -62,6 +62,25 @@ export interface Artist {
   photo: string;
   /** アーティストページの写真に縦書きで重ねる短いコピー（15文字程度まで） */
   catchline: string;
+  /** 月額メンバーシップ。未開設なら undefined */
+  membership?: Membership;
+}
+
+/** 月額メンバーシップのプラン。金額は税込の月額 */
+export interface MembershipPlan {
+  id: string;
+  name: string;
+  price: number;
+  perks: string[];
+  members: number;
+  /** 人数限定。undefined なら無制限 */
+  limit?: number;
+}
+
+export interface Membership {
+  /** 加入ページの冒頭に出す、アーティストからのひとこと */
+  message: string;
+  plans: MembershipPlan[];
 }
 
 export interface Track {

@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { FundingModel, Reward } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
 import { formatYen } from "@/lib/format";
+import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { ShareButtons } from "@/components/project/share-buttons";
 
 type Step = "reward" | "shipping" | "payment" | "confirm" | "done";
@@ -371,6 +372,7 @@ export function SupportFlow({
             <span className="text-2xl font-bold">{formatYen(total)}</span>
           </div>
           <p className="text-xs text-stone-500">お届け予定：{reward.deliveryEstimate}</p>
+          <p className="text-xs text-stone-500">{FES_FUND_MESSAGE}</p>
           {fundingModel === "all_or_nothing" && !isFree && (
             <p className="rounded-lg bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
               All-or-Nothing方式です。目標金額に届かなかった場合、お支払いは発生しません。

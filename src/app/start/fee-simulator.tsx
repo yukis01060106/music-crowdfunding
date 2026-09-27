@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
+import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
 import { formatYen } from "@/lib/format";
 
 /** 「結局いくら手元に残るのか」をその場で確かめられるように */
@@ -39,6 +39,7 @@ export function FeeSimulator() {
       <p className="mt-3 text-xs text-stone-500">
         掲載は無料。目標に届かなかったAll-or-Nothingのプロジェクトは、手数料もかかりません。
       </p>
+      <p className="mt-2 text-xs font-bold text-brand">{FES_FUND_MESSAGE}</p>
     </div>
   );
 }

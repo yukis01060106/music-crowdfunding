@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { LEGAL_DOCS } from "@/lib/legal";
 
 const COLUMNS = [
@@ -7,6 +8,7 @@ const COLUMNS = [
     links: [
       { href: "/help", label: "はじめての方へ" },
       { href: "/projects", label: "プロジェクトをさがす" },
+      { href: "/membership", label: "メンバーシップ" },
       { href: "/mypage", label: "マイページ" },
     ],
   },
@@ -30,6 +32,7 @@ export function SiteFooter() {
         <div>
           <p className="font-en text-3xl font-black tracking-tight">OTOFUND</p>
           <p className="mt-2 text-xs leading-relaxed tracking-wider text-white/60">音楽のためのクラウドファンディング（仮称）</p>
+          <p className="mt-4 text-xs leading-relaxed tracking-wider text-white/60">{FES_FUND_MESSAGE}</p>
         </div>
         {COLUMNS.map((col) => (
           <nav key={col.title} aria-label={col.title}>

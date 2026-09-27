@@ -8,6 +8,8 @@ import { VerifiedBadge } from "@/components/project/verified-badge";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { CommonPerks } from "@/components/membership/common-perks";
+import { PlanCard, mostPopularPlanId } from "@/components/membership/plan-card";
 
 export const revalidate = 300;
 
@@ -27,6 +29,7 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
   const artist = await getArtist(id);
   if (!artist) notFound();
   const projects = await getProjectsByArtist(artist.id);
+  const popularPlanId = artist.membership && mostPopularPlanId(artist.membership.plans);
 
   return (
     <div>
@@ -69,6 +72,24 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
             </li>
           ))}
         </ul>
+        {artist.membership && (
+          <section id="membership" className="mt-20 scroll-mt-20 space-y-8">
+            <SectionHeading en="Membership" ja="月額メンバーになって応援する" lead="いつでも解約できます。解約しても、次の更新日の前日まで特典を使えます。" />
+            <blockquote className="border-l-4 border-brand pl-4 font-bold leading-relaxed tracking-wider">
+              「{artist.membership.message}」
+              <span className="mt-1 block text-xs font-normal text-stone-500">— {artist.name}</span>
+            </blockquote>
+            <div className="grid gap-6 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+              {artist.membership.plans.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} artistId={artist.id} popular={plan.id === popularPlanId} />
+              ))}
+            </div>
+            <div>
+              <p className="mb-4 text-sm font-bold tracking-wider">どのプランにも付く、OTOFUNDメンバー共通の特典</p>
+              <CommonPerks />
+            </div>
+          </section>
+        )}
         <div className="mb-10 mt-20">
           <SectionHeading en="Projects" ja="プロジェクト" />
         </div>

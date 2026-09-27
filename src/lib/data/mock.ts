@@ -15,6 +15,14 @@ export const artists: Artist[] = [
     types: ["indie"],
     links: [{ label: "YouTube", url: "https://www.youtube.com/" }],
     color: "from-indigo-600 to-fuchsia-500",
+    membership: {
+      message: "ライブのない月も、毎月いっしょに。新曲はまずメンバーに届けます。",
+      plans: [
+        { id: "m-listener", name: "リスナー", price: 300, members: 412, perks: ["メンバー限定の活動報告", "月1回のデモ音源"] },
+        { id: "m-crew", name: "クルー", price: 1000, members: 158, perks: ["リスナーの特典すべて", "月1回のメンバー限定配信ラジオ", "ワンマンのチケット先行"] },
+        { id: "m-backstage", name: "バックステージ", price: 3000, members: 27, limit: 50, perks: ["クルーの特典すべて", "新曲のクレジットに名前掲載", "年1回のメンバー限定ライブ"] },
+      ],
+    },
   },
   {
     id: "mio-aoki",
@@ -27,6 +35,13 @@ export const artists: Artist[] = [
     types: ["indie"],
     links: [{ label: "Instagram", url: "https://www.instagram.com/" }],
     color: "from-amber-500 to-rose-500",
+    membership: {
+      message: "ステージの合間に書いた小品を、毎月メンバーのみなさんに。",
+      plans: [
+        { id: "m-listener", name: "リスナー", price: 500, members: 96, perks: ["月1曲のピアノ小品（音源）", "メンバー限定の活動報告"] },
+        { id: "m-front", name: "最前列", price: 2000, members: 31, limit: 40, perks: ["リスナーの特典すべて", "ライブの予約席", "リクエスト曲の演奏（年2回）"] },
+      ],
+    },
   },
   {
     id: "neon-kaiju",
@@ -39,6 +54,13 @@ export const artists: Artist[] = [
     types: ["indie", "tiktoker"],
     links: [{ label: "SoundCloud", url: "https://soundcloud.com/" }],
     color: "from-cyan-500 to-emerald-500",
+    membership: {
+      message: "トラックの素材も、ボツ曲も。制作の全部を見せます。",
+      plans: [
+        { id: "m-player", name: "プレイヤー", price: 300, members: 690, perks: ["ボツ曲・未発表トラックの配信", "メンバー限定の活動報告"] },
+        { id: "m-producer", name: "プロデューサー", price: 1500, members: 104, perks: ["プレイヤーの特典すべて", "ステムデータ（パラ素材）の配布", "リミックスコンテストへの参加"] },
+      ],
+    },
   },
   {
     id: "kazuma",
@@ -51,6 +73,13 @@ export const artists: Artist[] = [
     types: ["major"],
     links: [{ label: "公式サイト", url: "https://example.com/" }],
     color: "from-slate-700 to-sky-500",
+    membership: {
+      message: "10年分のありがとうを、毎月すこしずつ返していきます。",
+      plans: [
+        { id: "m-fan", name: "ファン", price: 550, members: 3120, perks: ["メンバー限定の日記と写真", "ツアーのチケット先行"] },
+        { id: "m-premium", name: "プレミアム", price: 1650, members: 842, perks: ["ファンの特典すべて", "月1回の弾き語り配信", "誕生月のバースデーメッセージ"] },
+      ],
+    },
   },
   {
     id: "yumenoa",
@@ -63,6 +92,13 @@ export const artists: Artist[] = [
     types: ["youtuber", "tiktoker", "university"],
     links: [{ label: "YouTube", url: "https://www.youtube.com/" }],
     color: "from-pink-400 to-violet-500",
+    membership: {
+      message: "次に歌う曲、メンバーのみんなと決めたいです。",
+      plans: [
+        { id: "m-listener", name: "リスナー", price: 300, members: 528, perks: ["次の歌ってみたの選曲投票", "メンバー限定の活動報告"] },
+        { id: "m-bestie", name: "いちばんの推し", price: 1200, members: 119, perks: ["リスナーの特典すべて", "収録前のデモを先行試聴", "月1回のメンバー限定配信"] },
+      ],
+    },
   },
   {
     id: "milktea-syndrome",
@@ -75,6 +111,13 @@ export const artists: Artist[] = [
     types: ["underground_idol"],
     links: [{ label: "X", url: "https://x.com/" }],
     color: "from-rose-400 to-amber-300",
+    membership: {
+      message: "遠征の日も、会えない日も。メンバーのみんなとつながっていたい。",
+      plans: [
+        { id: "m-fan", name: "ファンクラブ", price: 500, members: 244, perks: ["メンバー限定のオフショット", "ワンマンのチケット先行"] },
+        { id: "m-vip", name: "VIP", price: 3000, members: 38, limit: 50, perks: ["ファンクラブの特典すべて", "毎月のサイン入りチェキ（郵送）", "年1回のメンバー限定お茶会"] },
+      ],
+    },
   },
   {
     id: "sunny-side",

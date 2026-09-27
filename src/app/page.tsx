@@ -3,11 +3,14 @@ import { getArtists, getPublicProjects } from "@/lib/data";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS, REWARD_KIND_LABELS, type ArtistType, type Genre } from "@/types";
 import { ProjectCard, FRAME_COLORS } from "@/components/project/project-card";
 import { formatNumber, formatYen, progressPercent } from "@/lib/format";
+import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 import { CircleLink, SectionHeading } from "@/components/ui/section-heading";
 import { HeroPhotoColumns } from "@/components/home/hero-photo-columns";
 import { VoicesMarquee } from "@/components/home/voices-marquee";
+import { MembershipArtistCard } from "@/components/membership/membership-artist-card";
+import { withMembership } from "@/lib/membership";
 
 export const revalidate = 300;
 
@@ -24,6 +27,7 @@ export default async function HomePage() {
   const [projects, artists] = await Promise.all([getPublicProjects(), getArtists()]);
   const artistOf = (id: string) => artists.find((a) => a.id === id);
   const live = projects.filter((p) => p.status === "live");
+  const members = withMembership(artists);
 
   const popular = [...live].sort((a, b) => b.backers - a.backers);
   const endingSoon = [...live].sort((a, b) => a.endAt.localeCompare(b.endAt)).slice(0, 3);
@@ -89,6 +93,10 @@ export default async function HomePage() {
               すべてのアーティストとファンが、ひとつになる瞬間を創ります。
               出演者もステージも、ファンの応援で形にしていく予定です。
             </p>
+            <p className="mt-6 border-l-4 border-pop-yellow pl-4 text-sm font-bold leading-relaxed tracking-wider">
+              あなたの支援が、フェスになる。
+              <span className="mt-1 block font-normal text-white/80">{FES_FUND_MESSAGE}</span>
+            </p>
             <p className="mt-6 inline-block border border-white/40 px-4 py-2 text-sm font-bold tracking-wider">
               ただいま企画中。続報をお待ちください。
             </p>
@@ -106,6 +114,32 @@ export default async function HomePage() {
           </div>
           <div className="flex justify-end">
             <CircleLink href="/projects" color="teal" />
+          </div>
+        </section>
+
+        {/* メンバーシップ：クラファンの合間も、毎月の応援でつながる */}
+        <section className="relative bg-brand-soft p-8 sm:p-12">
+          <Sticker shape="circle" color="yellow" size={52} className="-left-4 -top-5" float />
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:items-center">
+            <div>
+              <SectionHeading en="Membership" ja="毎月、推しのとなりに。" />
+              <p className="mt-5 text-sm leading-loose tracking-wider text-stone-700">
+                月額300円から、好きなアーティストのメンバーに。メンバーは新しいプロジェクトを公開前から支援でき、
+                限定リターンも先に選べます。
+              </p>
+              <div className="mt-6">
+                <CircleLink href="/membership" color="purple">
+                  メンバーシップについて
+                </CircleLink>
+              </div>
+            </div>
+            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {members.slice(0, 6).map((a) => (
+                <li key={a.id}>
+                  <MembershipArtistCard artist={a} membership={a.membership} />
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 

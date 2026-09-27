@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const NAV = [
   { href: "/projects", label: "プロジェクトをさがす" },
+  { href: "/membership", label: "メンバーシップ" },
   { href: "/start", label: "プロジェクトをはじめる" },
   { href: "/help", label: "はじめての方へ" },
 ];
