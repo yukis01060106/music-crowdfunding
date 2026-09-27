@@ -13,7 +13,7 @@ export function SectionHeading({
   dark?: boolean;
 }) {
   return (
-    <div>
+    <div data-reveal="up">
       <p className={`font-en text-xs font-medium tracking-wide ${dark ? "text-white/70" : "text-stone-500"}`}>{en}</p>
       <h2 className="mt-1 text-2xl font-bold tracking-[0.12em] sm:text-3xl">{ja}</h2>
       {lead && <p className={`mt-3 text-sm ${dark ? "text-white/80" : "text-stone-600"}`}>{lead}</p>}

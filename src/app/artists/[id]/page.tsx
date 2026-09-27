@@ -35,15 +35,15 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
     <div>
       <section className="mx-auto max-w-6xl px-4 pt-6">
         <div className="relative h-[420px] overflow-hidden sm:h-[520px]">
-          <Photo src={artist.photo} alt={artist.name} sizes="(min-width: 1152px) 1152px, 100vw" priority />
+          <Photo src={artist.photo} alt={artist.name} sizes="(min-width: 1152px) 1152px, 100vw" priority className="animate-[kenburns_14s_ease-out_forwards]" />
           <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/40 to-transparent" aria-hidden />
           <p
-            className="absolute left-6 top-8 max-h-[80%] text-lg font-bold leading-[2] tracking-[0.2em] text-white sm:left-12 sm:text-2xl"
+            className="absolute left-6 top-8 max-h-[80%] animate-rise text-lg font-bold [animation-delay:300ms] leading-[2] tracking-[0.2em] text-white sm:left-12 sm:text-2xl"
             style={{ writingMode: "vertical-rl" }}
           >
             {artist.catchline}
           </p>
-          <div className="absolute bottom-8 right-6 text-right text-white sm:right-10">
+          <div className="absolute bottom-8 right-6 animate-rise text-right text-white [animation-delay:500ms] sm:right-10">
             <p className="font-en text-xs tracking-wide text-white/80">Artist</p>
             <h1 className="mt-1 text-3xl font-black tracking-[0.12em] sm:text-5xl">{artist.name}</h1>
           </div>
@@ -75,11 +75,11 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
         {artist.membership && (
           <section id="membership" className="mt-20 scroll-mt-20 space-y-8">
             <SectionHeading en="Membership" ja="月額メンバーになって応援する" lead="いつでも解約できます。解約しても、次の更新日の前日まで特典を使えます。" />
-            <blockquote className="border-l-4 border-brand pl-4 font-bold leading-relaxed tracking-wider">
+            <blockquote data-reveal="left" className="border-l-4 border-brand pl-4 font-bold leading-relaxed tracking-wider">
               「{artist.membership.message}」
               <span className="mt-1 block text-xs font-normal text-stone-500">— {artist.name}</span>
             </blockquote>
-            <div className="grid gap-6 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div data-stagger className="grid gap-6 pt-2 sm:grid-cols-2 lg:grid-cols-3">
               {artist.membership.plans.map((plan) => (
                 <PlanCard key={plan.id} plan={plan} artistId={artist.id} popular={plan.id === popularPlanId} />
               ))}

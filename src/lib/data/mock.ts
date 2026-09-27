@@ -137,6 +137,7 @@ export const projects: Project[] = [
   {
     slug: "hoshizora-1st-album",
     cover: "/images/records-wall.jpg",
+    gallery: ["/images/hoshizora-radio.jpg", "/images/bass-studio.jpg", "/images/vinyl-purple.jpg"],
     title: "星空ラジオ 1stフルアルバムを、ちゃんとしたスタジオで録りたい",
     catchcopy: "結成7年目。ライブで育ててきた12曲を、一枚のアルバムに。",
     artistId: "hoshizora-radio",
@@ -279,6 +280,7 @@ export const projects: Project[] = [
   {
     slug: "mio-aoki-live-album",
     cover: "/images/mio-aoki.jpg",
+    gallery: ["/images/keyboard-room.jpg", "/images/vinyl-white.jpg"],
     title: "青木みお トリオ ライブ盤をアナログレコードで",
     catchcopy: "ライブハウスの空気ごと、レコードに刻みたい。",
     artistId: "mio-aoki",
@@ -343,6 +345,7 @@ export const projects: Project[] = [
   {
     slug: "neon-kaiju-1000",
     cover: "/images/vinyl-color.jpg",
+    gallery: ["/images/neon-kaiju.jpg", "/images/headphones-glasses.jpg", "/images/headphones-green.jpg"],
     title: "NEON KAIJU 初ワンマン、1000人で埋めたい",
     catchcopy: "お金より「行くよ」の声を集めたい。0円から参加できます。",
     artistId: "neon-kaiju",
@@ -466,6 +469,7 @@ export const projects: Project[] = [
   {
     slug: "yumenoa-original-1st",
     cover: "/images/yumenoa-cover.jpg",
+    gallery: ["/images/yumenoa.jpg", "/images/mic-white.jpg"],
     title: "ゆめのあ 初のオリジナル曲をボカロPさんと作りたい",
     catchcopy: "歌ってみたから、自分だけの1曲へ。",
     artistId: "yumenoa",

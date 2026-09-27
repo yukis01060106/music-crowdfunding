@@ -18,7 +18,7 @@ export function PlanCard({
 
   return (
     <div
-      className={`relative flex flex-col border-[3px] bg-white p-5 text-ink ${
+      className={`relative flex flex-col border-[3px] bg-white p-5 text-ink transition duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
         popular && !full ? "border-brand" : "border-stone-200"
       } ${full ? "opacity-60" : ""}`}
     >

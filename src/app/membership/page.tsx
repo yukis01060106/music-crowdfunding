@@ -31,11 +31,15 @@ export default async function MembershipPage() {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-28">
           <p className="font-en text-xs font-medium tracking-wide text-white/70">Membership</p>
           <h1 className="mt-3 text-4xl font-black leading-[1.4] tracking-[0.12em] sm:text-6xl">
-            毎月、
-            <br />
-            推しのとなりに。
+            {["毎月、", "推しのとなりに。"].map((line, i) => (
+              <span key={line} className="block overflow-hidden">
+                <span className="block animate-line-in" style={{ animationDelay: `${150 + i * 150}ms` }}>
+                  {line}
+                </span>
+              </span>
+            ))}
           </h1>
-          <p className="mt-6 max-w-lg leading-loose tracking-wider text-white/80">
+          <p className="mt-6 max-w-lg animate-rise leading-loose tracking-wider text-white/80 [animation-delay:500ms]">
             ライブのない月も、制作中の長い時間も。月額メンバーシップで、アーティストの活動をいちばん近くで支えられます。
           </p>
           <Sticker shape="circle" color="yellow" size={72} className="right-6 top-16 sm:right-20" float />
@@ -46,10 +50,10 @@ export default async function MembershipPage() {
       <div className="mx-auto max-w-6xl space-y-24 px-4 py-20">
         <section className="space-y-10">
           <SectionHeading en="Why OTOFUND" ja="OTOFUNDのメンバーシップ" />
-          <ul className="grid gap-8 sm:grid-cols-3">
+          <ul data-stagger className="grid gap-8 sm:grid-cols-3">
             {POINTS.map((p) => (
-              <li key={p.title} className="border-t-[3px] border-brand pt-5">
-                <p className="font-en text-2xl font-black text-brand">{p.en}</p>
+              <li key={p.title} className="group border-t-[3px] border-brand pt-5">
+                <p className="font-en text-2xl font-black text-brand transition-transform duration-300 group-hover:translate-x-2">{p.en}</p>
                 <p className="mt-2 font-bold tracking-wider">{p.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">{p.body}</p>
               </li>
@@ -64,9 +68,9 @@ export default async function MembershipPage() {
 
         <section className="space-y-10">
           <SectionHeading en="Artists" ja="メンバー募集中のアーティスト" />
-          <ul className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+          <ul data-stagger className="grid grid-cols-2 gap-6 lg:grid-cols-4">
             {artists.map((a) => (
-              <li key={a.id} className="border border-stone-200">
+              <li key={a.id} className="border border-stone-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
                 <MembershipArtistCard artist={a} membership={a.membership} />
               </li>
             ))}
@@ -75,7 +79,7 @@ export default async function MembershipPage() {
 
         <section className="space-y-8">
           <SectionHeading en="FAQ" ja="よくある質問" />
-          <dl className="divide-y divide-stone-200 border-y border-stone-200">
+          <dl data-stagger className="divide-y divide-stone-200 border-y border-stone-200">
             {FAQS.map((f) => (
               <div key={f.q} className="py-5">
                 <dt className="font-bold tracking-wider">Q. {f.q}</dt>

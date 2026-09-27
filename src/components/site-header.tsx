@@ -9,7 +9,7 @@ const NAV = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur">
+    <header className="header-scroll sticky top-0 z-40 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-4">
         <Link href="/" className="flex items-center gap-1.5" aria-label="OTOFUND トップへ">
           <span className="font-en text-2xl font-black tracking-tight text-ink">OTOFUND</span>
@@ -22,8 +22,9 @@ export function SiteHeader() {
         </Link>
         <nav className="hidden gap-6 text-sm font-medium tracking-wider md:flex">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="hover:text-brand">
+            <Link key={n.href} href={n.href} className="group relative py-1 transition hover:text-brand">
               {n.label}
+              <span className="absolute inset-x-0 -bottom-0.5 h-0.5 origin-left scale-x-0 bg-brand transition-transform duration-300 group-hover:scale-x-100" aria-hidden />
             </Link>
           ))}
         </nav>

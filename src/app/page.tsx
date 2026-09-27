@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS, REWARD_KIND_LABELS, type ArtistType, type Genre } from "@/types";
 import { ProjectCard, FRAME_COLORS } from "@/components/project/project-card";
-import { formatNumber, formatYen, progressPercent } from "@/lib/format";
+import { formatYen, progressPercent } from "@/lib/format";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
@@ -11,6 +11,9 @@ import { HeroPhotoColumns } from "@/components/home/hero-photo-columns";
 import { VoicesMarquee } from "@/components/home/voices-marquee";
 import { MembershipArtistCard } from "@/components/membership/membership-artist-card";
 import { withMembership } from "@/lib/membership";
+import { CountUp } from "@/components/motion/count-up";
+import { SpinBadge } from "@/components/motion/spin-badge";
+import { TextMarquee } from "@/components/motion/text-marquee";
 
 export const revalidate = 300;
 
@@ -49,42 +52,52 @@ export default async function HomePage() {
       {/* ヒーロー：スマホでは写真が先、PCではコピーが左 */}
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-4 lg:grid-cols-[1fr_540px] lg:items-center lg:gap-16 lg:pt-8">
         <div className="order-2 pb-4 lg:order-1">
-          <p className="text-lg font-bold tracking-[0.15em]">“好き”を“次の一歩”に</p>
+          <p className="animate-rise text-lg font-bold tracking-[0.15em]">“好き”を“次の一歩”に</p>
           <h1 className="mt-4 text-4xl font-black leading-[1.35] tracking-[0.12em] sm:text-6xl">
-            音楽は、
-            <br />
-            ファンと
-            <br />
-            つくる。
+            {["音楽は、", "ファンと", "つくる。"].map((line, i) => (
+              <span key={line} className="block overflow-hidden">
+                <span className="block animate-line-in" style={{ animationDelay: `${150 + i * 140}ms` }}>
+                  {i === 2 ? <span className="relative isolate">つくる<span className="absolute -bottom-1 left-0 h-3 w-full -skew-x-12 bg-pop-yellow/70 -z-10" aria-hidden />。</span> : line}
+                </span>
+              </span>
+            ))}
           </h1>
-          <p className="mt-6 max-w-md text-sm font-medium leading-loose tracking-wider text-stone-700">
+          <p className="mt-6 max-w-md animate-rise text-sm font-medium leading-loose tracking-wider text-stone-700 [animation-delay:600ms]">
             OTOFUNDは、アルバム・ライブ・MVなど、アーティストの「これから」を
             ファンが支援する、音楽のためのクラウドファンディングです。
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/projects" className="bg-ink px-7 py-4 font-bold tracking-wider text-white hover:bg-brand">
-              プロジェクトをさがす <span aria-hidden>→</span>
+          <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:750ms]">
+            <Link href="/projects" className="group relative overflow-hidden bg-ink px-7 py-4 font-bold tracking-wider text-white transition hover:bg-brand">
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 animate-shine bg-white/20" aria-hidden />
+              プロジェクトをさがす <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
             </Link>
-            <Link href="/start" className="border-2 border-ink px-7 py-3.5 font-bold tracking-wider hover:bg-stone-100">
+            <Link href="/start" className="border-2 border-ink px-7 py-3.5 font-bold tracking-wider transition hover:bg-ink hover:text-white">
               アーティストの方へ
             </Link>
           </div>
         </div>
-        <div className="order-1 lg:order-2">
+        <div className="order-1 animate-fade lg:order-2">
           <HeroPhotoColumns />
         </div>
       </section>
 
+      <div className="mt-16 -rotate-1">
+        <TextMarquee words={["MUSIC", "WITH", "FANS", "OTOFUND", "ONE NOTE FES"]} tone="yellow" />
+      </div>
+
       {/* ONE NOTE FES：ヒーロー直後に置く、企画中のフェス告知 */}
-      <section className="mt-20 bg-ink py-16 text-white sm:py-20">
+      <section className="-mt-3 bg-ink py-16 text-white sm:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-          <div className="relative aspect-[1376/768] w-full overflow-hidden">
-            <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="(min-width: 1024px) 640px, 100vw" />
-            <span className="absolute left-3 top-3 bg-pop-yellow px-3 py-1 text-xs font-black tracking-widest text-ink sm:text-sm">
-              企画中
-            </span>
+          <div className="relative">
+            <Link href="/fes" data-reveal="curtain" className="group relative block aspect-[1376/768] w-full overflow-hidden">
+              <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="(min-width: 1024px) 640px, 100vw" className="transition-transform duration-700 group-hover:scale-105" />
+              <span className="absolute left-3 top-3 bg-pop-yellow px-3 py-1 text-xs font-black tracking-widest text-ink sm:text-sm">
+                企画中
+              </span>
+            </Link>
+            <SpinBadge text="ONE NOTE FES ✦ BY OTOFUND ✦ " center={<>COMING<br />SOON</>} size={110} className="absolute -bottom-10 -right-4 sm:-right-8" />
           </div>
-          <div>
+          <div data-reveal="up">
             <p className="font-en text-xs font-medium tracking-wide text-white/70">Festival</p>
             <h2 className="mt-2 font-en text-3xl font-black tracking-wider sm:text-4xl">ONE NOTE FES</h2>
             <p className="mt-4 text-xl font-bold tracking-[0.12em] sm:text-2xl">ファンと共に創るフェス</p>
@@ -97,9 +110,12 @@ export default async function HomePage() {
               あなたの支援が、フェスになる。
               <span className="mt-1 block font-normal text-white/80">{FES_FUND_MESSAGE}</span>
             </p>
-            <p className="mt-6 inline-block border border-white/40 px-4 py-2 text-sm font-bold tracking-wider">
-              ただいま企画中。続報をお待ちください。
-            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link href="/fes" className="group bg-pop-yellow px-5 py-3 text-sm font-black tracking-wider text-ink transition hover:bg-white">
+                フェスについて <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
+              </Link>
+              <span className="border border-white/40 px-4 py-2 text-sm font-bold tracking-wider">ただいま企画中</span>
+            </div>
           </div>
         </div>
       </section>
@@ -107,7 +123,7 @@ export default async function HomePage() {
       <div className="mx-auto max-w-6xl space-y-28 px-4 py-24">
         <section className="space-y-10">
           <SectionHeading en="Pickup" ja="注目のプロジェクト" />
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {popular.slice(0, 6).map((p, i) => (
               <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i} />
             ))}
@@ -118,7 +134,7 @@ export default async function HomePage() {
         </section>
 
         {/* メンバーシップ：クラファンの合間も、毎月の応援でつながる */}
-        <section className="relative bg-brand-soft p-8 sm:p-12">
+        <section data-reveal="zoom" className="relative bg-brand-soft p-8 sm:p-12">
           <Sticker shape="circle" color="yellow" size={52} className="-left-4 -top-5" float />
           <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:items-center">
             <div>
@@ -133,7 +149,7 @@ export default async function HomePage() {
                 </CircleLink>
               </div>
             </div>
-            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <ul data-stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {members.slice(0, 6).map((a) => (
                 <li key={a.id}>
                   <MembershipArtistCard artist={a} membership={a.membership} />
@@ -146,7 +162,7 @@ export default async function HomePage() {
         <section className="relative border-[3px] border-pop-teal p-8 sm:p-12">
           <Sticker shape="triangle" color="purple" size={56} className="-right-5 -top-7" float />
           <SectionHeading en="How it works" ja="はじめての方へ" />
-          <ol className="mt-10 grid gap-10 sm:grid-cols-3">
+          <ol data-stagger className="mt-10 grid gap-10 sm:grid-cols-3">
             {HOW_IT_WORKS.map((s, i) => (
               <li key={s.title}>
                 <p className="font-en text-5xl font-black text-pop-teal/25">0{i + 1}</p>
@@ -166,7 +182,7 @@ export default async function HomePage() {
 
         <section className="space-y-10">
           <SectionHeading en="Ending soon" ja="まもなく終了" lead="支援できるのはあと少し。" />
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {endingSoon.map((p, i) => (
               <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i + 1} />
             ))}
@@ -175,15 +191,15 @@ export default async function HomePage() {
 
         <section className="space-y-10">
           <SectionHeading en="Small start" ja={`${formatYen(SMALL_BUDGET)}以下で応援できる`} lead="はじめての支援にも。" />
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {smallRewards.map(({ project, reward }) => (
               <li key={`${project.slug}-${reward.id}`}>
                 <Link
                   href={`/projects/${project.slug}/support?reward=${reward.id}`}
-                  className="group flex h-full gap-4 bg-stone-100 p-3 hover:bg-brand-soft"
+                  className="group flex h-full gap-4 bg-stone-100 p-3 transition hover:-translate-y-1 hover:bg-brand-soft hover:shadow-lg"
                 >
                   <span className="relative h-24 w-20 shrink-0 overflow-hidden">
-                    <Photo src={project.cover} alt="" sizes="80px" />
+                    <Photo src={project.cover} alt="" sizes="80px" className="transition-transform duration-500 group-hover:scale-110" />
                   </span>
                   <span className="min-w-0 py-1">
                     <span className="font-en text-2xl font-black">{formatYen(reward.price)}</span>
@@ -199,10 +215,10 @@ export default async function HomePage() {
 
         <section className="space-y-10">
           <SectionHeading en="Data" ja="数字で見るOTOFUND" />
-          <dl className="grid gap-4 sm:grid-cols-3">
-            <Stat label="累計支援額" value={formatYen(totalRaised)} />
-            <Stat label="支援者" value={formatNumber(totalBackers)} unit="人" />
-            <Stat label="目標達成プロジェクト" value={`${achieved}/${projects.length}`} unit="件" />
+          <dl data-stagger className="grid gap-4 sm:grid-cols-3">
+            <Stat label="累計支援額" value={<CountUp value={totalRaised} format="yen" />} />
+            <Stat label="支援者" value={<CountUp value={totalBackers} />} unit="人" />
+            <Stat label="目標達成プロジェクト" value={<><CountUp value={achieved} />/{projects.length}</>} unit="件" />
           </dl>
         </section>
       </div>
@@ -218,10 +234,10 @@ export default async function HomePage() {
       <section className="bg-ink py-24 text-white">
         <div className="mx-auto max-w-6xl space-y-14 px-4">
           <SectionHeading en="Artists" ja="挑戦中のアーティスト" dark />
-          <ul className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
+          <ul data-stagger className="grid grid-cols-2 gap-6 sm:gap-8 lg:grid-cols-4">
             {artists.map((a, i) => (
               <li key={a.id} className={i % 2 === 1 ? "sm:translate-y-8" : ""}>
-                <Link href={`/artists/${a.id}`} className={`group block border-[3px] bg-white p-3 text-ink ${FRAME_COLORS[i % FRAME_COLORS.length]}`}>
+                <Link href={`/artists/${a.id}`} className={`group block border-[3px] bg-white p-3 text-ink transition duration-300 hover:-rotate-2 hover:scale-[1.03] ${FRAME_COLORS[i % FRAME_COLORS.length]}`}>
                   <span className="relative block aspect-square overflow-hidden">
                     <Photo src={a.photo} alt={a.name} sizes="(min-width: 1024px) 240px, 45vw" className="transition-transform duration-500 group-hover:scale-105" />
                   </span>
@@ -255,7 +271,7 @@ export default async function HomePage() {
       </section>
 
       <section className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-24 lg:grid-cols-2">
-        <div className="relative mx-auto aspect-[4/5] w-full max-w-sm">
+        <div data-reveal="left" className="relative mx-auto aspect-[4/5] w-full max-w-sm">
           <div className="absolute inset-0 translate-x-4 translate-y-4 bg-pop-yellow" aria-hidden />
           <div className="relative h-full overflow-hidden">
             <Photo src="/images/bass-studio.jpg" alt="" sizes="(min-width: 1024px) 380px, 90vw" />
@@ -263,7 +279,7 @@ export default async function HomePage() {
           <Sticker shape="circle" color="pink" size={70} className="-left-6 -top-6" float />
           <Sticker shape="triangle" color="blue" size={40} className="-bottom-4 right-10" />
         </div>
-        <div>
+        <div data-reveal="right">
           <SectionHeading en="For artists" ja="あなたの音楽を、ファンと一緒に。" />
           <p className="mt-6 leading-loose tracking-wider text-stone-700">
             アルバム制作、ライブ、MV。0円プランや参加人数目標で、お金以外の応援も集められます。
@@ -280,9 +296,9 @@ export default async function HomePage() {
   );
 }
 
-function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
+function Stat({ label, value, unit }: { label: string; value: React.ReactNode; unit?: string }) {
   return (
-    <div className="bg-stone-100 px-6 py-8 text-center">
+    <div className="bg-stone-100 px-6 py-8 text-center transition hover:-translate-y-1 hover:bg-brand-soft">
       <dt className="text-sm font-bold tracking-wider">{label}</dt>
       <dd className="mt-3 font-en text-4xl font-black text-pop-blue sm:text-5xl">
         {value}

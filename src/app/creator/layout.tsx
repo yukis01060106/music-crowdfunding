@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: "実行者管理画面", robots: { in
 const items = [
   { href: "/creator", label: "ダッシュボード" },
   { href: "/creator/projects/new", label: "プロジェクトを作成" },
+  { href: "/creator/membership", label: "メンバーシップ設定" },
   { href: "/creator/backers", label: "支援者一覧" },
   { href: "/creator/messages", label: "メッセージ" },
   { href: "/creator/updates", label: "活動報告" },

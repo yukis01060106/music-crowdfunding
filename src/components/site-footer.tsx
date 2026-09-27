@@ -9,6 +9,7 @@ const COLUMNS = [
       { href: "/help", label: "はじめての方へ" },
       { href: "/projects", label: "プロジェクトをさがす" },
       { href: "/membership", label: "メンバーシップ" },
+      { href: "/fes", label: "ONE NOTE FES" },
       { href: "/mypage", label: "マイページ" },
     ],
   },

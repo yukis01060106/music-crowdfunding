@@ -3,6 +3,7 @@ import { Heebo, Noto_Sans_JP } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SideRails } from "@/components/side-rails";
+import { MotionRoot } from "@/components/motion/motion-root";
 import "./globals.css";
 
 const notoSansJp = Noto_Sans_JP({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ja">
       <body className={`${notoSansJp.variable} ${heebo.variable} flex min-h-screen flex-col font-sans antialiased 2xl:px-7`}>
+        <MotionRoot />
         <SideRails />
         <SiteHeader />
         <main className="flex-1">{children}</main>

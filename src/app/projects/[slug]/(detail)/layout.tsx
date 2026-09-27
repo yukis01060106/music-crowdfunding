@@ -14,6 +14,7 @@ import { MobileSupportBar } from "@/components/project/mobile-support-bar";
 import { StatusBadges } from "@/components/project/status-badges";
 import { VerifiedBadge } from "@/components/project/verified-badge";
 import { TrackList } from "@/components/project/track-list";
+import { ProjectMedia } from "@/components/project/project-media";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 
@@ -82,9 +83,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-6">
           <div className="relative">
-            <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br sm:aspect-video ${project.color}`}>
-              <Photo src={project.cover} alt={project.title} sizes="(min-width: 1024px) 760px, 100vw" priority />
-            </div>
+            <ProjectMedia title={project.title} images={[project.cover, ...(project.gallery ?? [])]} videoUrl={project.videoUrl} color={project.color} />
             <Sticker shape="circle" color="yellow" size={56} className="-right-3 -top-4" float />
             <Sticker shape="triangle" color="purple" size={40} className="-bottom-4 left-6" />
           </div>

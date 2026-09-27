@@ -151,8 +151,12 @@ export interface Project {
   updates: ProjectUpdate[];
   comments: SupportComment[];
   color: string;
-  /** メインの写真（public/ からのパス） */
+  /** メインの写真（public/ からのパス）。一覧やシェアに使う表紙 */
   cover: string;
+  /** 表紙に続けて見せる写真。表紙を含めて最大5枚 */
+  gallery?: string[];
+  /** 紹介動画（YouTube / Vimeo の URL） */
+  videoUrl?: string;
 }
 
 export const GENRE_LABELS: Record<Genre, string> = {

@@ -1,336 +1,222 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ARTIST_TYPE_LABELS,
-  FUNDING_MODEL_LABELS,
-  GENRE_LABELS,
-  MINOR_ARTIST_TYPES,
-  REWARD_KIND_LABELS,
-  type ArtistType,
-  type FundingModel,
-  type Genre,
-  type GoalType,
-  type RewardKind,
-} from "@/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ProofreadPanel } from "@/components/proofread/proofread-panel";
+import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, saveDraft, TABS, type Draft, type Tab } from "./draft";
+import { Preview } from "./preview";
+import { BasicsSection, IdentitySection, MediaSection, MoneySection, RewardsSection, RisksSection, StorySection, TracksSection, type Update } from "./sections";
 
-const TABS = ["基本情報", "ストーリー・試聴", "資金・スケジュール・リスク", "リターン", "本人確認・振込先"] as const;
-type Tab = (typeof TABS)[number];
+/** 入力が止まってから自動保存するまでの時間 */
+const AUTOSAVE_MS = 1500;
 
-const TITLE_MAX = 40;
-
-interface DraftReward {
-  title: string;
-  price: number;
-  kind: RewardKind;
+/** 校正の指摘から、その欄があるタブを探す */
+function tabOfField(fieldId: string): Tab {
+  const kind = fieldId.split(":")[0];
+  if (kind === "title" || kind === "catchcopy") return "基本情報";
+  if (kind === "summary" || kind === "story") return "ストーリー";
+  if (kind === "budget" || kind === "schedule") return "資金・スケジュール";
+  if (kind === "reward") return "リターン";
+  return "リスク・FAQ";
 }
 
-interface Draft {
-  title: string;
-  catchcopy: string;
-  genre: Genre;
-  fundingModel: FundingModel;
-  goalType: GoalType;
-  goal: string;
-  days: string;
-  artistTypes: ArtistType[];
-  guardianConsent: boolean;
-  summary: string;
-  story: string;
-  budget: string;
-  schedule: string;
-  risks: string;
-  rewards: DraftReward[];
-}
-
-const initialDraft: Draft = {
-  title: "",
-  catchcopy: "",
-  genre: "rock",
-  fundingModel: "all_or_nothing",
-  goalType: "amount",
-  goal: "",
-  days: "30",
-  artistTypes: [],
-  guardianConsent: false,
-  summary: "",
-  story: "",
-  budget: "",
-  schedule: "",
-  risks: "",
-  rewards: [
-    { title: "0円で応援する", price: 0, kind: "free" },
-    { title: "", price: 3000, kind: "digital" },
-  ],
-};
-
-// TODO: 下書きを自動保存し、「審査に提出」で status を in_review にする
+// TODO: Supabase に保存し、「審査に提出」で status を in_review にする
 export function ProjectEditor() {
   const [tab, setTab] = useState<Tab>("基本情報");
   const [d, setD] = useState<Draft>(initialDraft);
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setD((prev) => ({ ...prev, [key]: value }));
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [restored, setRestored] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const loaded = useRef(false);
+  const topRef = useRef<HTMLDivElement>(null);
 
-  const needsGuardianConsent = d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t));
-  const paidRewards = d.rewards.filter((r) => r.price > 0 && r.title.trim());
+  const update: Update = useCallback((fn) => setD((prev) => fn(prev)), []);
 
-  // 支援者が支援を決めるのに必要な情報がそろっているか
-  const checklist: { label: string; done: boolean; tab: Tab }[] = [
-    { label: "タイトル", done: d.title.trim().length > 0 && d.title.length <= TITLE_MAX, tab: "基本情報" },
-    { label: "目標と期間", done: Number(d.goal) > 0 && Number(d.days) >= 7 && Number(d.days) <= 80, tab: "基本情報" },
-    { label: "アーティストタイプ", done: d.artistTypes.length > 0, tab: "基本情報" },
-    ...(needsGuardianConsent ? [{ label: "保護者の同意", done: d.guardianConsent, tab: "基本情報" as Tab }] : []),
-    { label: "実現すること（要約）", done: d.summary.trim().length > 0, tab: "ストーリー・試聴" },
-    { label: "ストーリー", done: d.story.trim().length >= 200, tab: "ストーリー・試聴" },
-    { label: "資金の使い道", done: d.budget.trim().length > 0, tab: "資金・スケジュール・リスク" },
-    { label: "スケジュール", done: d.schedule.trim().length > 0, tab: "資金・スケジュール・リスク" },
-    { label: "リスクとチャレンジ", done: d.risks.trim().length > 0, tab: "資金・スケジュール・リスク" },
-    { label: "有料のリターン（1つ以上）", done: paidRewards.length > 0, tab: "リターン" },
-  ];
-  const doneCount = checklist.filter((c) => c.done).length;
-  const ready = doneCount === checklist.length;
+  // 前回の下書きを復元する（localStorage はブラウザでしか読めないので、描画後に）
+  useEffect(() => {
+    const saved = loadDraft();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 保存済みの下書きはブラウザでしか読めない
+    if (saved) setD(saved);
+    setRestored(saved !== null);
+    loaded.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!loaded.current) return;
+    const timer = setTimeout(() => saveDraft(d) && setSavedAt(new Date()), AUTOSAVE_MS);
+    return () => clearTimeout(timer);
+  }, [d]);
+
+  const items = checklist(d);
+  const required = items.filter((c) => c.required);
+  const recommended = items.filter((c) => !c.required);
+  const doneCount = required.filter((c) => c.done).length;
+  const ready = doneCount === required.length;
+  const tabIndex = TABS.indexOf(tab);
+
+  function go(next: Tab) {
+    setTab(next);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  if (submitted) {
+    return (
+      <div className="animate-rise mx-auto max-w-xl space-y-4 border border-emerald-200 bg-emerald-50 p-8 text-center">
+        <p className="text-4xl" aria-hidden>
+          📮
+        </p>
+        <p className="text-2xl font-bold text-emerald-800">審査に提出しました</p>
+        <p className="text-sm leading-relaxed text-stone-600">
+          最短即日〜5営業日で結果をメールでお知らせします。審査中は編集できません。
+          <br />
+          審査を通過したら、好きなタイミングで公開ボタンを押して募集を始められます。
+        </p>
+        <button type="button" onClick={() => setSubmitted(false)} className="text-sm text-stone-500 underline">
+          （デモ）編集画面に戻る
+        </button>
+      </div>
+    );
+  }
+
+  const sectionProps = { d, update };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+    <div ref={topRef} className="grid scroll-mt-20 gap-6 lg:grid-cols-[1fr_300px]">
       <div className="min-w-0 space-y-4">
-        <nav className="flex gap-1 overflow-x-auto border-b border-stone-200">
-          {TABS.map((t) => (
+        {restored && (
+          <div className="animate-rise flex flex-wrap items-center justify-between gap-2 bg-brand-soft px-4 py-2 text-sm text-brand">
+            前回の下書きを復元しました（画像と音源は選び直してください）。
             <button
-              key={t}
               type="button"
-              onClick={() => setTab(t)}
-              className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm ${
-                t === tab ? "border-brand font-medium text-brand" : "border-transparent text-stone-500"
-              }`}
+              onClick={() => {
+                clearDraft();
+                setD(initialDraft);
+                setRestored(false);
+              }}
+              className="text-xs underline"
             >
-              {t}
+              最初から作り直す
             </button>
-          ))}
+          </div>
+        )}
+
+        <nav className="-mx-1 flex gap-x-1 overflow-x-auto border-b border-stone-200 px-1 lg:flex-wrap lg:overflow-visible" aria-label="入力項目">
+          {TABS.map((t, i) => {
+            const tabItems = required.filter((c) => c.tab === t);
+            const complete = tabItems.length > 0 && tabItems.every((c) => c.done);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                aria-current={t === tab ? "page" : undefined}
+                className={`relative -mb-px shrink-0 border-b-2 px-3 py-2.5 text-sm transition ${
+                  t === tab ? "border-brand font-bold text-brand" : "border-transparent text-stone-500 hover:text-ink"
+                }`}
+              >
+                <span className="mr-1 font-en text-[10px] text-stone-400">{i + 1}</span>
+                {t}
+                {complete && (
+                  <span className="ml-1 text-emerald-500" aria-label="入力済み">
+                    ✓
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="space-y-5 border border-stone-200 bg-white p-5">
-          {tab === "基本情報" && (
-            <>
-              <Field label="プロジェクトタイトル" hint={`${d.title.length}/${TITLE_MAX}文字。何をしたいかが一目でわかるように。`} error={d.title.length > TITLE_MAX ? `${TITLE_MAX}文字以内にしてください` : undefined}>
-                <input value={d.title} onChange={(e) => set("title", e.target.value)} className={inputClass} placeholder="例: 結成7年目、初のフルアルバムを作りたい" />
-              </Field>
-              <Field label="キャッチコピー" hint="シェアされたときにも表示されます。">
-                <input value={d.catchcopy} onChange={(e) => set("catchcopy", e.target.value)} className={inputClass} />
-              </Field>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="ジャンル">
-                  <select value={d.genre} onChange={(e) => set("genre", e.target.value as Genre)} className={inputClass}>
-                    {(Object.entries(GENRE_LABELS) as [Genre, string][]).map(([v, l]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="達成方式" hint="迷ったらAll-or-Nothing。支援者が安心して支援できます。">
-                  <select value={d.fundingModel} onChange={(e) => set("fundingModel", e.target.value as FundingModel)} className={inputClass}>
-                    {(Object.entries(FUNDING_MODEL_LABELS) as [FundingModel, string][]).map(([v, l]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="目標の種類">
-                  <select value={d.goalType} onChange={(e) => set("goalType", e.target.value as GoalType)} className={inputClass}>
-                    <option value="amount">金額</option>
-                    <option value="participants">参加人数（0円プランの参加者も数える）</option>
-                  </select>
-                </Field>
-                <Field label={d.goalType === "amount" ? "目標金額（円）" : "目標人数（人）"} hint="制作費・リターン原価・送料・手数料をすべて足した額に。">
-                  <input type="number" min={1} value={d.goal} onChange={(e) => set("goal", e.target.value)} className={inputClass} />
-                </Field>
-                <Field label="募集期間（日）" hint="7〜80日。30〜45日がおすすめ。支援は最初と最後の2日間に集まります。">
-                  <input type="number" min={7} max={80} value={d.days} onChange={(e) => set("days", e.target.value)} className={inputClass} />
-                </Field>
-              </div>
-              <fieldset className="text-sm">
-                <legend className="font-medium">アーティストタイプ（複数選べます）</legend>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(Object.entries(ARTIST_TYPE_LABELS) as [ArtistType, string][]).map(([t, label]) => (
-                    <label key={t} className="flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1">
-                      <input
-                        type="checkbox"
-                        checked={d.artistTypes.includes(t)}
-                        onChange={(e) =>
-                          set("artistTypes", e.target.checked ? [...d.artistTypes, t] : d.artistTypes.filter((x) => x !== t))
-                        }
-                        className="accent-brand"
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              {needsGuardianConsent && (
-                <div className="space-y-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-                  <p>18歳未満の方は、保護者の同意がないとプロジェクトを公開できません。</p>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" checked={d.guardianConsent} onChange={(e) => set("guardianConsent", e.target.checked)} className="accent-brand" />
-                    保護者の同意を得ています（審査時に同意書を提出します）
-                  </label>
-                </div>
-              )}
-            </>
-          )}
+        <div key={tab} className="animate-rise space-y-5 border border-stone-200 bg-white p-5">
+          {tab === "基本情報" && <BasicsSection {...sectionProps} />}
+          {tab === "写真・動画" && <MediaSection {...sectionProps} />}
+          {tab === "ストーリー" && <StorySection {...sectionProps} />}
+          {tab === "試聴音源" && <TracksSection {...sectionProps} />}
+          {tab === "資金・スケジュール" && <MoneySection {...sectionProps} />}
+          {tab === "リターン" && <RewardsSection {...sectionProps} />}
+          {tab === "リスク・FAQ" && <RisksSection {...sectionProps} />}
+          {tab === "本人確認・振込先" && <IdentitySection {...sectionProps} />}
+        </div>
 
-          {tab === "ストーリー・試聴" && (
-            <>
-              <Field label="メイン画像" hint="文字を入れすぎない、アーティストの顔が見える写真がおすすめです。">
-                <input type="file" accept="image/*" className="block text-sm" />
-              </Field>
-              <Field label="このプロジェクトで実現すること（1行に1つ、3つまで）" hint="スマホではページの冒頭しか読まれません。ここだけで伝わるように。">
-                <textarea rows={3} value={d.summary} onChange={(e) => set("summary", e.target.value)} className={inputClass} placeholder={"初のフルアルバムを制作\nCDとアナログ盤でリリース"} />
-              </Field>
-              <Field label="ストーリー" hint={`${d.story.length}文字（200文字以上）。なぜ今やるのか、あなたの想いを。支援の決め手の1位は「想いへの共感」です。`}>
-                <textarea rows={10} value={d.story} onChange={(e) => set("story", e.target.value)} className={inputClass} />
-              </Field>
-              <Field label="試聴音源（MP3、1曲90秒まで）" hint="カバー曲を使う場合は、著作権の許諾が必要です。">
-                <input type="file" accept="audio/*" multiple className="block text-sm" />
-              </Field>
-            </>
-          )}
-
-          {tab === "資金・スケジュール・リスク" && (
-            <>
-              <p className="rounded-lg bg-sky-50 p-3 text-sm text-sky-900">
-                支援者がいちばん不安なのは「本当に届くのか」です。ここを具体的に書くほど、支援されやすくなります。
-              </p>
-              <Field label="資金の使い道（1行に「項目: 金額」）">
-                <textarea rows={4} value={d.budget} onChange={(e) => set("budget", e.target.value)} className={inputClass} placeholder={"スタジオ代: 450000\nプレス代: 400000"} />
-              </Field>
-              <Field label="スケジュール（1行に「時期: 内容」）">
-                <textarea rows={4} value={d.schedule} onChange={(e) => set("schedule", e.target.value)} className={inputClass} placeholder={"2026年12月: レコーディング\n2027年2月: お届け"} />
-              </Field>
-              <Field label="リスクとチャレンジ" hint="遅れる可能性があること、そのときにどう知らせるかを正直に。">
-                <textarea rows={4} value={d.risks} onChange={(e) => set("risks", e.target.value)} className={inputClass} />
-              </Field>
-            </>
-          )}
-
-          {tab === "リターン" && (
-            <>
-              <p className="text-sm text-stone-600">
-                3〜5種類がおすすめ。主力は1,500〜3,000円。金額は<strong>税込・送料込み</strong>で入力してください。
-              </p>
-              {d.rewards.map((r, i) => (
-                <div key={i} className="grid gap-3 rounded-lg border border-stone-200 p-3 sm:grid-cols-[1fr_120px_160px_auto]">
-                  <input
-                    value={r.title}
-                    onChange={(e) => set("rewards", d.rewards.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
-                    placeholder="リターン名"
-                    aria-label="リターン名"
-                    className={inputClass}
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={r.price}
-                    onChange={(e) => set("rewards", d.rewards.map((x, j) => (j === i ? { ...x, price: Number(e.target.value) } : x)))}
-                    aria-label="金額（税込・送料込み）"
-                    className={inputClass}
-                  />
-                  <select
-                    value={r.kind}
-                    onChange={(e) => set("rewards", d.rewards.map((x, j) => (j === i ? { ...x, kind: e.target.value as RewardKind } : x)))}
-                    aria-label="種類"
-                    className={inputClass}
-                  >
-                    {(Object.entries(REWARD_KIND_LABELS) as [RewardKind, string][]).map(([k, label]) => (
-                      <option key={k} value={k}>{label}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => set("rewards", d.rewards.filter((_, j) => j !== i))}
-                    className="rounded-lg px-3 text-sm text-stone-500 hover:bg-stone-100"
-                    aria-label="このリターンを削除"
-                  >
-                    削除
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => set("rewards", [...d.rewards, { title: "", price: 5000, kind: "ticket" }])}
-                className="rounded-lg border border-dashed border-stone-300 px-4 py-2 text-sm text-stone-600"
-              >
-                ＋ リターンを追加
-              </button>
-            </>
-          )}
-
-          {tab === "本人確認・振込先" && (
-            <p className="text-sm text-stone-600">
-              本人確認書類の提出と振込先口座の登録は、Stripe Connect の画面で行います（審査の提出に必須）。
-              本人確認が済むと、プロジェクトページに「本人確認済み」のバッジが付きます。
-            </p>
+        <div className="flex justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => go(TABS[tabIndex - 1])}
+            disabled={tabIndex === 0}
+            className="border border-stone-300 bg-white px-5 py-2.5 text-sm transition hover:bg-stone-100 disabled:invisible"
+          >
+            ← {TABS[tabIndex - 1]}
+          </button>
+          {tabIndex < TABS.length - 1 && (
+            <button type="button" onClick={() => go(TABS[tabIndex + 1])} className="bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
+              {TABS[tabIndex + 1]} →
+            </button>
           )}
         </div>
       </div>
 
-      <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
+      <aside className="space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
         <div className="border border-stone-200 bg-white p-4 text-sm">
           <div className="flex items-baseline justify-between">
             <p className="font-bold">公開までのチェック</p>
-            <p className="text-xs text-stone-500">
-              {doneCount}/{checklist.length}
+            <p className="font-en text-xs text-stone-500">
+              {doneCount}/{required.length}
             </p>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-stone-100">
-            <div className="h-full rounded-full bg-brand" style={{ width: `${(doneCount / checklist.length) * 100}%` }} />
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-100">
+            <div className="h-full rounded-full bg-brand transition-all duration-700 ease-out" style={{ width: `${(doneCount / required.length) * 100}%` }} />
           </div>
-          <ul className="mt-3 space-y-1.5">
-            {checklist.map((c) => (
-              <li key={c.label}>
-                <button type="button" onClick={() => setTab(c.tab)} className="flex w-full items-center gap-2 text-left hover:text-brand">
-                  <span className={c.done ? "text-emerald-600" : "text-stone-300"} aria-hidden>
-                    {c.done ? "✓" : "○"}
-                  </span>
-                  <span className={c.done ? "text-stone-500" : ""}>{c.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <CheckList items={required} onJump={setTab} />
+          <p className="mt-4 text-xs font-bold text-stone-500">あると支援されやすい</p>
+          <CheckList items={recommended} onJump={setTab} />
         </div>
-        <button type="button" className="w-full rounded-lg border border-stone-300 bg-white py-2 text-sm">
+
+        <ProofreadPanel
+          fields={proofreadFields(d)}
+          onApply={(fieldId, excerpt, replacement) => update((prev) => applyFix(prev, fieldId, excerpt, replacement))}
+          onJump={(fieldId) => setTab(tabOfField(fieldId))}
+        />
+
+        <button type="button" onClick={() => setPreviewing(true)} className="w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
           プレビュー
         </button>
         <button
           type="button"
           disabled={!ready}
-          className="w-full rounded-lg bg-brand py-2.5 text-sm font-bold text-white disabled:bg-stone-300"
+          onClick={() => {
+            clearDraft();
+            setSubmitted(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className="w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
         >
           審査に提出する
         </button>
-        {!ready && <p className="text-center text-xs text-stone-500">すべての項目がそろうと提出できます</p>}
+        <p className="text-center text-xs text-stone-500">
+          {ready ? "提出後は審査が終わるまで編集できません" : `必須の項目があと${required.length - doneCount}つあります`}
+        </p>
+        <p className="text-center text-[11px] text-stone-400" aria-live="polite">
+          {savedAt ? `下書きを自動保存しました（${savedAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}）` : "入力内容は自動で下書き保存されます"}
+        </p>
       </aside>
+
+      {previewing && <Preview d={d} onClose={() => setPreviewing(false)} />}
     </div>
   );
 }
 
-const inputClass = "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm";
-
-function Field({
-  label,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
+function CheckList({ items, onJump }: { items: ReturnType<typeof checklist>; onJump: (tab: Tab) => void }) {
   return (
-    <label className="block text-sm">
-      <span className="font-medium">{label}</span>
-      {children}
-      {error ? (
-        <span className="mt-1 block text-xs text-rose-600">{error}</span>
-      ) : (
-        hint && <span className="mt-1 block text-xs text-stone-500">{hint}</span>
-      )}
-    </label>
+    <ul className="mt-2 space-y-1">
+      {items.map((c) => (
+        <li key={c.label}>
+          <button type="button" onClick={() => onJump(c.tab)} className="flex w-full items-center gap-2 text-left transition hover:text-brand">
+            <span className={`transition ${c.done ? "scale-110 text-emerald-600" : "text-stone-300"}`} aria-hidden>
+              {c.done ? "✓" : "○"}
+            </span>
+            <span className={c.done ? "text-stone-400 line-through decoration-stone-300" : ""}>{c.label}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -1,5 +1,6 @@
 import { PageTitle } from "@/components/side-nav";
 import { REWARD_KIND_LABELS, type RewardKind } from "@/types";
+import { ShipmentTable } from "./shipment-table";
 
 // リターン種別ごとのお届け方法。デジタルとチケットは自動で届ける
 const methods: { kind: RewardKind; how: string }[] = [
@@ -14,6 +15,9 @@ export default function ShippingPage() {
   return (
     <>
       <PageTitle>リターン配送</PageTitle>
+      <h2 className="mb-3 font-bold">発送が必要なリターン</h2>
+      <ShipmentTable />
+      <h2 className="mb-3 mt-10 font-bold">種類ごとのお届け方法</h2>
       <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
         {methods.map((m) => (
           <li key={m.kind} className="flex justify-between gap-4 p-4 text-sm">
