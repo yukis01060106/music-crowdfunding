@@ -71,6 +71,31 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ONE NOTE FES：ヒーロー直後に置く、企画中のフェス告知 */}
+      <section className="mt-20 bg-ink py-16 text-white sm:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+          <div className="relative aspect-[1376/768] w-full overflow-hidden">
+            <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="(min-width: 1024px) 640px, 100vw" />
+            <span className="absolute left-3 top-3 bg-pop-yellow px-3 py-1 text-xs font-black tracking-widest text-ink sm:text-sm">
+              企画中
+            </span>
+          </div>
+          <div>
+            <p className="font-en text-xs font-medium tracking-wide text-white/70">Festival</p>
+            <h2 className="mt-2 font-en text-3xl font-black tracking-wider sm:text-4xl">ONE NOTE FES</h2>
+            <p className="mt-4 text-xl font-bold tracking-[0.12em] sm:text-2xl">ファンと共に創るフェス</p>
+            <p className="mt-5 text-sm leading-loose tracking-wider text-white/80">
+              OTOFUNDから生まれる音楽フェス。
+              すべてのアーティストとファンが、ひとつになる瞬間を創ります。
+              出演者もステージも、ファンの応援で形にしていく予定です。
+            </p>
+            <p className="mt-6 inline-block border border-white/40 px-4 py-2 text-sm font-bold tracking-wider">
+              ただいま企画中。続報をお待ちください。
+            </p>
+          </div>
+        </div>
+      </section>
+
       <div className="mx-auto max-w-6xl space-y-28 px-4 py-24">
         <section className="space-y-10">
           <SectionHeading en="Pickup" ja="注目のプロジェクト" />
