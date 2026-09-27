@@ -7,9 +7,22 @@ export type Genre =
   | "jazz"
   | "classical"
   | "electronic"
-  | "idol"
   | "anime"
-  | "indie";
+  | "vocaloid";
+
+/**
+ * アーティストタイプ。音楽ジャンルとは別の軸で、1組のアーティストが複数持てる
+ * （例: 大学生 かつ YouTuber）。
+ */
+export type ArtistType =
+  | "major"
+  | "indie"
+  | "youtuber"
+  | "tiktoker"
+  | "idol"
+  | "underground_idol"
+  | "university"
+  | "high_school";
 
 /** 達成方式。All-or-Nothing は目標未達なら決済しない。All-in は未達でも実行する。 */
 export type FundingModel = "all_or_nothing" | "all_in";
@@ -39,6 +52,7 @@ export interface Artist {
   name: string;
   bio: string;
   genres: Genre[];
+  types: ArtistType[];
   links: { label: string; url: string }[];
   /** カバーのグラデーション（画像を用意するまでの代替） */
   color: string;
@@ -112,10 +126,23 @@ export const GENRE_LABELS: Record<Genre, string> = {
   jazz: "ジャズ",
   classical: "クラシック",
   electronic: "エレクトロニック",
-  idol: "アイドル",
   anime: "アニソン・ゲーム音楽",
-  indie: "インディーズ",
+  vocaloid: "ボカロ",
 };
+
+export const ARTIST_TYPE_LABELS: Record<ArtistType, string> = {
+  major: "メジャーアーティスト",
+  indie: "インディーズ",
+  youtuber: "YouTuber",
+  tiktoker: "TikToker",
+  idol: "アイドル",
+  underground_idol: "地下アイドル",
+  university: "大学生",
+  high_school: "高校生",
+};
+
+/** 未成年が多いタイプ。プロジェクト作成時に保護者の同意を求める */
+export const MINOR_ARTIST_TYPES: readonly ArtistType[] = ["high_school"];
 
 export const REWARD_KIND_LABELS: Record<RewardKind, string> = {
   free: "0円応援",

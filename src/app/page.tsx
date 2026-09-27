@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getArtists, getPublicProjects } from "@/lib/data";
-import { GENRE_LABELS, type Genre } from "@/types";
+import { ARTIST_TYPE_LABELS, GENRE_LABELS, type ArtistType, type Genre } from "@/types";
 import { ProjectCard } from "@/components/project/project-card";
 import { ProgressBar } from "@/components/project/progress";
 import { formatYen, progressPercent } from "@/lib/format";
@@ -9,11 +9,11 @@ export const revalidate = 300;
 
 export default async function HomePage() {
   const [projects, artists] = await Promise.all([getPublicProjects(), getArtists()]);
-  const artistName = (id: string) => artists.find((a) => a.id === id)?.name ?? "";
+  const artistOf = (id: string) => artists.find((a) => a.id === id);
   const live = projects.filter((p) => p.status === "live");
 
   const featured = [...live].sort((a, b) => b.backers - a.backers)[0];
-  const popular = [...live].sort((a, b) => b.backers - a.backers);
+  const popular = [...live].sort((a, b) => b.backers - a.backers).slice(0, 6);
   const endingSoon = [...live].sort((a, b) => a.endAt.localeCompare(b.endAt)).slice(0, 3);
 
   return (
@@ -23,7 +23,7 @@ export default async function HomePage() {
           href={`/projects/${featured.slug}`}
           className={`block rounded-2xl bg-gradient-to-br ${featured.color} p-8 text-white sm:p-12`}
         >
-          <p className="text-sm opacity-90">{artistName(featured.artistId)}</p>
+          <p className="text-sm opacity-90">{artistOf(featured.artistId)?.name}</p>
           <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-snug sm:text-3xl">{featured.title}</h1>
           <p className="mt-3 max-w-2xl opacity-90">{featured.catchcopy}</p>
           <div className="mt-6 max-w-md space-y-2">
@@ -38,7 +38,7 @@ export default async function HomePage() {
       <Section title="人気のプロジェクト" href="/projects">
         <Grid>
           {popular.map((p) => (
-            <ProjectCard key={p.slug} project={p} artistName={artistName(p.artistId)} />
+            <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} />
           ))}
         </Grid>
       </Section>
@@ -46,9 +46,23 @@ export default async function HomePage() {
       <Section title="まもなく終了">
         <Grid>
           {endingSoon.map((p) => (
-            <ProjectCard key={p.slug} project={p} artistName={artistName(p.artistId)} />
+            <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} />
           ))}
         </Grid>
+      </Section>
+
+      <Section title="アーティストタイプからさがす">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(Object.keys(ARTIST_TYPE_LABELS) as ArtistType[]).map((t) => (
+            <Link
+              key={t}
+              href={`/types/${t}`}
+              className="rounded-xl border border-stone-200 bg-white px-4 py-5 text-center font-bold hover:border-brand hover:text-brand"
+            >
+              {ARTIST_TYPE_LABELS[t]}
+            </Link>
+          ))}
+        </div>
       </Section>
 
       <Section title="ジャンルからさがす">

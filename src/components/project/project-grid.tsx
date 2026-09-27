@@ -11,7 +11,7 @@ export function ProjectGrid({ projects, artists }: { projects: Project[]; artist
         <ProjectCard
           key={p.slug}
           project={p}
-          artistName={artists.find((a) => a.id === p.artistId)?.name ?? ""}
+          artist={artists.find((a) => a.id === p.artistId)}
         />
       ))}
     </div>

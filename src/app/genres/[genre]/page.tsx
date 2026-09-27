@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getArtists, getProjectsByGenre } from "@/lib/data";
 import { GENRE_LABELS, type Genre } from "@/types";
-import { GenreNav } from "@/components/project/genre-nav";
+import { BrowseNav } from "@/components/project/browse-nav";
 import { ProjectGrid } from "@/components/project/project-grid";
 
 export const revalidate = 300;
@@ -29,7 +29,7 @@ export default async function GenrePage({ params }: PageProps<"/genres/[genre]">
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-bold">{GENRE_LABELS[genre]}のプロジェクト</h1>
-      <GenreNav current={genre} />
+      <BrowseNav current={{ kind: "genre", value: genre }} />
       <ProjectGrid projects={projects} artists={artists} />
     </div>
   );

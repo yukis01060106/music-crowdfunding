@@ -1,4 +1,4 @@
-import type { Artist, Genre, Project } from "@/types";
+import type { Artist, ArtistType, Genre, Project } from "@/types";
 import { artists, projects } from "./mock";
 
 // データ取得の窓口。画面はここの関数だけを使う。
@@ -12,6 +12,12 @@ export async function getPublicProjects(): Promise<Project[]> {
 
 export async function getProjectsByGenre(genre: Genre): Promise<Project[]> {
   return (await getPublicProjects()).filter((p) => p.genre === genre);
+}
+
+/** アーティストタイプで絞り込む。タイプはアーティストが持つので、アーティスト経由で探す */
+export async function getProjectsByArtistType(type: ArtistType): Promise<Project[]> {
+  const ids = new Set(artists.filter((a) => a.types.includes(type)).map((a) => a.id));
+  return (await getPublicProjects()).filter((p) => ids.has(p.artistId));
 }
 
 export async function getProject(slug: string): Promise<Project | undefined> {

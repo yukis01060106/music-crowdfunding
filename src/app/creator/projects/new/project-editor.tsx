@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import {
+  ARTIST_TYPE_LABELS,
   FUNDING_MODEL_LABELS,
+  MINOR_ARTIST_TYPES,
   GENRE_LABELS,
   REWARD_KIND_LABELS,
+  type ArtistType,
   type FundingModel,
   type Genre,
   type GoalType,
@@ -24,6 +27,8 @@ interface DraftReward {
 export function ProjectEditor() {
   const [tab, setTab] = useState<Tab>("基本情報");
   const [goalType, setGoalType] = useState<GoalType>("amount");
+  const [artistTypes, setArtistTypes] = useState<ArtistType[]>([]);
+  const needsGuardianConsent = artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t));
   const [rewards, setRewards] = useState<DraftReward[]>([{ title: "0円で応援する", price: 0, kind: "free" }]);
 
   return (
@@ -50,6 +55,33 @@ export function ProjectEditor() {
               <Input label="プロジェクトタイトル（40文字以内）" maxLength={40} />
               <Input label="キャッチコピー" />
               <Select label="ジャンル" options={Object.entries(GENRE_LABELS) as [Genre, string][]} />
+              <fieldset className="text-sm">
+                <legend>アーティストタイプ（複数選べます）</legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(Object.entries(ARTIST_TYPE_LABELS) as [ArtistType, string][]).map(([t, label]) => (
+                    <label key={t} className="flex items-center gap-1.5 rounded-full border border-stone-300 px-3 py-1">
+                      <input
+                        type="checkbox"
+                        checked={artistTypes.includes(t)}
+                        onChange={(e) =>
+                          setArtistTypes(e.target.checked ? [...artistTypes, t] : artistTypes.filter((x) => x !== t))
+                        }
+                        className="accent-brand"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              {needsGuardianConsent && (
+                <div className="space-y-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                  <p>18歳未満の方は、保護者の同意がないとプロジェクトを公開できません。</p>
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" className="accent-brand" />
+                    保護者の同意を得ています（審査時に同意書を提出します）
+                  </label>
+                </div>
+              )}
               <Select
                 label="達成方式"
                 options={Object.entries(FUNDING_MODEL_LABELS) as [FundingModel, string][]}

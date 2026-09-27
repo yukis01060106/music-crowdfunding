@@ -32,7 +32,7 @@ GitHub Pages のデモは、`GITHUB_PAGES=1` で完全な静的サイトとし�
 ## 画面構成
 
 ```
-公開（SSG）  /  /projects  /genres/[genre]  /artists/[id]  /start  /help  /legal/[slug]
+公開（SSG）  /  /projects  /types/[type]  /genres/[genre]  /artists/[id]  /start  /help  /legal/[slug]
             /projects/[slug]           ストーリー（試聴プレイヤー付き）
             /projects/[slug]/updates   活動報告（支援者限定の投稿あり）
             /projects/[slug]/comments  応援コメント
@@ -60,6 +60,8 @@ src/
 
 ## 音楽特化の機能
 
+- 2軸で探せる：アーティストタイプ（メジャー / インディーズ / YouTuber / TikToker / アイドル / 地下アイドル / 大学生 / 高校生、複数可）× 音楽ジャンル
+- 高校生など未成年のプロジェクトは保護者の同意が必須
 - 試聴プレイヤー（`Track.previewUrl`）
 - リターン種別：0円応援 / デジタル音源 / CD・グッズ / ライブチケット / 体験 / クレジット掲載
 - 目標の種類：金額 または 参加人数（0円プランの参加者も数える）

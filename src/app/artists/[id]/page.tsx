@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getArtist, getArtists, getProjectsByArtist } from "@/lib/data";
-import { GENRE_LABELS } from "@/types";
+import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
 import { ProjectGrid } from "@/components/project/project-grid";
 
 export const revalidate = 300;
@@ -27,7 +28,14 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
     <div>
       <div className={`h-40 bg-gradient-to-br ${artist.color}`} />
       <div className="mx-auto max-w-6xl px-4 py-8">
-        <p className="text-sm text-stone-500">{artist.genres.map((g) => GENRE_LABELS[g]).join(" / ")}</p>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          {artist.types.map((t) => (
+            <Link key={t} href={`/types/${t}`} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-brand">
+              {ARTIST_TYPE_LABELS[t]}
+            </Link>
+          ))}
+          <span className="text-stone-500">{artist.genres.map((g) => GENRE_LABELS[g]).join(" / ")}</span>
+        </div>
         <h1 className="mt-1 text-3xl font-bold">{artist.name}</h1>
         <p className="mt-4 max-w-2xl leading-relaxed text-stone-700">{artist.bio}</p>
         <ul className="mt-4 flex gap-4 text-sm">

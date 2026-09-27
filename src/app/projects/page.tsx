@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getArtists, getPublicProjects } from "@/lib/data";
-import { GenreNav } from "@/components/project/genre-nav";
+import { BrowseNav } from "@/components/project/browse-nav";
 import { ProjectGrid } from "@/components/project/project-grid";
 
 export const metadata: Metadata = { title: "プロジェクトをさがす" };
@@ -12,7 +12,7 @@ export default async function ProjectsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-bold">プロジェクトをさがす</h1>
-      <GenreNav />
+      <BrowseNav />
       <ProjectGrid projects={projects} artists={artists} />
     </div>
   );
