@@ -1,10 +1,12 @@
 import type { Artist, Project } from "@/types";
 
 // 開発用のモックデータ。アーティスト・プロジェクトはすべて架空。
+// 試聴音源（public/audio）はデモ用の合成音。
 
 export const artists: Artist[] = [
   {
     id: "hoshizora-radio",
+    verified: true,
     name: "星空ラジオ",
     bio: "2019年結成、東京を拠点に活動する3ピースバンド。夜の街とラジオをテーマにした楽曲を作っている。",
     genres: ["rock"],
@@ -14,6 +16,7 @@ export const artists: Artist[] = [
   },
   {
     id: "mio-aoki",
+    verified: true,
     name: "青木みお",
     bio: "ジャズピアニスト。都内のライブハウスを中心に、年間100本以上のステージに立つ。",
     genres: ["jazz"],
@@ -23,6 +26,7 @@ export const artists: Artist[] = [
   },
   {
     id: "neon-kaiju",
+    verified: true,
     name: "NEON KAIJU",
     bio: "トラックメイカー2人組。ゲーム音楽とクラブミュージックを横断するサウンドが持ち味。",
     genres: ["electronic", "anime"],
@@ -32,6 +36,7 @@ export const artists: Artist[] = [
   },
   {
     id: "kazuma",
+    verified: true,
     name: "KAZUMA",
     bio: "2016年メジャーデビューのシンガー。ドラマ主題歌で広く知られる。",
     genres: ["pop"],
@@ -41,6 +46,7 @@ export const artists: Artist[] = [
   },
   {
     id: "yumenoa",
+    verified: true,
     name: "ゆめのあ",
     bio: "歌ってみた動画で活動する大学2年生。YouTubeとTikTokで歌を投稿している。",
     genres: ["vocaloid", "pop"],
@@ -50,6 +56,7 @@ export const artists: Artist[] = [
   },
   {
     id: "milktea-syndrome",
+    verified: true,
     name: "ミルクティー☆シンドローム",
     bio: "秋葉原のライブハウスを拠点に活動する5人組アイドルグループ。",
     genres: ["pop"],
@@ -59,6 +66,7 @@ export const artists: Artist[] = [
   },
   {
     id: "sunny-side",
+    verified: false,
     name: "SUNNY SIDE",
     bio: "県立高校の軽音部で結成した4ピースバンド。全国大会出場を目指している。",
     genres: ["rock"],
@@ -83,14 +91,33 @@ export const projects: Project[] = [
     backers: 213,
     startAt: "2026-09-01T00:00:00+09:00",
     endAt: "2026-10-31T23:59:59+09:00",
+    summary: ["ライブで育ててきた12曲を、初のフルアルバムに", "CDとアナログ盤でリリースし、渋谷でレコ発ワンマンを開催", "All-or-Nothing方式：目標に届かなければお支払いは発生しません"],
     story: [
       "はじめまして、星空ラジオです。これまで自主制作のEPを3枚出してきましたが、ずっと「ライブの音をそのまま閉じ込めたフルアルバム」を作りたいと思っていました。",
       "集まった資金は、スタジオ代（5日間）、ミックス・マスタリング、CDとアナログ盤のプレスに使います。",
       "目標に届かなかった場合は、支援金はいただきません（All-or-Nothing方式）。",
     ],
+    budget: [
+      { label: "スタジオ代（5日間）", amount: 450000 },
+      { label: "ミックス・マスタリング", amount: 350000 },
+      { label: "CD・アナログ盤プレス", amount: 400000 },
+      { label: "リターン送料・手数料", amount: 300000 },
+    ],
+    schedule: [
+      { date: "2026年10月31日", label: "募集終了" },
+      { date: "2026年12月", label: "レコーディング" },
+      { date: "2027年1月", label: "音源の先行配信" },
+      { date: "2027年2月", label: "CD・アナログ盤のお届け" },
+      { date: "2027年3月", label: "レコ発ワンマンライブ" },
+    ],
+    risks: "レコーディングはすでにスタジオを仮押さえ済みです。プレス工場の混雑でCDのお届けが最大1か月遅れる可能性があります。遅れる場合は、活動報告とメールで必ずお知らせします。",
+    faqs: [
+      { q: "ライブに行けなくなった場合は？", a: "チケットは同行者への譲渡ができます。払い戻しはできません。" },
+      { q: "CDとアナログ盤は選べますか？", a: "CD付きのリターンはCDのみです。アナログ盤は一般発売で購入できます。" },
+    ],
     tracks: [
-      { title: "深夜0時のリクエスト", durationSec: 245 },
-      { title: "周波数", durationSec: 198 },
+      { title: "深夜0時のリクエスト", durationSec: 245, previewUrl: "/audio/hoshizora-midnight.wav" },
+      { title: "周波数", durationSec: 198, previewUrl: "/audio/hoshizora-frequency.wav" },
     ],
     rewards: [
       {
@@ -205,11 +232,26 @@ export const projects: Project[] = [
     backers: 154,
     startAt: "2026-09-10T00:00:00+09:00",
     endAt: "2026-10-12T23:59:59+09:00",
+    summary: ["マンスリーライブの音源を180g重量盤LPに", "All-in方式：目標に届かなくても必ず制作します"],
     story: [
       "ピアノトリオで続けてきたマンスリーライブの音源を、アナログレコードにします。",
       "All-in方式のため、目標金額に届かなくても制作は必ず行います。",
     ],
-    tracks: [{ title: "Blue Hour", durationSec: 402 }],
+    budget: [
+      { label: "マスタリング（アナログ用）", amount: 200000 },
+      { label: "プレス・ジャケット", amount: 450000 },
+      { label: "送料・手数料", amount: 150000 },
+    ],
+    schedule: [
+      { date: "2026年10月12日", label: "募集終了" },
+      { date: "2027年3月", label: "LPのお届け" },
+      { date: "2027年4月", label: "リリースライブ" },
+    ],
+    risks: "アナログ盤は工場の混雑で納期が延びることがあります。遅れる場合は活動報告でお知らせします。",
+    faqs: [
+      { q: "レコードプレーヤーがなくても楽しめますか？", a: "LPにはダウンロードコードが付きます。" },
+    ],
+    tracks: [{ title: "Blue Hour", durationSec: 402, previewUrl: "/audio/mio-blue-hour.wav" }],
     rewards: [
       {
         id: "r-lp",
@@ -251,11 +293,25 @@ export const projects: Project[] = [
     backers: 642,
     startAt: "2026-09-15T00:00:00+09:00",
     endAt: "2026-11-15T23:59:59+09:00",
+    summary: ["初ワンマン、キャパ1000人の会場を埋めるのが目標", "0円の参加表明も1人としてカウント"],
     story: [
       "初のワンマンライブの会場は、キャパ1000人。無謀かもしれませんが、挑戦します。",
       "このプロジェクトの目標は金額ではなく「参加人数」です。0円プランでの参加表明も1人として数えます。",
     ],
-    tracks: [{ title: "Kaiju Rave", durationSec: 221 }],
+    budget: [
+      { label: "会場費", amount: 250000 },
+      { label: "音響・照明", amount: 137000 },
+    ],
+    schedule: [
+      { date: "2026年11月15日", label: "募集終了" },
+      { date: "2027年1月", label: "チケット発券" },
+      { date: "2027年2月", label: "ワンマンライブ" },
+    ],
+    risks: "会場は予約済みです。やむを得ず公演が中止になった場合、チケット代は全額返金します。",
+    faqs: [
+      { q: "0円プランで参加するとお金はかかりますか？", a: "かかりません。一般発売の案内が先に届きます。" },
+    ],
+    tracks: [{ title: "Kaiju Rave", durationSec: 221, previewUrl: "/audio/neon-kaiju-rave.wav" }],
     rewards: [
       {
         id: "r-free",
@@ -297,8 +353,22 @@ export const projects: Project[] = [
     backers: 1804,
     startAt: "2026-09-20T00:00:00+09:00",
     endAt: "2026-11-30T23:59:59+09:00",
+    summary: ["デビュー10周年、収録曲をファン投票で決定", "投票結果はブックレットに掲載"],
     story: [
       "デビュー10周年を記念して、収録曲をファンのみなさんの投票で決めるベストアルバムを作ります。",
+    ],
+    budget: [
+      { label: "制作・リマスター", amount: 3000000 },
+      { label: "プレス・ブックレット", amount: 1500000 },
+      { label: "送料・手数料", amount: 500000 },
+    ],
+    schedule: [
+      { date: "2026年11月30日", label: "募集終了・投票締切" },
+      { date: "2027年2月", label: "お届け" },
+    ],
+    risks: "収録曲は投票結果をもとに、権利の許諾が取れた楽曲から選びます。",
+    faqs: [
+      { q: "投票は何回できますか？", a: "1口につき1回です。" },
     ],
     tracks: [],
     rewards: [
@@ -341,9 +411,24 @@ export const projects: Project[] = [
     backers: 305,
     startAt: "2026-09-20T00:00:00+09:00",
     endAt: "2026-10-25T23:59:59+09:00",
+    summary: ["歌ってみたから、初のオリジナル曲へ", "ボカロPさん作曲、MVつきで公開"],
     story: [
       "いつも動画を見てくださる方のおかげで、初めてオリジナル曲に挑戦できることになりました。",
       "作曲・MVイラスト・動画編集の費用に使います。",
+    ],
+    budget: [
+      { label: "作曲・編曲", amount: 250000 },
+      { label: "MVイラスト・動画", amount: 250000 },
+      { label: "手数料", amount: 100000 },
+    ],
+    schedule: [
+      { date: "2026年10月25日", label: "募集終了" },
+      { date: "2026年12月", label: "レコーディング" },
+      { date: "2027年1月", label: "MV公開" },
+    ],
+    risks: "制作スケジュールはボカロPさんと調整済みです。遅れる場合は活動報告でお知らせします。",
+    faqs: [
+      { q: "顔出しはありますか？", a: "ありません。MVはイラストのみです。" },
     ],
     tracks: [],
     rewards: [
@@ -397,9 +482,23 @@ export const projects: Project[] = [
     backers: 212,
     startAt: "2026-09-20T00:00:00+09:00",
     endAt: "2026-11-08T23:59:59+09:00",
+    summary: ["結成3年目、初の東名阪ツアー", "目標に届かなければツアーは中止し、お支払いは発生しません"],
     story: [
       "結成3年目、はじめて東京の外でワンマンライブをします。",
       "会場費・交通費・衣装に使います。",
+    ],
+    budget: [
+      { label: "会場費（3都市）", amount: 600000 },
+      { label: "交通・宿泊", amount: 400000 },
+      { label: "衣装", amount: 200000 },
+    ],
+    schedule: [
+      { date: "2026年11月8日", label: "募集終了" },
+      { date: "2027年1月", label: "ツアー（東京・名古屋・大阪）" },
+    ],
+    risks: "会場は仮押さえ済みです。目標未達の場合はツアーを中止し、支援金はいただきません。",
+    faqs: [
+      { q: "特典会はありますか？", a: "各公演の終演後に物販・特典会を行います。" },
     ],
     tracks: [],
     rewards: [
@@ -442,9 +541,24 @@ export const projects: Project[] = [
     backers: 64,
     startAt: "2026-09-20T00:00:00+09:00",
     endAt: "2026-10-20T23:59:59+09:00",
+    summary: ["高校3年間で作った曲を、卒業前にCDに", "顧問の先生と保護者の同意を得て実施しています"],
     story: [
       "県立高校の軽音部で活動しているSUNNY SIDEです。卒業する前に、3年間で作った曲をCDにしたいと思っています。",
       "このプロジェクトは顧問の先生と保護者の同意を得て実施しています。",
+    ],
+    budget: [
+      { label: "レコーディング", amount: 80000 },
+      { label: "CDプレス", amount: 50000 },
+      { label: "送料・手数料", amount: 20000 },
+    ],
+    schedule: [
+      { date: "2026年10月20日", label: "募集終了" },
+      { date: "2027年1月", label: "地元スタジオでレコーディング" },
+      { date: "2027年3月", label: "CDのお届け・卒業ライブ" },
+    ],
+    risks: "メンバーは受験生のため、レコーディングは受験後に行います。お届けが遅れる場合は顧問の先生から連絡します。",
+    faqs: [
+      { q: "お金の管理は誰がしますか？", a: "保護者の代表が管理し、使い道は活動報告で公開します。" },
     ],
     tracks: [],
     rewards: [

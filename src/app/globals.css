@@ -7,7 +7,27 @@
   --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: #fafaf9;
   color: #1c1917;
+}
+
+/* キーボード操作時だけ、フォーカスをはっきり見せる */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

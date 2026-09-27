@@ -53,6 +53,8 @@ export interface Artist {
   bio: string;
   genres: Genre[];
   types: ArtistType[];
+  /** 運営による本人確認が済んでいるか。支援者の「信頼できる人か」という不安に応える */
+  verified: boolean;
   links: { label: string; url: string }[];
   /** カバーのグラデーション（画像を用意するまでの代替） */
   color: string;
@@ -111,7 +113,16 @@ export interface Project {
   backers: number;
   startAt: string;
   endAt: string;
+  /** 冒頭に出す「このプロジェクトで実現すること」。スマホでは冒頭しか読まれないため3点以内 */
+  summary: string[];
   story: string[];
+  /** 資金の使い道 */
+  budget: { label: string; amount: number }[];
+  /** 今後のスケジュール */
+  schedule: { date: string; label: string }[];
+  /** リスクとチャレンジ（遅延や中止の可能性と、その場合の対応） */
+  risks: string;
+  faqs: { q: string; a: string }[];
   tracks: Track[];
   rewards: Reward[];
   updates: ProjectUpdate[];

@@ -7,8 +7,13 @@ import { formatDate, formatGoal, formatNumber, formatYen, progressPercent } from
 import { ProgressBar } from "@/components/project/progress";
 import { DaysLeft } from "@/components/project/days-left";
 import { ProjectTabs } from "@/components/project/project-tabs";
-import { RewardCard } from "@/components/project/reward-card";
+import { RewardCard, mostPopularRewardId } from "@/components/project/reward-card";
 import { FavoriteButton } from "@/components/project/favorite-button";
+import { ShareButtons } from "@/components/project/share-buttons";
+import { MobileSupportBar } from "@/components/project/mobile-support-bar";
+import { StatusBadges } from "@/components/project/status-badges";
+import { VerifiedBadge } from "@/components/project/verified-badge";
+import { TrackList } from "@/components/project/track-list";
 
 // 公開中のプロジェクトはビルド時に静的生成し、支援額などは60秒ごとに再生成する（ISR）。
 // ビルド後に公開されたプロジェクトは、初回アクセス時に生成される。
@@ -23,7 +28,11 @@ export async function generateMetadata({ params }: LayoutProps<"/projects/[slug]
   const { slug } = await params;
   const project = await getProject(slug);
   if (!project) return {};
-  return { title: project.title, description: project.catchcopy };
+  return {
+    title: project.title,
+    description: project.catchcopy,
+    openGraph: { title: project.title, description: project.catchcopy, type: "article" },
+  };
 }
 
 export default async function ProjectLayout({ params, children }: LayoutProps<"/projects/[slug]">) {
@@ -31,40 +40,76 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
   const project = await getProject(slug);
   if (!project) notFound();
   const artist = await getArtist(project.artistId);
+  const popularId = mostPopularRewardId(project.rewards);
+  const recentBackers = [...project.comments].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6">
-        <p className="text-sm text-stone-500">
-          <Link href={`/genres/${project.genre}`} className="hover:text-brand">
-            {GENRE_LABELS[project.genre]}
-          </Link>
-          {artist && (
-            <>
-              {" ・ "}
-              <Link href={`/artists/${artist.id}`} className="hover:text-brand">
-                {artist.name}
-              </Link>
-            </>
-          )}
-        </p>
+    <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 lg:pb-8">
+      <nav aria-label="パンくずリスト" className="text-xs text-stone-500">
+        <Link href="/projects" className="hover:text-brand">
+          プロジェクト
+        </Link>
+        {" › "}
+        <Link href={`/genres/${project.genre}`} className="hover:text-brand">
+          {GENRE_LABELS[project.genre]}
+        </Link>
+      </nav>
+
+      <header className="mt-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadges project={project} />
+        </div>
         <h1 className="mt-2 text-2xl font-bold leading-snug sm:text-3xl">{project.title}</h1>
+        <p className="mt-2 text-stone-600">{project.catchcopy}</p>
+        {artist && (
+          <Link href={`/artists/${artist.id}`} className="mt-4 inline-flex items-center gap-3 group">
+            <span className={`h-10 w-10 shrink-0 rounded-full bg-gradient-to-br ${artist.color}`} aria-hidden />
+            <span>
+              <span className="flex items-center gap-2 font-bold group-hover:text-brand">
+                {artist.name}
+                <VerifiedBadge verified={artist.verified} />
+              </span>
+              <span className="text-xs text-stone-500">アーティストのページを見る</span>
+            </span>
+          </Link>
+        )}
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-6">
           <div className={`aspect-video rounded-2xl bg-gradient-to-br ${project.color}`} />
+
+          {/* スマホでは右カラムが本文の後ろに回るので、支援状況を先に見せる */}
+          <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4 lg:hidden">
+            <div className="flex items-end justify-between gap-2">
+              <p className="text-2xl font-bold tracking-tight">
+                {project.goalType === "participants"
+                  ? `${formatNumber(project.backers)}人`
+                  : formatYen(project.raised)}
+              </p>
+              <p className="text-lg font-bold text-brand">{progressPercent(project)}%</p>
+            </div>
+            <ProgressBar project={project} />
+            <p className="text-xs text-stone-500">
+              目標 {formatGoal(project)}・{formatNumber(project.backers)}人が支援・残り <DaysLeft endAt={project.endAt} />
+            </p>
+            <a href="#rewards" className="block rounded-lg border border-brand py-2 text-center text-sm font-bold text-brand">
+              リターンを見る（{project.rewards.length}種類）
+            </a>
+          </div>
+
+          <TrackList tracks={project.tracks} />
           <ProjectTabs slug={project.slug} updateCount={project.updates.length} commentCount={project.comments.length} />
           {children}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <div className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
             <div>
               <p className="text-xs text-stone-500">
                 {project.goalType === "participants" ? "参加人数" : "現在の支援総額"}
               </p>
-              <p className="text-3xl font-bold">
+              <p className="text-3xl font-bold tracking-tight">
                 {project.goalType === "participants"
                   ? `${formatNumber(project.backers)}人`
                   : formatYen(project.raised)}
@@ -84,25 +129,50 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             </p>
             <Link
               href={`/projects/${project.slug}/support`}
-              className="block rounded-lg bg-brand py-3 text-center font-bold text-white hover:bg-brand-dark"
+              className="block rounded-full bg-brand py-3.5 text-center font-bold text-white hover:bg-brand-dark"
             >
               このプロジェクトを支援する
             </Link>
             <FavoriteButton />
+            {recentBackers.length > 0 && (
+              <div className="border-t border-stone-100 pt-4">
+                <p className="mb-2 text-xs text-stone-500">最近の支援</p>
+                <ul className="space-y-1.5 text-xs">
+                  {recentBackers.map((c) => (
+                    <li key={c.id} className="flex justify-between gap-2">
+                      <span className="truncate">
+                        <span className="font-medium">{c.userName}</span>さんが支援しました
+                      </span>
+                      <span className="shrink-0 text-stone-400">{formatDate(c.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="border-t border-stone-100 pt-4">
+              <ShareButtons title={project.title} />
+            </div>
             <Link
               href={`/mypage/messages?to=${project.slug}`}
-              className="block text-center text-sm text-stone-500 hover:text-brand"
+              className="block text-center text-xs text-stone-500 hover:text-brand"
             >
-              実行者に問い合わせる
+              実行者に質問する
             </Link>
           </div>
 
-          <h2 className="pt-2 font-bold">リターンを選ぶ</h2>
-          {project.rewards.map((r) => (
-            <RewardCard key={r.id} reward={r} projectSlug={project.slug} />
-          ))}
+          <h2 id="rewards" className="scroll-mt-20 pt-2 font-bold">
+            リターンを選ぶ
+            <span className="ml-2 text-xs font-normal text-stone-500">表示価格は税込・送料込み</span>
+          </h2>
+          <div className="space-y-4">
+            {project.rewards.map((r) => (
+              <RewardCard key={r.id} reward={r} projectSlug={project.slug} popular={r.id === popularId} />
+            ))}
+          </div>
         </aside>
       </div>
+
+      <MobileSupportBar project={project} />
     </div>
   );
 }

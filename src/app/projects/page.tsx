@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { BrowseNav } from "@/components/project/browse-nav";
-import { ProjectGrid } from "@/components/project/project-grid";
+import { ProjectExplorer } from "@/components/project/project-explorer";
 
 export const metadata: Metadata = { title: "プロジェクトをさがす" };
 export const revalidate = 300;
@@ -13,7 +13,7 @@ export default async function ProjectsPage() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-bold">プロジェクトをさがす</h1>
       <BrowseNav />
-      <ProjectGrid projects={projects} artists={artists} />
+      <ProjectExplorer projects={projects} artists={artists} />
     </div>
   );
 }

@@ -19,13 +19,18 @@ export default async function SupportPage({ params }: PageProps<"/projects/[slug
   if (!project || project.status !== "live") notFound();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <Link href={`/projects/${project.slug}`} className="text-sm text-stone-500 hover:text-brand">
         ← プロジェクトに戻る
       </Link>
       <h1 className="mt-2 text-xl font-bold leading-snug">{project.title}</h1>
       <Suspense>
-        <SupportFlow projectSlug={project.slug} fundingModel={project.fundingModel} rewards={project.rewards} />
+        <SupportFlow
+          projectSlug={project.slug}
+          projectTitle={project.title}
+          fundingModel={project.fundingModel}
+          rewards={project.rewards}
+        />
       </Suspense>
     </div>
   );

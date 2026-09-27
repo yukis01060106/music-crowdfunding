@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { Track } from "@/types";
+import { assetPath } from "@/lib/asset-path";
 import { formatDuration } from "@/lib/format";
 
 /** 試聴プレイヤー。同時に再生するのは1曲だけ */
@@ -18,16 +19,17 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
       setPlaying(null);
       return;
     }
-    audio.src = src;
+    audio.src = assetPath(src);
     void audio.play();
     setPlaying(index);
   }
 
   if (tracks.length === 0) return null;
+  const hasDemoAudio = tracks.some((t) => t.previewUrl);
 
   return (
     <section className="rounded-xl border border-stone-200 bg-white p-4">
-      <h2 className="mb-3 text-sm font-bold text-stone-500">試聴</h2>
+      <h2 className="mb-3 text-sm font-bold text-stone-500">試聴する</h2>
       <ol className="divide-y divide-stone-100">
         {tracks.map((track, i) => (
           <li key={track.title} className="flex items-center gap-3 py-2">
@@ -47,6 +49,7 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
           </li>
         ))}
       </ol>
+      {hasDemoAudio && <p className="mt-2 text-xs text-stone-400">※デモ用の合成音です</p>}
       <audio ref={audioRef} onEnded={() => setPlaying(null)} />
     </section>
   );
