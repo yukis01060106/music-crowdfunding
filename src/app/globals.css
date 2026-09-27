@@ -1,10 +1,38 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-brand: #6d28d9;
-  --color-brand-dark: #5b21b6;
-  --color-brand-soft: #ede9fe;
-  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
+  --color-brand: #6d3cff;
+  --color-brand-dark: #5427d6;
+  --color-brand-soft: #efe9ff;
+  --color-ink: #222222;
+  /* 写真と図形だけに使うポップな差し色 */
+  --color-pop-yellow: #ffd23f;
+  --color-pop-pink: #ff8fb1;
+  --color-pop-blue: #1e7be6;
+  --color-pop-teal: #00a58e;
+  --font-sans: var(--font-heebo), var(--font-noto-sans-jp), system-ui, sans-serif;
+  --font-en: var(--font-heebo), system-ui, sans-serif;
+  --animate-marquee-up: marquee-up 40s linear infinite;
+  --animate-marquee-down: marquee-down 40s linear infinite;
+  --animate-marquee-left: marquee-left 60s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes marquee-up {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+  @keyframes marquee-down {
+    from { transform: translateY(-50%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes marquee-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+    50% { transform: translateY(-10px) rotate(var(--r, 0deg)); }
+  }
 }
 
 html {
@@ -12,8 +40,9 @@ html {
 }
 
 body {
-  background: #fafaf9;
-  color: #1c1917;
+  background: #ffffff;
+  color: var(--color-ink);
+  font-feature-settings: "palt";
 }
 
 /* キーボード操作時だけ、フォーカスをはっきり見せる */
@@ -29,5 +58,10 @@ details > summary::-webkit-details-marker {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
   }
 }

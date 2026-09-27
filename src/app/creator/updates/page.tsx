@@ -5,7 +5,7 @@ export default function CreatorUpdatesPage() {
   return (
     <>
       <PageTitle>活動報告を投稿</PageTitle>
-      <form className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+      <form className="space-y-4 border border-stone-200 bg-white p-5">
         <label className="block text-sm">
           タイトル
           <input className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />

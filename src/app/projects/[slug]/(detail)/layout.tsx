@@ -14,6 +14,8 @@ import { MobileSupportBar } from "@/components/project/mobile-support-bar";
 import { StatusBadges } from "@/components/project/status-badges";
 import { VerifiedBadge } from "@/components/project/verified-badge";
 import { TrackList } from "@/components/project/track-list";
+import { Photo } from "@/components/ui/photo";
+import { Sticker } from "@/components/ui/shapes";
 
 // 公開中のプロジェクトはビルド時に静的生成し、支援額などは60秒ごとに再生成する（ISR）。
 // ビルド後に公開されたプロジェクトは、初回アクセス時に生成される。
@@ -59,11 +61,13 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadges project={project} />
         </div>
-        <h1 className="mt-2 text-2xl font-bold leading-snug sm:text-3xl">{project.title}</h1>
+        <h1 className="mt-2 text-2xl font-black leading-snug tracking-[0.08em] sm:text-3xl">{project.title}</h1>
         <p className="mt-2 text-stone-600">{project.catchcopy}</p>
         {artist && (
           <Link href={`/artists/${artist.id}`} className="mt-4 inline-flex items-center gap-3 group">
-            <span className={`h-10 w-10 shrink-0 rounded-full bg-gradient-to-br ${artist.color}`} aria-hidden />
+            <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
+              <Photo src={artist.photo} alt="" sizes="44px" />
+            </span>
             <span>
               <span className="flex items-center gap-2 font-bold group-hover:text-brand">
                 {artist.name}
@@ -77,10 +81,16 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-6">
-          <div className={`aspect-video rounded-2xl bg-gradient-to-br ${project.color}`} />
+          <div className="relative">
+            <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br sm:aspect-video ${project.color}`}>
+              <Photo src={project.cover} alt={project.title} sizes="(min-width: 1024px) 760px, 100vw" priority />
+            </div>
+            <Sticker shape="circle" color="yellow" size={56} className="-right-3 -top-4" float />
+            <Sticker shape="triangle" color="purple" size={40} className="-bottom-4 left-6" />
+          </div>
 
           {/* スマホでは右カラムが本文の後ろに回るので、支援状況を先に見せる */}
-          <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-4 lg:hidden">
+          <div className="space-y-3 border border-stone-200 bg-white p-4 lg:hidden">
             <div className="flex items-end justify-between gap-2">
               <p className="text-2xl font-bold tracking-tight">
                 {project.goalType === "participants"
@@ -104,7 +114,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+          <div className="space-y-4 border border-stone-200 bg-white p-5">
             <div>
               <p className="text-xs text-stone-500">
                 {project.goalType === "participants" ? "参加人数" : "現在の支援総額"}

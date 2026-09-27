@@ -85,6 +85,19 @@ src/
 [Baymard Institute](https://baymard.com/blog/reduce-cart-abandonment)、
 [Kickstarter](https://updates.kickstarter.com/level-up-your-campaign-in-2024/)
 
+## ビジュアルの方針
+
+[株式会社321](https://321.inc/) のサイトを参考にしています。
+
+- 白と黒（#222）を基本にして、色は写真と図形ステッカー（黄・ピンク・青・緑・紫）にだけ使う
+- 写真は自然光の人物カットと、レコードやマイクなどの素材カットを組み合わせる
+- ヒーローは写真が2列で上下逆向きに流れる。広い画面では両端に細い線と縦書きの英字
+- 見出しは英字の小さなラベル＋字間を広げた太い日本語。英数字は Heebo
+- カードはポラロイド風の色枠（黄→ピンク→青→緑）と、左上の「NEW」「目標達成」タブ
+- 動きは `prefers-reduced-motion` の設定で止まる
+
+写真のクレジットは [CREDITS.md](CREDITS.md) にあります。
+
 ## 次にやること
 
 1. **Supabase を入れる**：`lib/data/index.ts` の中身を Supabase のクエリに差し替える

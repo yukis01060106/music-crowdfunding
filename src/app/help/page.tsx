@@ -56,7 +56,7 @@ export default function HelpPage() {
       {FAQ_GROUPS.map((g) => (
         <section key={g.title} id={g.title} className="mt-10 scroll-mt-20">
           <h2 className="mb-3 text-lg font-bold">{g.title}</h2>
-          <div className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+          <div className="divide-y divide-stone-200 border border-stone-200 bg-white">
             {g.items.map((f) => (
               <details key={f.q} className="group p-4">
                 <summary className="flex cursor-pointer list-none justify-between gap-4 font-medium">
@@ -72,7 +72,7 @@ export default function HelpPage() {
         </section>
       ))}
 
-      <div className="mt-12 rounded-xl bg-stone-100 p-6 text-center text-sm">
+      <div className="mt-12 bg-stone-100 p-6 text-center text-sm">
         <p>解決しない場合は、お問い合わせください。</p>
         <Link href="/mypage/messages" className="mt-3 inline-block rounded-full bg-brand px-5 py-2 font-medium text-white">
           お問い合わせ

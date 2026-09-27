@@ -107,7 +107,7 @@ export function ProjectEditor() {
           ))}
         </nav>
 
-        <div className="space-y-5 rounded-xl border border-stone-200 bg-white p-5">
+        <div className="space-y-5 border border-stone-200 bg-white p-5">
           {tab === "基本情報" && (
             <>
               <Field label="プロジェクトタイトル" hint={`${d.title.length}/${TITLE_MAX}文字。何をしたいかが一目でわかるように。`} error={d.title.length > TITLE_MAX ? `${TITLE_MAX}文字以内にしてください` : undefined}>
@@ -270,7 +270,7 @@ export function ProjectEditor() {
       </div>
 
       <aside className="space-y-3 lg:sticky lg:top-20 lg:self-start">
-        <div className="rounded-xl border border-stone-200 bg-white p-4 text-sm">
+        <div className="border border-stone-200 bg-white p-4 text-sm">
           <div className="flex items-baseline justify-between">
             <p className="font-bold">公開までのチェック</p>
             <p className="text-xs text-stone-500">

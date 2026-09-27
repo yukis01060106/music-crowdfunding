@@ -15,7 +15,7 @@ export function TrustBox({ fundingModel, verified }: { fundingModel: FundingMode
   ];
 
   return (
-    <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5">
+    <section className="border border-emerald-200 bg-emerald-50/60 p-5">
       <h2 className="font-bold text-emerald-900">安心して支援するために</h2>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (

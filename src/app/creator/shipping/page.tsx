@@ -14,7 +14,7 @@ export default function ShippingPage() {
   return (
     <>
       <PageTitle>リターン配送</PageTitle>
-      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
         {methods.map((m) => (
           <li key={m.kind} className="flex justify-between gap-4 p-4 text-sm">
             <span className="font-medium">{REWARD_KIND_LABELS[m.kind]}</span>

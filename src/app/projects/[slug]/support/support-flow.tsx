@@ -105,7 +105,7 @@ export function SupportFlow({
 
   if (step === "done") {
     return (
-      <div className="mx-auto mt-8 max-w-xl space-y-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
+      <div className="mx-auto mt-8 max-w-xl space-y-6 border border-emerald-200 bg-emerald-50 p-8 text-center">
         <p className="text-4xl" aria-hidden>
           🎉
         </p>
@@ -121,11 +121,11 @@ export function SupportFlow({
             )}
           </p>
         </div>
-        <div className="rounded-xl bg-white p-4 text-left">
+        <div className="bg-white p-4 text-left">
           <ShareButtons title={projectTitle} path={`/projects/${projectSlug}/`} />
           <p className="mt-2 text-xs text-stone-500">あなたのシェアが、次の支援者につながります。</p>
         </div>
-        <div className="rounded-xl bg-white p-4 text-left text-sm">
+        <div className="bg-white p-4 text-left text-sm">
           <p className="font-bold">パスワードを設定すると、マイページが使えます</p>
           <p className="mt-1 text-stone-600">支援内容の確認、活動報告の通知、実行者へのメッセージができるようになります。</p>
           <Link href="/login" className="mt-3 inline-block rounded-lg bg-brand px-4 py-2 font-medium text-white">
@@ -164,7 +164,7 @@ export function SupportFlow({
               {available.map((r) => (
                 <label
                   key={r.id}
-                  className={`flex cursor-pointer gap-3 rounded-xl border bg-white p-4 ${
+                  className={`flex cursor-pointer gap-3 border bg-white p-4 ${
                     r.id === rewardId ? "border-brand ring-1 ring-brand" : "border-stone-200"
                   }`}
                 >
@@ -206,7 +206,7 @@ export function SupportFlow({
               </label>
             )}
             {!isFree && (
-              <fieldset className="rounded-xl border border-stone-200 bg-white p-4">
+              <fieldset className="border border-stone-200 bg-white p-4">
                 <legend className="px-1 text-sm font-bold">上乗せ支援（任意）</legend>
                 <p className="text-xs text-stone-500">リターンはそのままに、応援の気持ちを上乗せできます。</p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -230,7 +230,7 @@ export function SupportFlow({
         )}
 
         {step === "shipping" && (
-          <fieldset className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+          <fieldset className="space-y-4 border border-stone-200 bg-white p-5">
             <legend className="px-1 font-bold">お届け先</legend>
             <Field label="お名前" value={shipping.name} onChange={(name) => setShipping({ ...shipping, name })} autoComplete="name" error={showErrors ? shippingErrors.name : null} />
             <Field label="郵便番号" value={shipping.postalCode} onChange={(postalCode) => setShipping({ ...shipping, postalCode })} autoComplete="postal-code" inputMode="numeric" placeholder="150-0001" error={showErrors ? shippingErrors.postalCode : null} />
@@ -242,7 +242,7 @@ export function SupportFlow({
 
         {step === "payment" && (
           <div className="space-y-5">
-            <section className="rounded-xl border border-stone-200 bg-white p-5">
+            <section className="border border-stone-200 bg-white p-5">
               <h2 className="font-bold">メールアドレス</h2>
               <p className="mt-1 text-xs text-stone-500">会員登録は不要です。支援の確認メールと、活動報告をお送りします。</p>
               <div className="mt-3">
@@ -254,7 +254,7 @@ export function SupportFlow({
             </section>
 
             {!isFree && (
-              <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+              <section className="space-y-4 border border-stone-200 bg-white p-5">
                 <h2 className="font-bold">お支払い方法</h2>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {PAYMENT_METHODS.map((m) => (
@@ -285,7 +285,7 @@ export function SupportFlow({
         )}
 
         {step === "confirm" && (
-          <div className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+          <div className="space-y-4 border border-stone-200 bg-white p-5">
             <h2 className="font-bold">内容の確認</h2>
             <dl className="grid grid-cols-[7rem_1fr] gap-y-3 text-sm">
               <dt className="text-stone-500">リターン</dt>
@@ -347,7 +347,7 @@ export function SupportFlow({
       </div>
 
       <aside className="lg:sticky lg:top-20 lg:self-start">
-        <div className="space-y-3 rounded-xl border border-stone-200 bg-white p-5 text-sm">
+        <div className="space-y-3 border border-stone-200 bg-white p-5 text-sm">
           <h2 className="font-bold">ご支援内容</h2>
           <div className="flex justify-between gap-2">
             <span className="text-stone-600">

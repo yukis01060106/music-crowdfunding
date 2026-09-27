@@ -22,7 +22,7 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
   return (
     <div className="space-y-10">
       {project.summary.length > 0 && (
-        <section className="rounded-xl bg-brand-soft/60 p-5">
+        <section className="bg-brand-soft/60 p-5">
           <h2 className="text-sm font-bold text-brand">このプロジェクトで実現すること</h2>
           <ul className="mt-3 space-y-2">
             {project.summary.map((s) => (
@@ -87,7 +87,7 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
       </Section>
 
       <Section id="faq" title="よくある質問">
-        <div className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+        <div className="divide-y divide-stone-200 border border-stone-200 bg-white">
           {project.faqs.map((f) => (
             <details key={f.q} className="group p-4">
               <summary className="flex cursor-pointer list-none justify-between gap-4 font-medium">

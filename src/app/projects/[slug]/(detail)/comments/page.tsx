@@ -17,7 +17,7 @@ export default async function ProjectCommentsPage({ params }: PageProps<"/projec
   return (
     <ul className="space-y-4">
       {project.comments.map((c) => (
-        <li key={c.id} className="rounded-xl border border-stone-200 bg-white p-5">
+        <li key={c.id} className="border border-stone-200 bg-white p-5">
           <div className="flex items-center justify-between text-sm">
             <span className="font-bold">{c.userName}</span>
             <span className="text-stone-500">

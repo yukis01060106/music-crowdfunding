@@ -56,8 +56,12 @@ export interface Artist {
   /** 運営による本人確認が済んでいるか。支援者の「信頼できる人か」という不安に応える */
   verified: boolean;
   links: { label: string; url: string }[];
-  /** カバーのグラデーション（画像を用意するまでの代替） */
+  /** カバーのグラデーション（写真が読み込まれるまでの下地） */
   color: string;
+  /** プロフィール写真（public/ からのパス） */
+  photo: string;
+  /** アーティストページの写真に縦書きで重ねる短いコピー（15文字程度まで） */
+  catchline: string;
 }
 
 export interface Track {
@@ -128,6 +132,8 @@ export interface Project {
   updates: ProjectUpdate[];
   comments: SupportComment[];
   color: string;
+  /** メインの写真（public/ からのパス） */
+  cover: string;
 }
 
 export const GENRE_LABELS: Record<Genre, string> = {

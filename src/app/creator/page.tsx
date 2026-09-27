@@ -21,7 +21,7 @@ export default async function CreatorDashboardPage() {
       {projects.map((p) => {
         const status = STATUS_LABELS[p.status];
         return (
-          <section key={p.slug} className="space-y-4 rounded-xl border border-stone-200 bg-white p-5">
+          <section key={p.slug} className="space-y-4 border border-stone-200 bg-white p-5">
             <div className="flex items-center gap-2">
               <span className={`rounded-full px-2 py-0.5 text-xs ${status.className}`}>{status.label}</span>
               <Link href={`/projects/${p.slug}`} className="font-bold hover:text-brand">

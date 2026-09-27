@@ -6,6 +6,8 @@ import type { Artist, Project } from "@/types";
 export const artists: Artist[] = [
   {
     id: "hoshizora-radio",
+    catchline: "夜とラジオと、ロックバンド",
+    photo: "/images/hoshizora-radio.jpg",
     verified: true,
     name: "星空ラジオ",
     bio: "2019年結成、東京を拠点に活動する3ピースバンド。夜の街とラジオをテーマにした楽曲を作っている。",
@@ -16,6 +18,8 @@ export const artists: Artist[] = [
   },
   {
     id: "mio-aoki",
+    catchline: "ライブハウスの空気ごと",
+    photo: "/images/mio-aoki.jpg",
     verified: true,
     name: "青木みお",
     bio: "ジャズピアニスト。都内のライブハウスを中心に、年間100本以上のステージに立つ。",
@@ -26,6 +30,8 @@ export const artists: Artist[] = [
   },
   {
     id: "neon-kaiju",
+    catchline: "ゲームとクラブの境界線で",
+    photo: "/images/neon-kaiju.jpg",
     verified: true,
     name: "NEON KAIJU",
     bio: "トラックメイカー2人組。ゲーム音楽とクラブミュージックを横断するサウンドが持ち味。",
@@ -36,6 +42,8 @@ export const artists: Artist[] = [
   },
   {
     id: "kazuma",
+    catchline: "10年目の、ありがとうを",
+    photo: "/images/kazuma.jpg",
     verified: true,
     name: "KAZUMA",
     bio: "2016年メジャーデビューのシンガー。ドラマ主題歌で広く知られる。",
@@ -46,6 +54,8 @@ export const artists: Artist[] = [
   },
   {
     id: "yumenoa",
+    catchline: "歌ってみたの、その先へ",
+    photo: "/images/yumenoa.jpg",
     verified: true,
     name: "ゆめのあ",
     bio: "歌ってみた動画で活動する大学2年生。YouTubeとTikTokで歌を投稿している。",
@@ -56,6 +66,8 @@ export const artists: Artist[] = [
   },
   {
     id: "milktea-syndrome",
+    catchline: "秋葉原から、はじめての遠征へ",
+    photo: "/images/milktea-syndrome.jpg",
     verified: true,
     name: "ミルクティー☆シンドローム",
     bio: "秋葉原のライブハウスを拠点に活動する5人組アイドルグループ。",
@@ -66,6 +78,8 @@ export const artists: Artist[] = [
   },
   {
     id: "sunny-side",
+    catchline: "放課後の音を、かたちに",
+    photo: "/images/sunny-side.jpg",
     verified: false,
     name: "SUNNY SIDE",
     bio: "県立高校の軽音部で結成した4ピースバンド。全国大会出場を目指している。",
@@ -79,6 +93,7 @@ export const artists: Artist[] = [
 export const projects: Project[] = [
   {
     slug: "hoshizora-1st-album",
+    cover: "/images/records-wall.jpg",
     title: "星空ラジオ 1stフルアルバムを、ちゃんとしたスタジオで録りたい",
     catchcopy: "結成7年目。ライブで育ててきた12曲を、一枚のアルバムに。",
     artistId: "hoshizora-radio",
@@ -220,6 +235,7 @@ export const projects: Project[] = [
   },
   {
     slug: "mio-aoki-live-album",
+    cover: "/images/mio-aoki.jpg",
     title: "青木みお トリオ ライブ盤をアナログレコードで",
     catchcopy: "ライブハウスの空気ごと、レコードに刻みたい。",
     artistId: "mio-aoki",
@@ -276,11 +292,14 @@ export const projects: Project[] = [
       },
     ],
     updates: [],
-    comments: [],
+    comments: [
+      { id: "c1", userName: "jazz_note", body: "みおさんのピアノをレコードで聴ける日が来るなんて。針を落とすのが楽しみです。", amount: 5500, createdAt: "2026-09-12T21:00:00+09:00" },
+    ],
     color: "from-amber-500 to-rose-500",
   },
   {
     slug: "neon-kaiju-1000",
+    cover: "/images/vinyl-color.jpg",
     title: "NEON KAIJU 初ワンマン、1000人で埋めたい",
     catchcopy: "お金より「行くよ」の声を集めたい。0円から参加できます。",
     artistId: "neon-kaiju",
@@ -336,11 +355,15 @@ export const projects: Project[] = [
       },
     ],
     updates: [],
-    comments: [],
+    comments: [
+      { id: "c1", userName: "kaiju_fan", body: "0円で参加しました！当日は絶対チケット買います。", amount: 0, createdAt: "2026-09-16T10:00:00+09:00" },
+      { id: "c2", userName: "rave_girl", body: "ゲーム音楽とクラブの間、最高です。1000人埋めよう！", amount: 3500, createdAt: "2026-09-18T23:10:00+09:00" },
+    ],
     color: "from-cyan-500 to-emerald-500",
   },
   {
     slug: "kazuma-10th-best",
+    cover: "/images/kazuma.jpg",
     title: "KAZUMA デビュー10周年、ファンと選ぶベストアルバム",
     catchcopy: "収録曲はファン投票で決めます。",
     artistId: "kazuma",
@@ -399,6 +422,7 @@ export const projects: Project[] = [
   },
   {
     slug: "yumenoa-original-1st",
+    cover: "/images/yumenoa-cover.jpg",
     title: "ゆめのあ 初のオリジナル曲をボカロPさんと作りたい",
     catchcopy: "歌ってみたから、自分だけの1曲へ。",
     artistId: "yumenoa",
@@ -465,11 +489,14 @@ export const projects: Project[] = [
       },
     ],
     updates: [],
-    comments: [],
+    comments: [
+      { id: "c1", userName: "のあ推し", body: "歌ってみたからずっと聴いてます。オリジナル曲、泣いちゃうかも。", amount: 1500, createdAt: "2026-09-21T19:30:00+09:00" },
+    ],
     color: "from-pink-400 to-violet-500",
   },
   {
     slug: "milktea-first-tour",
+    cover: "/images/milktea-syndrome.jpg",
     title: "ミルクティー☆シンドローム 初の東名阪ツアーに行きたい",
     catchcopy: "いつものライブハウスから、はじめての遠征へ。",
     artistId: "milktea-syndrome",
@@ -524,11 +551,14 @@ export const projects: Project[] = [
       },
     ],
     updates: [],
-    comments: [],
+    comments: [
+      { id: "c1", userName: "ミルクティー担", body: "はじめての遠征、全通します！", amount: 4000, createdAt: "2026-09-22T12:00:00+09:00" },
+    ],
     color: "from-rose-400 to-amber-300",
   },
   {
     slug: "sunny-side-first-cd",
+    cover: "/images/sunny-side.jpg",
     title: "軽音部SUNNY SIDE、卒業前に初めてのCDを作りたい",
     catchcopy: "高校3年間の曲を、形に残したい。",
     artistId: "sunny-side",
@@ -585,7 +615,9 @@ export const projects: Project[] = [
       },
     ],
     updates: [],
-    comments: [],
+    comments: [
+      { id: "c1", userName: "OBの先輩", body: "文化祭のライブ、よかったよ。CD楽しみにしてる！", amount: 2000, createdAt: "2026-09-23T18:00:00+09:00" },
+    ],
     color: "from-yellow-400 to-orange-500",
   },
 ];

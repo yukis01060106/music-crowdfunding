@@ -25,19 +25,19 @@ const COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-stone-200 bg-white">
+    <footer className="mt-16 bg-ink text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-4">
         <div>
-          <p className="font-bold text-brand">OTOFUND（仮）</p>
-          <p className="mt-2 text-xs leading-relaxed text-stone-500">音楽のためのクラウドファンディング</p>
+          <p className="font-en text-3xl font-black tracking-tight">OTOFUND</p>
+          <p className="mt-2 text-xs leading-relaxed tracking-wider text-white/60">音楽のためのクラウドファンディング（仮称）</p>
         </div>
         {COLUMNS.map((col) => (
           <nav key={col.title} aria-label={col.title}>
-            <p className="text-sm font-bold">{col.title}</p>
-            <ul className="mt-3 space-y-2 text-sm text-stone-500">
+            <p className="text-sm font-bold tracking-wider">{col.title}</p>
+            <ul className="mt-3 space-y-2 text-sm text-white/60">
               {col.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="hover:text-stone-900">
+                  <Link href={l.href} className="hover:text-white">
                     {l.label}
                   </Link>
                 </li>
@@ -46,7 +46,7 @@ export function SiteFooter() {
           </nav>
         ))}
       </div>
-      <p className="border-t border-stone-100 py-4 text-center text-xs text-stone-400">© OTOFUND（仮）</p>
+      <p className="border-t border-white/10 py-4 text-center font-en text-xs text-white/40">© OTOFUND</p>
     </footer>
   );
 }

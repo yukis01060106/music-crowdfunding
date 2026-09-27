@@ -1,15 +1,18 @@
 import Link from "next/link";
 import type { Artist } from "@/types";
 import { ARTIST_TYPE_LABELS } from "@/types";
+import { Photo } from "@/components/ui/photo";
 import { VerifiedBadge } from "./verified-badge";
 
 /** 「この人なら信頼できる」と思えるよう、実行者の顔とこれまでの活動を見せる */
 export function ArtistCard({ artist }: { artist: Artist }) {
   return (
-    <section className="rounded-xl border border-stone-200 bg-white p-5">
+    <section className="border border-stone-200 bg-white p-5">
       <h2 className="text-xs font-bold text-stone-500">このプロジェクトの実行者</h2>
       <div className="mt-3 flex gap-4">
-        <span className={`h-14 w-14 shrink-0 rounded-full bg-gradient-to-br ${artist.color}`} aria-hidden />
+        <span className="relative h-20 w-20 shrink-0 overflow-hidden">
+          <Photo src={artist.photo} alt="" sizes="80px" />
+        </span>
         <div className="min-w-0">
           <p className="flex flex-wrap items-center gap-2 font-bold">
             {artist.name}

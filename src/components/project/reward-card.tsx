@@ -21,7 +21,7 @@ export function RewardCard({
 
   return (
     <div
-      className={`relative rounded-xl border bg-white p-4 ${
+      className={`relative border bg-white p-4 ${
         popular && !soldOut ? "border-brand ring-1 ring-brand" : "border-stone-200"
       } ${soldOut ? "opacity-60" : ""}`}
     >

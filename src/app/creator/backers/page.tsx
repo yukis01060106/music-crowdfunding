@@ -17,7 +17,7 @@ export default function BackersPage() {
         <button type="button" className="rounded-lg border border-stone-300 bg-white px-3 py-1.5">全員にメッセージ</button>
         <button type="button" className="rounded-lg border border-stone-300 bg-white px-3 py-1.5">リターンで絞り込んでメッセージ</button>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
+      <div className="overflow-x-auto border border-stone-200 bg-white">
         <table className="w-full text-sm">
           <thead className="bg-stone-50 text-left text-xs text-stone-500">
             <tr>

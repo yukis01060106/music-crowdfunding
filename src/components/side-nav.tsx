@@ -57,7 +57,7 @@ export function PageTitle({ children }: { children: React.ReactNode }) {
 
 export function Placeholder({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500">
+    <div className="border border-dashed border-stone-300 bg-white p-10 text-center text-sm text-stone-500">
       {children}
     </div>
   );

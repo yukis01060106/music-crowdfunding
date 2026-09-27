@@ -28,7 +28,7 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
   const hasDemoAudio = tracks.some((t) => t.previewUrl);
 
   return (
-    <section className="rounded-xl border border-stone-200 bg-white p-4">
+    <section className="border border-stone-200 bg-white p-4">
       <h2 className="mb-3 text-sm font-bold text-stone-500">試聴する</h2>
       <ol className="divide-y divide-stone-100">
         {tracks.map((track, i) => (

@@ -17,7 +17,7 @@ export default async function ProjectUpdatesPage({ params }: PageProps<"/project
   return (
     <ol className="space-y-4">
       {[...project.updates].reverse().map((u) => (
-        <li key={u.id} className="rounded-xl border border-stone-200 bg-white p-5">
+        <li key={u.id} className="border border-stone-200 bg-white p-5">
           <p className="text-xs text-stone-500">
             {formatDate(u.publishedAt)}
             {u.backersOnly && <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">支援者限定</span>}

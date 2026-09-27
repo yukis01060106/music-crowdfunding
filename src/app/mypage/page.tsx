@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPublicProjects } from "@/lib/data";
 import { formatDate, formatYen } from "@/lib/format";
 import { PageTitle } from "@/components/side-nav";
+import { Photo } from "@/components/ui/photo";
 
 // モック: ログイン中のユーザーが支援した内容
 const backings = [
@@ -21,8 +22,10 @@ export default async function BackedProjectsPage() {
           const reward = project?.rewards.find((r) => r.id === b.rewardId);
           if (!project || !reward) return null;
           return (
-            <li key={b.projectSlug} className="flex gap-4 rounded-xl border border-stone-200 bg-white p-4">
-              <div className={`h-16 w-24 shrink-0 rounded-lg bg-gradient-to-br ${project.color}`} />
+            <li key={b.projectSlug} className="flex gap-4 border border-stone-200 bg-white p-4">
+              <div className="relative h-20 w-28 shrink-0 overflow-hidden">
+                <Photo src={project.cover} alt="" sizes="112px" />
+              </div>
               <div className="min-w-0 flex-1">
                 <Link href={`/projects/${project.slug}`} className="line-clamp-1 font-bold hover:text-brand">
                   {project.title}

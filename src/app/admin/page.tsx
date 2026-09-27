@@ -15,7 +15,7 @@ export default function AdminReviewPage() {
       <p className="mb-4 text-sm text-stone-500">確認項目：{checklist.join(" / ")}</p>
       <ul className="space-y-3">
         {queue.map((q) => (
-          <li key={q.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-stone-200 bg-white p-4">
+          <li key={q.id} className="flex flex-wrap items-center gap-3 border border-stone-200 bg-white p-4">
             <div className="min-w-0 flex-1">
               <p className="font-bold">{q.title}</p>
               <p className="text-sm text-stone-500">

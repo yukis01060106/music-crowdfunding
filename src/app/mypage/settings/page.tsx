@@ -12,7 +12,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageTitle>アカウント設定</PageTitle>
-      <ul className="divide-y divide-stone-200 rounded-xl border border-stone-200 bg-white">
+      <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
         {sections.map((s) => (
           <li key={s.title} className="p-4">
             <p className="font-medium">{s.title}</p>
