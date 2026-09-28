@@ -8,6 +8,7 @@ import { REWARD_KIND_LABELS } from "@/types";
 import { formatYen } from "@/lib/format";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { ShareButtons } from "@/components/project/share-buttons";
+import { addBacking, useDemo } from "@/lib/demo-store";
 
 type Step = "reward" | "shipping" | "payment" | "confirm" | "done";
 type FormStep = Exclude<Step, "done">;
@@ -64,6 +65,9 @@ export function SupportFlow({
   const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>("クレジットカード");
   const [comment, setComment] = useState("");
   const [showErrors, setShowErrors] = useState(false);
+  const { user, settings } = useDemo();
+  // ログイン中は、アカウントのメールアドレスに確認メールを送る
+  const contactEmail = user?.email ?? email;
 
   const reward = available.find((r) => r.id === rewardId);
   if (!reward) return <p className="mt-8 text-stone-500">現在選べるリターンがありません。</p>;
@@ -87,7 +91,7 @@ export function SupportFlow({
     step === "shipping"
       ? Object.values(shippingErrors).every((e) => e === null)
       : step === "payment"
-        ? isEmail(email)
+        ? isEmail(contactEmail)
         : true;
 
   function next() {
@@ -96,6 +100,10 @@ export function SupportFlow({
       return;
     }
     setShowErrors(false);
+    if (step === "confirm" && reward) {
+      // TODO: Stripe の決済（または SetupIntent）が成功してから記録する
+      addBacking({ projectSlug, rewardId: reward.id, quantity, tip: isFree ? 0 : tip, amount: total, paymentMethod: isFree ? "0円" : paymentMethod, comment: comment.trim() || undefined });
+    }
     setStep(steps[current + 1] ?? "done");
     window.scrollTo({ top: 0 });
   }
@@ -113,7 +121,7 @@ export function SupportFlow({
         <div>
           <p className="text-2xl font-bold text-emerald-800">ご支援ありがとうございます！</p>
           <p className="mt-2 text-sm text-stone-600">
-            {email} に確認メールをお送りしました。
+            {contactEmail} に確認メールをお送りしました。
             {fundingModel === "all_or_nothing" && !isFree && (
               <>
                 <br />
@@ -127,11 +135,23 @@ export function SupportFlow({
           <p className="mt-2 text-xs text-stone-500">あなたのシェアが、次の支援者につながります。</p>
         </div>
         <div className="bg-white p-4 text-left text-sm">
-          <p className="font-bold">パスワードを設定すると、マイページが使えます</p>
-          <p className="mt-1 text-stone-600">支援内容の確認、活動報告の通知、実行者へのメッセージができるようになります。</p>
-          <Link href="/login" className="mt-3 inline-block rounded-lg bg-brand px-4 py-2 font-medium text-white">
-            パスワードを設定する
-          </Link>
+          {user ? (
+            <>
+              <p className="font-bold">支援内容はマイページで確認できます</p>
+              <p className="mt-1 text-stone-600">決済の状況、お届け予定、活動報告をまとめて見られます。</p>
+              <Link href="/mypage" className="mt-3 inline-block bg-brand px-4 py-2 font-medium text-white">
+                マイページを見る
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="font-bold">ログインすると、マイページが使えます</p>
+              <p className="mt-1 text-stone-600">支援内容の確認、活動報告の通知、実行者へのメッセージができるようになります。パスワードは不要です。</p>
+              <Link href="/login?next=/mypage" className="mt-3 inline-block bg-brand px-4 py-2 font-medium text-white">
+                ログイン・会員登録
+              </Link>
+            </>
+          )}
         </div>
         <Link href={`/projects/${projectSlug}`} className="inline-block text-sm text-stone-600 underline">
           プロジェクトに戻る
@@ -233,6 +253,20 @@ export function SupportFlow({
         {step === "shipping" && (
           <fieldset className="space-y-4 border border-stone-200 bg-white p-5">
             <legend className="px-1 font-bold">お届け先</legend>
+            {settings.addresses.length > 0 && user && (
+              <div className="flex flex-wrap gap-2">
+                {settings.addresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setShipping({ name: a.name, postalCode: a.postalCode, address: a.address, phone: a.phone })}
+                    className="border border-brand px-3 py-1.5 text-left text-xs text-brand hover:bg-brand-soft"
+                  >
+                    登録済み：{a.name}（{a.address.slice(0, 10)}…）
+                  </button>
+                ))}
+              </div>
+            )}
             <Field label="お名前" value={shipping.name} onChange={(name) => setShipping({ ...shipping, name })} autoComplete="name" error={showErrors ? shippingErrors.name : null} />
             <Field label="郵便番号" value={shipping.postalCode} onChange={(postalCode) => setShipping({ ...shipping, postalCode })} autoComplete="postal-code" inputMode="numeric" placeholder="150-0001" error={showErrors ? shippingErrors.postalCode : null} />
             <Field label="住所" value={shipping.address} onChange={(address) => setShipping({ ...shipping, address })} autoComplete="street-address" error={showErrors ? shippingErrors.address : null} />
@@ -245,13 +279,25 @@ export function SupportFlow({
           <div className="space-y-5">
             <section className="border border-stone-200 bg-white p-5">
               <h2 className="font-bold">メールアドレス</h2>
-              <p className="mt-1 text-xs text-stone-500">会員登録は不要です。支援の確認メールと、活動報告をお送りします。</p>
-              <div className="mt-3">
-                <Field label="メールアドレス" value={email} onChange={setEmail} autoComplete="email" type="email" error={showErrors && !isEmail(email) ? "メールアドレスを正しく入力してください" : null} />
-              </div>
-              <p className="mt-3 text-xs text-stone-500">
-                すでにアカウントをお持ちの方は <Link href="/login" className="text-brand underline">ログイン</Link>
-              </p>
+              {user ? (
+                <p className="mt-2 text-sm">
+                  ログイン中：<span className="font-bold">{user.name}</span>（{user.email}）
+                  <span className="mt-1 block text-xs text-stone-500">このアドレスに確認メールと活動報告をお送りします。</span>
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-stone-500">会員登録は不要です。支援の確認メールと、活動報告をお送りします。</p>
+                  <div className="mt-3">
+                    <Field label="メールアドレス" value={email} onChange={setEmail} autoComplete="email" type="email" error={showErrors && !isEmail(email) ? "メールアドレスを正しく入力してください" : null} />
+                  </div>
+                  <p className="mt-3 text-xs text-stone-500">
+                    すでにアカウントをお持ちの方は{" "}
+                    <Link href={`/login?next=${encodeURIComponent(`/projects/${projectSlug}/support?reward=${reward.id}`)}`} className="text-brand underline">
+                      ログイン
+                    </Link>
+                  </p>
+                </>
+              )}
             </section>
 
             {!isFree && (
@@ -303,7 +349,7 @@ export function SupportFlow({
                 </>
               )}
               <dt className="text-stone-500">メール</dt>
-              <dd>{email}</dd>
+              <dd>{contactEmail}</dd>
               {!isFree && (
                 <>
                   <dt className="text-stone-500">お支払い</dt>

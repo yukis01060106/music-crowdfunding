@@ -9,6 +9,7 @@ import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { CommonPerks } from "@/components/membership/common-perks";
+import { SellerInfo } from "@/components/project/seller-info";
 import { PlanCard, mostPopularPlanId } from "@/components/membership/plan-card";
 
 export const revalidate = 300;
@@ -21,7 +22,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/artists/[id]">): Promise<Metadata> {
   const { id } = await params;
   const artist = await getArtist(id);
-  return { title: artist?.name };
+  if (!artist) return {};
+  return { title: artist.name, description: artist.bio, openGraph: { title: artist.name, description: artist.bio, images: [{ url: artist.photo, alt: artist.name }] } };
 }
 
 export default async function ArtistPage({ params }: PageProps<"/artists/[id]">) {
@@ -88,6 +90,7 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
               <p className="mb-4 text-sm font-bold tracking-wider">どのプランにも付く、OTOFUNDメンバー共通の特典</p>
               <CommonPerks />
             </div>
+            <SellerInfo artist={artist} kind="membership" />
           </section>
         )}
         <div className="mb-10 mt-20">

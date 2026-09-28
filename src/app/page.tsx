@@ -249,7 +249,12 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
-          <div className="pt-6">
+          <div className="flex justify-end pt-6">
+            <CircleLink href="/artists" color="pink" dark>
+              すべてのアーティスト
+            </CircleLink>
+          </div>
+          <div>
             <p className="mb-4 font-en text-xs tracking-wide text-white/70">Artist type</p>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(ARTIST_TYPE_LABELS) as ArtistType[]).map((t) => (

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/data";
 import { formatDate } from "@/lib/format";
+import { BackersOnly } from "@/components/project/backers-only";
 
 export const metadata: Metadata = { title: "活動報告" };
 
@@ -17,14 +18,13 @@ export default async function ProjectUpdatesPage({ params }: PageProps<"/project
   return (
     <ol className="space-y-4">
       {[...project.updates].reverse().map((u) => (
-        <li key={u.id} className="border border-stone-200 bg-white p-5">
+        <li key={u.id} className="animate-rise border border-stone-200 bg-white p-5">
           <p className="text-xs text-stone-500">
             {formatDate(u.publishedAt)}
             {u.backersOnly && <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">支援者限定</span>}
           </p>
           <h2 className="mt-1 font-bold">{u.title}</h2>
-          {/* TODO: 支援者限定の本文は、ログイン中の支援者だけにクライアント側で取得して表示する */}
-          <p className="mt-2 text-stone-700">{u.backersOnly ? "この活動報告は支援者だけが読めます。" : u.body}</p>
+          {u.backersOnly ? <BackersOnly projectSlug={project.slug} body={u.body} /> : <p className="mt-2 whitespace-pre-wrap text-stone-700">{u.body}</p>}
         </li>
       ))}
     </ol>

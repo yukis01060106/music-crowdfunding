@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { logout, useDemo } from "@/lib/demo-store";
+import { Avatar } from "./account-button";
 
 export interface MenuItem {
   href: string;
@@ -14,6 +16,7 @@ export interface MenuItem {
 const SUB_LINKS = [
   { href: "/creator", label: "実行者管理画面" },
   { href: "/help", label: "よくある質問" },
+  { href: "/contact", label: "お問い合わせ" },
   { href: "/legal/terms", label: "利用規約" },
 ];
 
@@ -30,6 +33,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isClient = useIsClient();
+  const { user } = useDemo();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
@@ -47,7 +51,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
     firstLinkRef.current?.focus();
 
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    const wide = window.matchMedia("(min-width: 768px)");
+    const wide = window.matchMedia("(min-width: 1024px)");
     const onWide = () => wide.matches && setOpen(false);
     window.addEventListener("keydown", onKey);
     wide.addEventListener("change", onWide);
@@ -71,7 +75,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label="メニューを開く"
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-white transition active:scale-95 md:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-white transition active:scale-95 lg:hidden"
       >
         <BurgerIcon open={false} />
       </button>
@@ -85,7 +89,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
             aria-label="メニュー"
             aria-hidden={!open}
             inert={!open}
-            className={`fixed inset-0 z-[70] flex flex-col bg-ink text-white transition-[opacity,visibility] duration-300 md:hidden ${
+            className={`fixed inset-0 z-[70] flex flex-col bg-ink text-white transition-[opacity,visibility] duration-300 lg:hidden ${
               open ? "visible opacity-100" : "invisible opacity-0"
             }`}
           >
@@ -137,12 +141,36 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
                 className={`mt-8 grid grid-cols-2 gap-3 transition duration-500 ${open ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
                 style={{ transitionDelay: open ? `${80 + items.length * 60}ms` : "0ms" }}
               >
-                <Link href="/login" onClick={close} className="bg-white py-3.5 text-center font-bold tracking-wider text-ink">
-                  ログイン
-                </Link>
-                <Link href="/mypage" onClick={close} className="border border-white/40 py-3.5 text-center font-bold tracking-wider">
-                  マイページ
-                </Link>
+                {user ? (
+                  <>
+                    <Link href="/mypage" onClick={close} className="col-span-2 flex items-center gap-3 bg-white/10 p-3">
+                      <Avatar name={user.name} size={40} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold">{user.name}</span>
+                        <span className="block text-xs text-white/60">マイページを見る →</span>
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        close();
+                      }}
+                      className="col-span-2 border border-white/30 py-3 text-sm text-white/70"
+                    >
+                      ログアウト
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={close} className="bg-white py-3.5 text-center font-bold tracking-wider text-ink">
+                      ログイン
+                    </Link>
+                    <Link href="/login" onClick={close} className="border border-white/40 py-3.5 text-center font-bold tracking-wider">
+                      会員登録
+                    </Link>
+                  </>
+                )}
               </div>
 
               <Link

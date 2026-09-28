@@ -1,10 +1,16 @@
-import { PageTitle, Placeholder } from "@/components/side-nav";
+import { Suspense } from "react";
+import { getArtists, getPublicProjects } from "@/lib/data";
+import { PageTitle } from "@/components/side-nav";
+import { Messages } from "./messages";
 
-export default function MessagesPage() {
+export default async function MessagesPage() {
+  const [projects, artists] = await Promise.all([getPublicProjects(), getArtists()]);
   return (
     <>
       <PageTitle>メッセージ</PageTitle>
-      <Placeholder>実行者とのメッセージがここに表示されます。</Placeholder>
+      <Suspense>
+        <Messages projects={projects} artists={artists} />
+      </Suspense>
     </>
   );
 }

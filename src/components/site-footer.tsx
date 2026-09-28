@@ -8,6 +8,7 @@ const COLUMNS = [
     links: [
       { href: "/help", label: "はじめての方へ" },
       { href: "/projects", label: "プロジェクトをさがす" },
+      { href: "/artists", label: "アーティスト" },
       { href: "/membership", label: "メンバーシップ" },
       { href: "/fes", label: "ONE NOTE FES" },
       { href: "/mypage", label: "マイページ" },
@@ -22,7 +23,7 @@ const COLUMNS = [
   },
   {
     title: "OTOFUNDについて",
-    links: LEGAL_DOCS.map((d) => ({ href: `/legal/${d.slug}`, label: d.title })),
+    links: [...LEGAL_DOCS.map((d) => ({ href: `/legal/${d.slug}`, label: d.title })), { href: "/contact", label: "お問い合わせ" }],
   },
 ];
 

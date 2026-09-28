@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardShell } from "@/components/side-nav";
+import { RequireLogin } from "@/components/require-login";
 
-// TODO: 認証を入れたら proxy.ts で未ログインを /login にリダイレクトする
 export const metadata: Metadata = { title: "マイページ", robots: { index: false } };
 
 const items = [
@@ -15,7 +15,7 @@ const items = [
 export default function MyPageLayout({ children }: LayoutProps<"/mypage">) {
   return (
     <DashboardShell title="マイページ" items={items}>
-      {children}
+      <RequireLogin what="マイページ">{children}</RequireLogin>
     </DashboardShell>
   );
 }

@@ -7,6 +7,7 @@ import type { MembershipPlan } from "@/types";
 import { formatYen } from "@/lib/format";
 import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE } from "@/lib/fees";
 import { isPlanFull, MEMBER_COMMON_PERKS } from "@/lib/membership";
+import { joinMembership, login, useDemo } from "@/lib/demo-store";
 
 type Step = "plan" | "payment" | "confirm" | "done";
 type FormStep = Exclude<Step, "done">;
@@ -27,6 +28,9 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   const [email, setEmail] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>("クレジットカード");
   const [showErrors, setShowErrors] = useState(false);
+  const { user, memberships } = useDemo();
+  const contactEmail = user?.email ?? email;
+  const currentPlanId = memberships.find((m) => m.artistId === artistId && !m.canceledAt)?.planId;
 
   const plan = available.find((p) => p.id === planId);
   if (!plan) return <p className="mt-8 text-stone-500">現在加入できるプランがありません。</p>;
@@ -35,11 +39,17 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   const toArtist = Math.floor(plan.price * (1 - PLATFORM_FEE_RATE));
 
   function next() {
-    if (step === "payment" && !isEmail(email)) {
+    if (step === "payment" && !isEmail(contactEmail)) {
       setShowErrors(true);
       return;
     }
     setShowErrors(false);
+    if (step === "confirm" && plan) {
+      // 継続課金は解約の手続きが必要なので、メールアドレスでアカウントを作ってから加入する
+      // TODO: Stripe Billing の Subscription を作成してから記録する
+      if (!user) login({ name: contactEmail.split("@")[0], email: contactEmail, provider: "email" });
+      joinMembership(artistId, plan.id);
+    }
     setStep(STEPS[current + 1] ?? "done");
     window.scrollTo({ top: 0 });
   }
@@ -57,16 +67,16 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
         <div>
           <p className="text-2xl font-bold text-emerald-800">{artistName}のメンバーになりました！</p>
           <p className="mt-2 text-sm text-stone-600">
-            {email} に確認メールをお送りしました。
+            {contactEmail} に確認メールをお送りしました。
             <br />
             特典は今日から使えます。解約はマイページからいつでもできます。
           </p>
         </div>
         <div className="bg-white p-4 text-left text-sm">
-          <p className="font-bold">パスワードを設定すると、マイページが使えます</p>
-          <p className="mt-1 text-stone-600">メンバー限定の活動報告、プランの変更や解約ができるようになります。</p>
-          <Link href="/login" className="mt-3 inline-block bg-brand px-4 py-2 font-medium text-white">
-            パスワードを設定する
+          <p className="font-bold">プランの変更や解約は、マイページからいつでもできます</p>
+          <p className="mt-1 text-stone-600">メンバー限定の活動報告も、マイページとメールでお届けします。</p>
+          <Link href="/mypage/membership" className="mt-3 inline-block bg-brand px-4 py-2 font-medium text-white">
+            マイページで確認する
           </Link>
         </div>
         <Link href={`/artists/${artistId}`} className="inline-block text-sm text-stone-600 underline">
@@ -107,7 +117,10 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                 <input type="radio" name="plan" checked={p.id === planId} onChange={() => setPlanId(p.id)} className="mt-1 accent-brand" />
                 <span className="flex-1">
                   <span className="flex justify-between gap-2 font-bold">
-                    {p.name}
+                    <span>
+                      {p.name}
+                      {p.id === currentPlanId && <span className="ml-2 bg-brand-soft px-1.5 py-0.5 text-[11px] text-brand">いまのプラン</span>}
+                    </span>
                     <span className="shrink-0">{formatYen(p.price)} / 月</span>
                   </span>
                   <span className="mt-1 block text-sm text-stone-600">{p.perks.join("・")}</span>
@@ -124,22 +137,34 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
           <div className="space-y-5">
             <section className="border border-stone-200 bg-white p-5">
               <h2 className="font-bold">メールアドレス</h2>
-              <p className="mt-1 text-xs text-stone-500">確認メールと、メンバー限定の活動報告をお送りします。</p>
-              <label className="mt-3 block text-sm">
-                メールアドレス
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  aria-invalid={showErrors && !isEmail(email)}
-                  className={`mt-1 w-full rounded-lg border p-2 ${showErrors && !isEmail(email) ? "border-rose-500" : "border-stone-300"}`}
-                />
-                {showErrors && !isEmail(email) && <span className="mt-1 block text-xs text-rose-600">メールアドレスを正しく入力してください</span>}
-              </label>
-              <p className="mt-3 text-xs text-stone-500">
-                すでにアカウントをお持ちの方は <Link href="/login" className="text-brand underline">ログイン</Link>
-              </p>
+              {user ? (
+                <p className="mt-2 text-sm">
+                  ログイン中：<span className="font-bold">{user.name}</span>（{user.email}）
+                  <span className="mt-1 block text-xs text-stone-500">確認メールと、メンバー限定の活動報告をこのアドレスにお送りします。</span>
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-stone-500">確認メールと、メンバー限定の活動報告をお送りします。このアドレスでアカウントが作られ、マイページから解約できます。</p>
+                  <label className="mt-3 block text-sm">
+                    メールアドレス
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
+                      aria-invalid={showErrors && !isEmail(email)}
+                      className={`mt-1 w-full rounded-lg border p-2 ${showErrors && !isEmail(email) ? "border-rose-500" : "border-stone-300"}`}
+                    />
+                    {showErrors && !isEmail(email) && <span className="mt-1 block text-xs text-rose-600">メールアドレスを正しく入力してください</span>}
+                  </label>
+                  <p className="mt-3 text-xs text-stone-500">
+                    すでにアカウントをお持ちの方は{" "}
+                    <Link href={`/login?next=${encodeURIComponent(`/artists/${artistId}/join?plan=${plan.id}`)}`} className="text-brand underline">
+                      ログイン
+                    </Link>
+                  </p>
+                </>
+              )}
             </section>
             <section className="space-y-4 border border-stone-200 bg-white p-5">
               <h2 className="font-bold">お支払い方法</h2>
@@ -181,7 +206,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
               <dt className="text-stone-500">更新</dt>
               <dd>今日から1か月ごとに自動で更新</dd>
               <dt className="text-stone-500">メール</dt>
-              <dd>{email}</dd>
+              <dd>{contactEmail}</dd>
               <dt className="text-stone-500">お支払い</dt>
               <dd>{paymentMethod}</dd>
             </dl>

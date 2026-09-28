@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: LayoutProps<"/projects/[slug]
   return {
     title: project.title,
     description: project.catchcopy,
-    openGraph: { title: project.title, description: project.catchcopy, type: "article" },
+    openGraph: { title: project.title, description: project.catchcopy, type: "article", images: [{ url: project.cover, alt: project.title }] },
   };
 }
 
@@ -142,7 +142,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             >
               このプロジェクトを支援する
             </Link>
-            <FavoriteButton />
+            <FavoriteButton slug={project.slug} />
             {recentBackers.length > 0 && (
               <div className="border-t border-stone-100 pt-4">
                 <p className="mb-2 text-xs text-stone-500">最近の支援</p>

@@ -1,8 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
-import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, saveDraft, TABS, type Draft, type Tab } from "./draft";
+import { submitProject } from "@/lib/demo-store";
+import { formatYen } from "@/lib/format";
+import { MINOR_ARTIST_TYPES, REWARD_KIND_LABELS } from "@/types";
+import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, saveDraft, storyText, TABS, toNumber, type Draft, type Tab } from "./draft";
 import { Preview } from "./preview";
 import { BasicsSection, IdentitySection, MediaSection, MoneySection, RewardsSection, RisksSection, StorySection, TracksSection, type Update } from "./sections";
 
@@ -71,9 +75,14 @@ export function ProjectEditor() {
           <br />
           審査を通過したら、好きなタイミングで公開ボタンを押して募集を始められます。
         </p>
-        <button type="button" onClick={() => setSubmitted(false)} className="text-sm text-stone-500 underline">
-          （デモ）編集画面に戻る
-        </button>
+        <div className="flex flex-col items-center gap-2">
+          <Link href="/admin" className="text-sm font-bold text-brand underline">
+            （デモ）運営の審査画面で確認する
+          </Link>
+          <button type="button" onClick={() => setSubmitted(false)} className="text-sm text-stone-500 underline">
+            （デモ）編集画面に戻る
+          </button>
+        </div>
       </div>
     );
   }
@@ -183,6 +192,15 @@ export function ProjectEditor() {
           type="button"
           disabled={!ready}
           onClick={() => {
+            // TODO: Supabase に保存し、status を in_review にする
+            submitProject({
+              title: d.title,
+              artist: "星空ラジオ",
+              goal: d.goalType === "amount" ? formatYen(toNumber(d.goal)) : `参加 ${d.goal}人`,
+              story: storyText(d).slice(0, 400),
+              rewards: d.rewards.map((r) => `${r.kind === "free" ? "¥0" : formatYen(toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
+              flags: { identity: d.identityVerified, cover: d.tracks.some((t) => t.isCover), minor: d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t)) },
+            });
             clearDraft();
             setSubmitted(true);
             window.scrollTo({ top: 0, behavior: "smooth" });

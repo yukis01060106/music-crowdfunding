@@ -11,6 +11,9 @@ const FEATURES = [
   { title: "0円プラン・参加人数目標", body: "お金をかけずに「応援したい」「ライブに行く」を集められます。" },
   { title: "音楽のためのリターン", body: "先行配信は自動でお届け、ライブチケットはQRで自動発行。" },
   { title: "月額メンバーシップ", body: "プロジェクトの合間も、毎月の応援を。メンバーは次のプロジェクトの最初の支援者になってくれます。" },
+  { title: "AI校正", body: "誤字脱字や、審査で差し戻されやすい表現をその場でチェック。修正案はワンクリックで反映できます。" },
+  { title: "プレビューと下書き保存", body: "支援者にどう見えるかをPCとスマホで確認。入力は自動で下書き保存されます。" },
+  { title: "ONE NOTE FES", body: "OTOFUNDで挑戦したアーティストが集まる音楽フェスを企画中。手数料の一部が開催費用になります。" },
   { title: "高校生・大学生も", body: "18歳未満の方も、保護者の同意があれば挑戦できます。" },
 ];
 
@@ -37,9 +40,13 @@ export default function StartPage() {
         <div>
           <p className="font-en text-xs font-medium tracking-wide text-stone-500">For artists</p>
           <h1 className="mt-3 text-4xl font-black leading-[1.4] tracking-[0.12em] sm:text-5xl">
-            あなたの音楽を、
-            <br />
-            ファンと一緒に。
+            {["あなたの音楽を、", "ファンと一緒に。"].map((line, i) => (
+              <span key={line} className="block overflow-hidden">
+                <span className="block animate-line-in" style={{ animationDelay: `${150 + i * 150}ms` }}>
+                  {line}
+                </span>
+              </span>
+            ))}
           </h1>
           <p className="mt-6 max-w-md leading-loose tracking-wider text-stone-700">
             メジャーアーティストから高校生バンドまで。音楽のために作ったクラウドファンディングです。掲載は無料。
@@ -63,10 +70,10 @@ export default function StartPage() {
 
       <div className="mx-auto max-w-4xl space-y-16 px-4 py-14">
         <section>
-          <h2 className="mb-6 text-2xl font-bold tracking-[0.1em]">音楽のための機能</h2>
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">音楽のための機能</h2>
+          <ul data-stagger className="grid gap-4 sm:grid-cols-2">
             {FEATURES.map((f) => (
-              <li key={f.title} className="border border-stone-200 bg-white p-5">
+              <li key={f.title} className="border border-stone-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand hover:shadow-lg">
                 <p className="font-bold">{f.title}</p>
                 <p className="mt-1 text-sm text-stone-600">{f.body}</p>
               </li>
@@ -75,13 +82,13 @@ export default function StartPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-2xl font-bold tracking-[0.1em]">手数料と受け取れる金額</h2>
+          <h2 data-reveal="up" className="mb-2 text-2xl font-bold tracking-[0.1em]">手数料と受け取れる金額</h2>
           <p className="mb-6 text-sm text-stone-500">金額を動かして、手元に残る額を確かめてください。</p>
           <FeeSimulator />
         </section>
 
         <section>
-          <h2 className="mb-2 text-2xl font-bold tracking-[0.1em]">リターン設計のコツ</h2>
+          <h2 data-reveal="up" className="mb-2 text-2xl font-bold tracking-[0.1em]">リターン設計のコツ</h2>
           <p className="mb-6 text-sm text-stone-500">
             支援者の約半数は、1回の予算が1万円未満です。リターンは3〜5種類にしぼり、価格帯をばらけさせましょう。
           </p>
@@ -96,8 +103,8 @@ export default function StartPage() {
         </section>
 
         <section>
-          <h2 className="mb-6 text-2xl font-bold tracking-[0.1em]">こんな企画に</h2>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">こんな企画に</h2>
+          <ul data-stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {IDEAS.map((idea) => (
               <li key={idea} className="border border-stone-200 bg-white p-4 text-center text-sm font-medium">
                 {idea}
@@ -107,8 +114,8 @@ export default function StartPage() {
         </section>
 
         <section>
-          <h2 className="mb-6 text-2xl font-bold tracking-[0.1em]">公開までの流れ</h2>
-          <ol className="space-y-3">
+          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">公開までの流れ</h2>
+          <ol data-stagger className="space-y-3">
             {STEPS.map((s, i) => (
               <li key={s.title} className="flex gap-4 border border-stone-200 bg-white p-4">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
@@ -121,7 +128,10 @@ export default function StartPage() {
               </li>
             ))}
           </ol>
-          <div className="mt-10 text-center">
+          <p className="mt-8 text-center text-sm text-stone-600">
+            手数料や審査について詳しくは <Link href="/help#artist" className="text-brand underline">よくある質問</Link> へ。
+          </p>
+          <div className="mt-6 text-center">
             <Link href="/creator/projects/new" className="inline-block bg-ink px-8 py-4 font-bold tracking-wider text-white hover:bg-brand">
               無料でプロジェクトをつくる
             </Link>

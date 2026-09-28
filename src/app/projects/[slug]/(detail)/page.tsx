@@ -3,6 +3,7 @@ import { getArtist, getProject } from "@/lib/data";
 import { formatYen } from "@/lib/format";
 import { TrustBox } from "@/components/project/trust-box";
 import { ArtistCard } from "@/components/project/artist-card";
+import { SellerInfo } from "@/components/project/seller-info";
 
 const SECTIONS = [
   { id: "story", label: "ストーリー" },
@@ -104,6 +105,7 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
 
       <TrustBox fundingModel={project.fundingModel} verified={artist?.verified ?? false} />
       {artist && <ArtistCard artist={artist} />}
+      {artist && <SellerInfo artist={artist} kind="project" />}
     </div>
   );
 }

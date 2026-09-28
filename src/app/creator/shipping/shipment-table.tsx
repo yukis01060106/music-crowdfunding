@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "@/components/ui/toast";
 
 type Status = "未発送" | "発送済み";
 
@@ -9,15 +10,17 @@ interface Shipment {
   name: string;
   reward: string;
   prefecture: string;
+  /** 住所の全文。CSV にだけ出す */
+  address: string;
   status: Status;
   tracking: string;
 }
 
 // モック。住所の全文は CSV 出力時だけ扱い、画面には都道府県までしか出さない
 const SHIPMENTS: Shipment[] = [
-  { id: "s1", name: "ゆう", reward: "サイン入りCD＋先行配信", prefecture: "東京都", status: "未発送", tracking: "" },
-  { id: "s2", name: "mika", reward: "サイン入りCD＋先行配信", prefecture: "大阪府", status: "未発送", tracking: "" },
-  { id: "s3", name: "kenta", reward: "アナログ盤（12インチ）", prefecture: "北海道", status: "発送済み", tracking: "1234-5678-9012" },
+  { id: "s1", name: "ゆう", reward: "サイン入りCD＋先行配信", prefecture: "東京都", address: "〒150-0001 東京都渋谷区神宮前1-2-3", status: "未発送", tracking: "" },
+  { id: "s2", name: "mika", reward: "サイン入りCD＋先行配信", prefecture: "大阪府", address: "〒530-0001 大阪府大阪市北区梅田4-5-6", status: "未発送", tracking: "" },
+  { id: "s3", name: "kenta", reward: "アナログ盤（12インチ）", prefecture: "北海道", address: "〒060-0001 北海道札幌市中央区北1条西7-8", status: "発送済み", tracking: "1234-5678-9012" },
 ];
 
 export function ShipmentTable() {
@@ -27,6 +30,19 @@ export function ShipmentTable() {
   const pending = rows.filter((r) => r.status === "未発送").length;
 
   const setRow = (id: string, patch: Partial<Shipment>) => setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+
+  function exportCsv() {
+    const target = rows.filter((r) => r.status === "未発送");
+    const cell = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const csv = "\uFEFF" + [["お名前", "住所", "リターン"], ...target.map((r) => [r.name, r.address, r.reward])].map((line) => line.map(cell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `shipping-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast(`未発送の${target.length}件をCSVで出力しました`);
+  }
 
   return (
     <div className="space-y-3">
@@ -40,8 +56,8 @@ export function ShipmentTable() {
           ))}
         </div>
         {/* TODO: サーバーでお届け先を含む CSV を作り、ダウンロード履歴を残す */}
-        <button type="button" className="border border-stone-300 bg-white px-3 py-1.5 text-sm hover:bg-stone-100">
-          お届け先をCSVで出力
+        <button type="button" onClick={exportCsv} disabled={pending === 0} className="border border-stone-300 bg-white px-3 py-1.5 text-sm hover:bg-stone-100 disabled:opacity-40">
+          未発送のお届け先をCSVで出力
         </button>
       </div>
       <div className="overflow-x-auto border border-stone-200 bg-white">
@@ -68,7 +84,12 @@ export function ShipmentTable() {
                   {r.status === "発送済み" ? (
                     <span className="text-xs font-bold text-emerald-600">✓ 発送済み</span>
                   ) : (
-                    <button type="button" onClick={() => setRow(r.id, { status: "発送済み" })} className="bg-brand px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-dark">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRow(r.id, { status: "発送済み" });
+                        toast(`${r.name}さんに発送のお知らせを送りました`);
+                      }} className="bg-brand px-3 py-1 text-xs font-bold text-white transition hover:bg-brand-dark">
                       発送済みにする
                     </button>
                   )}

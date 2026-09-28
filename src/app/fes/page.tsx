@@ -10,6 +10,7 @@ import { FesSignup } from "./fes-signup";
 export const metadata: Metadata = {
   title: "ONE NOTE FES",
   description: "OTOFUNDから生まれる、ファンと共に創る音楽フェス（企画中）。",
+  openGraph: { title: "ONE NOTE FES", description: "ファンと共に創るフェス（企画中）", images: [{ url: "/images/one-note-fes.jpg", alt: "ONE NOTE FES by otofund" }] },
 };
 
 // 企画中なので、決まっていないこと（日程・会場・出演者）は書かない。構想として伝える
