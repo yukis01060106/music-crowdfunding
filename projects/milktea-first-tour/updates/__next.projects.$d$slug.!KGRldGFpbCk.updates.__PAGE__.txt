@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[97367,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+7:I[97367,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"ViewportBoundary"]
+8:I[97367,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"MetadataBoundary"]
+9:I[27201,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"IconMark"]
+b:I[39756,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"default"]
+c:I[37457,["/music-crowdfunding/_next/static/chunks/0afl-21-0d933.js"],"default"]
+6:X
+e:X
+e:C
+0:{"buildId":"Mp-gDrUIAR9uliRvy8M3d","data":[{"rsc":["$","$1","c",{"children":[["$","p",null,{"className":"py-10 text-center text-stone-500","children":"まだ活動報告はありません。"}],[["$","script","script-0",{"src":"/music-crowdfunding/_next/static/chunks/04q1p-n_jb_gf.js","async":true}]],["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":"$@5","staleTime":"$6","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L7",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","2",{"name":"theme-color","content":"#222222"}]]}],["$","div",null,{"hidden":true,"children":["$","$L8",null,{"children":["$","$3",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"活動報告"}],["$","meta","1",{"name":"description","content":"いつものライブハウスから、はじめての遠征へ。"}],["$","meta","2",{"property":"og:title","content":"ミルクティー☆シンドローム 初の東名阪ツアーに行きたい"}],["$","meta","3",{"property":"og:description","content":"いつものライブハウスから、はじめての遠征へ。"}],["$","meta","4",{"property":"og:image","content":"https://yukis01060106.github.io/music-crowdfunding/images/milktea-syndrome.jpg"}],["$","meta","5",{"property":"og:image:alt","content":"ミルクティー☆シンドローム 初の東名阪ツアーに行きたい"}],["$","meta","6",{"property":"og:type","content":"article"}],["$","meta","7",{"name":"twitter:card","content":"summary_large_image"}],["$","meta","8",{"name":"twitter:title","content":"ミルクティー☆シンドローム 初の東名阪ツアーに行きたい"}],["$","meta","9",{"name":"twitter:description","content":"いつものライブハウスから、はじめての遠征へ。"}],["$","meta","10",{"name":"twitter:image","content":"https://yukis01060106.github.io/music-crowdfunding/images/milktea-syndrome.jpg"}],["$","meta","11",{"name":"twitter:image:alt","content":"ミルクティー☆シンドローム 初の東名阪ツアーに行きたい"}],["$","link","12",{"rel":"icon","href":"/music-crowdfunding/icon.svg?icon.3g4qh43l_l-gm.svg","sizes":"any","type":"image/svg+xml"}],["$","$L9","13",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":"$@a","staleTime":"$6","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]]}],"isPartial":"$@d","staleTime":"$6","varyParams":"$e"}],"isUpgradeableISRFallback":false,"a":"$@f","rootVaryParams":null,"needsRuntimeRequest":"$@10"}
+4:null
+10:true
+6:300
+6:C
+f:0
+a:"$undefined"
+d:"$undefined"
+5:"$undefined"

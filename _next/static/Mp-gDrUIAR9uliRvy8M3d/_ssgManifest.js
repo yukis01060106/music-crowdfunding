@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fartists\u002F[id]","\u002Fartists\u002F[id]\u002Fjoin","\u002Fgenres\u002F[genre]","\u002Flegal\u002F[slug]","\u002Fprojects\u002F[slug]","\u002Fprojects\u002F[slug]\u002Fcomments","\u002Fprojects\u002F[slug]\u002Fsupport","\u002Fprojects\u002F[slug]\u002Fupdates","\u002Ftypes\u002F[type]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

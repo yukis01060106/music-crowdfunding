@@ -1,0 +1,5 @@
+:HL["/music-crowdfunding/_next/static/chunks/3s_d-elarkmkp.css","style"]
+:HL["/music-crowdfunding/_next/static/chunks/0pdn190h86grj.css","style"]
+:HL["/music-crowdfunding/_next/static/media/1c9ef42b327f16c7-s.p.0jgv4ivu1938h.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/music-crowdfunding/_next/static/media/ad9c66e761fed85a-s.p.17y412u0mab7-.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+0:{"tree":{"name":"","param":null,"prefetchHints":4112,"slots":{"children":{"name":"contact","param":null,"prefetchHints":4160,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"Mp-gDrUIAR9uliRvy8M3d"}
