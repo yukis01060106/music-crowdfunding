@@ -70,6 +70,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* 固定ヘッダーの裏に、フォーカスした要素やページ内リンクの先が隠れないように */
+  scroll-padding-top: 5rem;
 }
 
 body {
@@ -180,6 +182,12 @@ body {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
   }
+}
+
+/* 見えないファイル選択欄を包むラベル（「画像を選ぶ」など）にも、キーボードのフォーカスを見せる */
+label:has(> input[type="file"]:focus-visible) {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
 }
 
 /* キーボード操作時だけ、フォーカスをはっきり見せる */

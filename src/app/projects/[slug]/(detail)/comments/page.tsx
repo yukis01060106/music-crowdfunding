@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/data";
+import { SITE_NAME } from "@/lib/site";
 import { formatDate, formatYen } from "@/lib/format";
 import { MyComments } from "@/components/project/my-comments";
 
-export const metadata: Metadata = { title: "応援コメント" };
+export async function generateMetadata({ params }: PageProps<"/projects/[slug]/comments">): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+  if (!project) return {};
+  // 親の layout が title を文字列で返すとサイト名のテンプレートが届かないので、ここで付ける
+  return {
+    title: { absolute: `${project.title}の応援コメント｜${SITE_NAME}` },
+    description: `「${project.title}」の支援者から届いた応援コメント。`,
+    alternates: { canonical: `/projects/${slug}/comments/` },
+  };
+}
 
 export default async function ProjectCommentsPage({ params }: PageProps<"/projects/[slug]/comments">) {
   const { slug } = await params;
@@ -20,7 +31,7 @@ export default async function ProjectCommentsPage({ params }: PageProps<"/projec
           <div className="flex items-center justify-between text-sm">
             <span className="font-bold">{c.userName}</span>
             <span className="text-stone-500">
-              {formatYen(c.amount)}で支援・{formatDate(c.createdAt)}
+              {c.amount === 0 ? "0円で参加" : `${formatYen(c.amount)}で支援`}・{formatDate(c.createdAt)}
             </span>
           </div>
           <p className="mt-2 text-stone-700">{c.body}</p>

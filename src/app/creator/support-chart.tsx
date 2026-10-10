@@ -66,7 +66,7 @@ export function SupportChart({ data, title, width = 640 }: { data: DailyPoint[];
               <g key={d.date}>
                 <path d={barPath(cx - barW / 2, y(d.amount), barW, h)} fill="#6d3cff" opacity={active === null || active === i ? 1 : 0.35} className="transition-opacity" />
                 {/* 当たり判定は棒より広く、帯全体にする */}
-                <rect x={PAD.left + band * i} y={PAD.top} width={band} height={plotH} fill="transparent" onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)} tabIndex={0} aria-label={`${md(d.date)} ${formatYen(d.amount)}`} className="focus:outline-none" />
+                <rect x={PAD.left + band * i} y={PAD.top} width={band} height={plotH} fill="transparent" onMouseEnter={() => setActive(i)} />
                 {(i === 0 || i === data.length - 1 || i % 3 === 0) && (
                   <text x={cx} y={HEIGHT - 8} textAnchor="middle" className="fill-stone-500 text-[10px]">
                     {md(d.date)}
@@ -95,6 +95,17 @@ export function SupportChart({ data, title, width = 640 }: { data: DailyPoint[];
       <details className="mt-2 text-xs">
         <summary className="cursor-pointer text-stone-500">表で見る</summary>
         <table className="mt-2 w-full">
+          <caption className="sr-only">{title}</caption>
+          <thead className="text-left text-stone-500">
+            <tr>
+              <th scope="col" className="py-1 font-normal">
+                日付
+              </th>
+              <th scope="col" className="py-1 text-right font-normal">
+                支援額
+              </th>
+            </tr>
+          </thead>
           <tbody className="divide-y divide-stone-100">
             {data.map((d) => (
               <tr key={d.date}>

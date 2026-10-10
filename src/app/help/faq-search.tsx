@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { FaqGroup } from "./faq";
+import { chipClass } from "@/components/ui/chip";
+import { searchInputClass } from "@/components/ui/input";
 
 /** 質問をキーワードで絞り込む。何も入力していなければ全件をカテゴリ別に出す */
 export function FaqSearch({ groups }: { groups: FaqGroup[] }) {
@@ -21,7 +23,7 @@ export function FaqSearch({ groups }: { groups: FaqGroup[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="キーワードで検索（例：解約、送料、チケット）"
-          className="w-full rounded-full border border-stone-300 bg-white px-5 py-3 focus:border-brand focus:outline-none"
+          className={searchInputClass}
         />
       </label>
 
@@ -32,7 +34,7 @@ export function FaqSearch({ groups }: { groups: FaqGroup[] }) {
       ) : (
         <nav className="mt-6 flex flex-wrap gap-2 text-sm" aria-label="質問のカテゴリ">
           {groups.map((g) => (
-            <a key={g.id} href={`#${g.id}`} className="rounded-full border border-stone-300 bg-white px-3 py-1 transition hover:border-brand hover:text-brand">
+            <a key={g.id} href={`#${g.id}`} className={chipClass()}>
               {g.title}
             </a>
           ))}
@@ -47,7 +49,7 @@ export function FaqSearch({ groups }: { groups: FaqGroup[] }) {
               <details key={f.q} className="group p-4" open={Boolean(q)}>
                 <summary className="flex cursor-pointer list-none justify-between gap-4 font-medium">
                   Q. {f.q}
-                  <span className="text-stone-400 transition group-open:rotate-45" aria-hidden>
+                  <span className="text-stone-500 transition group-open:rotate-45" aria-hidden>
                     ＋
                   </span>
                 </summary>

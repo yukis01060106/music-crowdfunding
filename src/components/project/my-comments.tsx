@@ -18,7 +18,7 @@ export function MyComments({ projectSlug }: { projectSlug: string }) {
               <span className="ml-2 bg-brand-soft px-1.5 py-0.5 text-[11px] text-brand">あなた</span>
             </span>
             <span className="text-stone-500">
-              {formatYen(b.amount)}で支援・{formatDate(b.backedAt)}
+              {b.amount === 0 ? "0円で参加" : `${formatYen(b.amount)}で支援`}・{formatDate(b.backedAt)}
             </span>
           </div>
           <p className="mt-2 text-stone-700">{b.comment}</p>

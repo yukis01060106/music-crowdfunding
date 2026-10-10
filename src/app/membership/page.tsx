@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
 import { getArtists } from "@/lib/data";
 import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE } from "@/lib/fees";
-import { withMembership } from "@/lib/membership";
+import { MEMBERSHIP_MIN_PRICE, PLAN_CHANGE_RULE, withMembership } from "@/lib/membership";
+import { formatYen } from "@/lib/format";
 import { CommonPerks } from "@/components/membership/common-perks";
 import { MembershipArtistCard } from "@/components/membership/membership-artist-card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Sticker } from "@/components/ui/shapes";
 
-export const metadata: Metadata = { title: "メンバーシップ" };
+export const metadata: Metadata = { title: "メンバーシップ", description: "月額で、好きなアーティストを毎月応援。メンバーは新しいプロジェクトを公開前から支援できます。", alternates: { canonical: "/membership/" } };
 
 const POINTS = [
   { en: "Linked", title: "クラファンとつながる", body: "毎月の応援が、新しいプロジェクトの先行支援につながります。限定リターンを先に選べるのはメンバーだけ。" },
-  { en: "From ¥300", title: "月額300円から", body: "アプリ内課金ではなくWebでのお支払いなので、表示の月額がそのままの価格です。" },
+  { en: `From ${formatYen(MEMBERSHIP_MIN_PRICE)}`, title: `月額${formatYen(MEMBERSHIP_MIN_PRICE)}から`, body: "表示の月額のほかに、手数料などの費用はかかりません。" },
   { en: `${(1 - PLATFORM_FEE_RATE) * 100}%`, title: `月額の${(1 - PLATFORM_FEE_RATE) * 100}%がアーティストに`, body: `手数料は決済手数料込みで一律。${FES_FUND_MESSAGE}` },
 ];
 
 const FAQS = [
-  { q: "いつ請求されますか？", a: "加入した日に1か月分をお支払いいただき、以降は毎月同じ日に自動で更新されます。" },
+  { q: "いつ請求されますか？", a: "加入した日に1か月分をお支払いいただき、以降は毎月同じ日（その日がない月は月末）に自動で更新されます。" },
   { q: "解約はいつでもできますか？", a: "マイページからいつでも解約できます。解約しても、次の更新日の前日まで特典を使えます。" },
-  { q: "プランの変更はできますか？", a: "できます。上位プランへの変更はすぐに、下位プランへの変更は次の更新日から反映されます。" },
+  { q: "プランの変更はできますか？", a: `できます。${PLAN_CHANGE_RULE}` },
   { q: "プロジェクトの支援とは別ですか？", a: "別です。メンバーシップは毎月の応援、プロジェクトは作品ごとの応援です。メンバーは新しいプロジェクトを公開前から支援できます。" },
 ];
 
@@ -42,6 +43,9 @@ export default async function MembershipPage() {
           <p className="mt-6 max-w-lg animate-rise leading-loose tracking-wider text-white/80 [animation-delay:500ms]">
             ライブのない月も、制作中の長い時間も。月額メンバーシップで、アーティストの活動をいちばん近くで支えられます。
           </p>
+          <a href="#artists" className="mt-8 inline-flex min-h-11 animate-rise items-center bg-pop-yellow px-7 py-3.5 font-bold tracking-wider text-ink transition [animation-delay:650ms] hover:bg-white">
+            メンバー募集中のアーティストを見る <span aria-hidden className="ml-1">↓</span>
+          </a>
           <Sticker shape="circle" color="yellow" size={72} className="right-6 top-16 sm:right-20" float />
           <Sticker shape="triangle" color="pink" size={44} className="bottom-12 right-24 sm:right-48" />
         </div>
@@ -66,7 +70,7 @@ export default async function MembershipPage() {
           <CommonPerks />
         </section>
 
-        <section className="space-y-10">
+        <section id="artists" className="scroll-mt-20 space-y-10">
           <SectionHeading en="Artists" ja="メンバー募集中のアーティスト" />
           <ul data-stagger className="grid grid-cols-2 gap-6 lg:grid-cols-4">
             {artists.map((a) => (

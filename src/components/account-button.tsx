@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import { buttonClass } from "@/components/ui/button";
 import { useDemo, useHydrated } from "@/lib/demo-store";
 
 /** 名前の頭文字のアイコン */
@@ -19,15 +22,21 @@ export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
 /** ヘッダー右上。ログイン中はアイコンとマイページ、未ログインならログインボタン */
 export function AccountButton() {
   const { user, threads } = useDemo();
+  const pathname = usePathname();
+  const search = useSyncExternalStore(
+    () => () => {},
+    () => window.location.search,
+    () => "",
+  );
   const hydrated = useHydrated();
   const unread = threads.filter((t) => t.unread).length;
 
   // 描画前はボタンの幅だけ確保して、ちらつきを防ぐ
-  if (!hydrated) return <span className="inline-block h-10 w-24" aria-hidden />;
+  if (!hydrated) return <span className="inline-block h-11 w-24" aria-hidden />;
 
   if (!user) {
     return (
-      <Link href="/login" className="rounded-full bg-ink px-5 py-2.5 font-bold tracking-wider text-white transition hover:bg-brand">
+      <Link href={pathname === "/login" ? "/login" : `/login?next=${encodeURIComponent(pathname + search)}`} className={buttonClass("dark", "md")}>
         ログイン
       </Link>
     );

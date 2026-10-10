@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
 import { submitProject } from "@/lib/demo-store";
-import { formatYen } from "@/lib/format";
+import { formatPrice, formatYen } from "@/lib/format";
 import { MINOR_ARTIST_TYPES, REWARD_KIND_LABELS } from "@/types";
-import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, saveDraft, storyText, TABS, toNumber, type Draft, type Tab } from "./draft";
+import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, revokeFiles, saveDraft, storyText, TABS, toNumber, type Draft, type Tab } from "./draft";
 import { Preview } from "./preview";
 import { BasicsSection, IdentitySection, MediaSection, MoneySection, RewardsSection, RisksSection, StorySection, TracksSection, type Update } from "./sections";
+
+/** 「視差効果を減らす」設定なら、スクロールのアニメーションをしない */
+const scrollBehavior = (): ScrollBehavior => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 
 /** 入力が止まってから自動保存するまでの時間 */
 const AUTOSAVE_MS = 1500;
@@ -33,6 +36,7 @@ export function ProjectEditor() {
   const [submitted, setSubmitted] = useState(false);
   const loaded = useRef(false);
   const topRef = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   const update: Update = useCallback((fn) => setD((prev) => fn(prev)), []);
 
@@ -44,6 +48,13 @@ export function ProjectEditor() {
     setRestored(saved !== null);
     loaded.current = true;
   }, []);
+
+  // 画面を離れるときに、選んだファイルの一時 URL を解放する
+  const latest = useRef(d);
+  useEffect(() => {
+    latest.current = d;
+  });
+  useEffect(() => () => revokeFiles(latest.current), []);
 
   useEffect(() => {
     if (!loaded.current) return;
@@ -60,7 +71,7 @@ export function ProjectEditor() {
 
   function go(next: Tab) {
     setTab(next);
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    topRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 
   if (submitted) {
@@ -71,7 +82,7 @@ export function ProjectEditor() {
         </p>
         <p className="text-2xl font-bold text-emerald-800">審査に提出しました</p>
         <p className="text-sm leading-relaxed text-stone-600">
-          最短即日〜5営業日で結果をメールでお知らせします。審査中は編集できません。
+          審査の結果は、5営業日ほどを目安にメールでお知らせします。審査中は編集できません。
           <br />
           審査を通過したら、好きなタイミングで公開ボタンを押して募集を始められます。
         </p>
@@ -93,12 +104,13 @@ export function ProjectEditor() {
     <div ref={topRef} className="grid scroll-mt-20 gap-6 lg:grid-cols-[1fr_300px]">
       <div className="min-w-0 space-y-4">
         {restored && (
-          <div className="animate-rise flex flex-wrap items-center justify-between gap-2 bg-brand-soft px-4 py-2 text-sm text-brand">
+          <div className="animate-rise flex flex-wrap items-center justify-between gap-2 bg-brand-soft min-h-11 px-4 py-2 text-sm text-brand">
             前回の下書きを復元しました（画像と音源は選び直してください）。
             <button
               type="button"
               onClick={() => {
                 clearDraft();
+                revokeFiles(d);
                 setD(initialDraft);
                 setRestored(false);
               }}
@@ -123,12 +135,15 @@ export function ProjectEditor() {
                   t === tab ? "border-brand font-bold text-brand" : "border-transparent text-stone-500 hover:text-ink"
                 }`}
               >
-                <span className="mr-1 font-en text-[10px] text-stone-400">{i + 1}</span>
+                <span className="mr-1 font-en text-[10px] text-stone-500">{i + 1}</span>
                 {t}
                 {complete && (
-                  <span className="ml-1 text-emerald-500" aria-label="入力済み">
-                    ✓
-                  </span>
+                  <>
+                    <span className="ml-1 text-emerald-700" aria-hidden>
+                      ✓
+                    </span>
+                    <span className="sr-only">（入力済み）</span>
+                  </>
                 )}
               </button>
             );
@@ -151,12 +166,17 @@ export function ProjectEditor() {
             type="button"
             onClick={() => go(TABS[tabIndex - 1])}
             disabled={tabIndex === 0}
-            className="border border-stone-300 bg-white px-5 py-2.5 text-sm transition hover:bg-stone-100 disabled:invisible"
+            className="border border-stone-300 bg-white min-h-11 px-5 py-2.5 text-sm transition hover:bg-stone-100 disabled:invisible"
           >
             ← {TABS[tabIndex - 1]}
           </button>
+          {tabIndex === TABS.length - 1 && (
+            <button type="button" onClick={() => submitRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" })} className="bg-ink min-h-11 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
+              チェックして審査に提出 ↓
+            </button>
+          )}
           {tabIndex < TABS.length - 1 && (
-            <button type="button" onClick={() => go(TABS[tabIndex + 1])} className="bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
+            <button type="button" onClick={() => go(TABS[tabIndex + 1])} className="bg-ink min-h-11 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
               {TABS[tabIndex + 1]} →
             </button>
           )}
@@ -174,21 +194,22 @@ export function ProjectEditor() {
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-100">
             <div className="h-full rounded-full bg-brand transition-all duration-700 ease-out" style={{ width: `${(doneCount / required.length) * 100}%` }} />
           </div>
-          <CheckList items={required} onJump={setTab} />
+          <CheckList items={required} onJump={go} />
           <p className="mt-4 text-xs font-bold text-stone-500">あると支援されやすい</p>
-          <CheckList items={recommended} onJump={setTab} />
+          <CheckList items={recommended} onJump={go} />
         </div>
 
         <ProofreadPanel
           fields={proofreadFields(d)}
           onApply={(fieldId, excerpt, replacement) => update((prev) => applyFix(prev, fieldId, excerpt, replacement))}
-          onJump={(fieldId) => setTab(tabOfField(fieldId))}
+          onJump={(fieldId) => go(tabOfField(fieldId))}
         />
 
-        <button type="button" onClick={() => setPreviewing(true)} className="w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
+        <button type="button" onClick={() => setPreviewing(true)} className="min-h-11 w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
           プレビュー
         </button>
         <button
+          ref={submitRef}
           type="button"
           disabled={!ready}
           onClick={() => {
@@ -198,12 +219,12 @@ export function ProjectEditor() {
               artist: "星空ラジオ",
               goal: d.goalType === "amount" ? formatYen(toNumber(d.goal)) : `参加 ${d.goal}人`,
               story: storyText(d).slice(0, 400),
-              rewards: d.rewards.map((r) => `${r.kind === "free" ? "¥0" : formatYen(toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
+              rewards: d.rewards.map((r) => `${formatPrice(r.kind === "free" ? 0 : toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
               flags: { identity: d.identityVerified, cover: d.tracks.some((t) => t.isCover), minor: d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t)) },
             });
             clearDraft();
             setSubmitted(true);
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            window.scrollTo({ top: 0, behavior: scrollBehavior() });
           }}
           className="w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
         >
@@ -212,7 +233,7 @@ export function ProjectEditor() {
         <p className="text-center text-xs text-stone-500">
           {ready ? "提出後は審査が終わるまで編集できません" : `必須の項目があと${required.length - doneCount}つあります`}
         </p>
-        <p className="text-center text-[11px] text-stone-400" aria-live="polite">
+        <p className="text-center text-[11px] text-stone-500" aria-live="polite">
           {savedAt ? `下書きを自動保存しました（${savedAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}）` : "入力内容は自動で下書き保存されます"}
         </p>
       </aside>
@@ -228,10 +249,11 @@ function CheckList({ items, onJump }: { items: ReturnType<typeof checklist>; onJ
       {items.map((c) => (
         <li key={c.label}>
           <button type="button" onClick={() => onJump(c.tab)} className="flex w-full items-center gap-2 text-left transition hover:text-brand">
-            <span className={`transition ${c.done ? "scale-110 text-emerald-600" : "text-stone-300"}`} aria-hidden>
+            <span className={`transition ${c.done ? "scale-110 text-emerald-700" : "text-stone-300"}`} aria-hidden>
               {c.done ? "✓" : "○"}
             </span>
-            <span className={c.done ? "text-stone-400 line-through decoration-stone-300" : ""}>{c.label}</span>
+            <span className={c.done ? "text-stone-500 line-through decoration-stone-300" : ""}>{c.label}</span>
+            <span className="sr-only">{c.done ? "（完了）" : "（未完了）"}</span>
           </button>
         </li>
       ))}

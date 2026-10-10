@@ -18,7 +18,15 @@ function isArtistType(value: string): value is ArtistType {
 
 export async function generateMetadata({ params }: PageProps<"/types/[type]">): Promise<Metadata> {
   const { type } = await params;
-  return { title: isArtistType(type) ? `${ARTIST_TYPE_LABELS[type]}のプロジェクト` : undefined };
+  if (!isArtistType(type)) return {};
+  const count = (await getProjectsByArtistType(type)).length;
+  return {
+    title: `${ARTIST_TYPE_LABELS[type]}のプロジェクト`,
+    description: `${ARTIST_TYPE_LABELS[type]}のアーティストが挑戦している音楽プロジェクト一覧。アルバム・ライブ・MVを支援しよう。`,
+    alternates: { canonical: `/types/${type}/` },
+    // まだ1件もないページは、検索結果に出さない
+    robots: count === 0 ? { index: false } : undefined,
+  };
 }
 
 export default async function ArtistTypePage({ params }: PageProps<"/types/[type]">) {

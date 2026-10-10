@@ -13,7 +13,7 @@ export function SideNav({ title, items }: { title: string; items: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav aria-label={title} className="-mx-4 flex gap-1 overflow-x-auto border-b border-stone-200 px-4 pb-2 md:mx-0 md:block md:space-y-1 md:border-0 md:p-0">
-      <p className="mb-3 hidden px-3 text-xs font-bold uppercase tracking-wide text-stone-400 md:block">{title}</p>
+      <p className="mb-3 hidden px-3 text-xs font-bold uppercase tracking-wide text-stone-500 md:block">{title}</p>
       {items.map((item) => {
         const active = pathname === item.href;
         return (
@@ -44,8 +44,10 @@ export function DashboardShell({
 }) {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8 md:py-8">
-      <aside className="min-w-0 md:sticky md:top-20 md:self-start">
+      <aside className="relative min-w-0 md:sticky md:top-20 md:self-start">
         <SideNav title={title} items={items} />
+        {/* スマホでは横にスクロールできることがわかるよう、右端をぼかす */}
+        <span className="pointer-events-none absolute inset-y-0 -right-4 w-10 bg-gradient-to-l from-white to-transparent md:hidden" aria-hidden />
       </aside>
       <div className="min-w-0">{children}</div>
     </div>

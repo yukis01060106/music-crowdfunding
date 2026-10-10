@@ -16,8 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...fixed.map((p) => ({ url: url(p), changeFrequency: "daily" as const, priority: p === "/" ? 1 : 0.7 })),
     ...projects.map((p) => ({ url: url(`/projects/${p.slug}`), lastModified: p.updates.at(-1)?.publishedAt ?? p.startAt, priority: 0.9 })),
     ...artists.map((a) => ({ url: url(`/artists/${a.id}`), priority: 0.6 })),
-    ...Object.keys(GENRE_LABELS).map((g) => ({ url: url(`/genres/${g}`), priority: 0.5 })),
-    ...Object.keys(ARTIST_TYPE_LABELS).map((t) => ({ url: url(`/types/${t}`), priority: 0.5 })),
+    // プロジェクトが1件もないジャンル・タイプは載せない（中身のないページになる）
+    ...Object.keys(GENRE_LABELS)
+      .filter((g) => projects.some((p) => p.genre === g))
+      .map((g) => ({ url: url(`/genres/${g}`), priority: 0.5 })),
+    ...Object.keys(ARTIST_TYPE_LABELS)
+      .filter((t) => projects.some((p) => artists.find((a) => a.id === p.artistId)?.types.includes(t as never)))
+      .map((t) => ({ url: url(`/types/${t}`), priority: 0.5 })),
     ...LEGAL_DOCS.map((d) => ({ url: url(`/legal/${d.slug}`), priority: 0.2 })),
   ];
 }

@@ -9,7 +9,7 @@ export function VoicesMarquee({ projects }: { projects: Project[] }) {
 
   return (
     <div className="overflow-hidden py-2">
-      <ul className="flex w-max animate-marquee-left gap-5 hover:[animation-play-state:paused]">
+      <ul className="flex w-max animate-marquee-left gap-5 hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
         {[...voices, ...voices].map((v, i) => (
           <li key={`${v.project.slug}-${v.id}-${i}`} aria-hidden={i >= voices.length}>
             <Link

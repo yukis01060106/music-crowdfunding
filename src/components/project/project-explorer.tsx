@@ -5,6 +5,7 @@ import type { Artist, Project } from "@/types";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
 import { progressPercent } from "@/lib/format";
 import { ProjectGrid } from "./project-grid";
+import { searchInputClass } from "@/components/ui/input";
 
 const SORTS = {
   popular: { label: "人気順", compare: (a: Project, b: Project) => b.backers - a.backers },
@@ -48,7 +49,7 @@ export function ProjectExplorer({ projects, artists }: { projects: Project[]; ar
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="アーティスト名・キーワードで検索"
-            className="w-full rounded-full border border-stone-300 bg-white px-5 py-2.5"
+            className={searchInputClass}
           />
         </label>
         <label className="flex items-center gap-2 text-sm">
@@ -56,7 +57,7 @@ export function ProjectExplorer({ projects, artists }: { projects: Project[]; ar
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="rounded-full border border-stone-300 bg-white px-4 py-2.5"
+            className="rounded-full border border-stone-500 bg-white px-4 py-2.5"
           >
             {(Object.keys(SORTS) as SortKey[]).map((k) => (
               <option key={k} value={k}>

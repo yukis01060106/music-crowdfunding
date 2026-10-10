@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import { login, useDemo, useHydrated } from "@/lib/demo-store";
+import { buttonClass } from "@/components/ui/button";
 
 /**
  * ログインが必要な画面の中身を包む。未ログインならログインへの案内を出す。
@@ -12,6 +14,11 @@ export function RequireLogin({ children, what = "この画面" }: { children: Re
   const { user } = useDemo();
   const hydrated = useHydrated();
   const pathname = usePathname();
+  const search = useSyncExternalStore(
+    () => () => {},
+    () => window.location.search,
+    () => "",
+  );
 
   if (!hydrated) return <div className="h-64 animate-pulse bg-stone-100" aria-label="読み込み中" />;
   if (user) return <>{children}</>;
@@ -24,7 +31,7 @@ export function RequireLogin({ children, what = "この画面" }: { children: Re
       <p className="mt-3 font-bold">{what}を見るには、ログインしてください</p>
       <p className="mt-1 text-sm text-stone-500">メールアドレスだけで、パスワードなしでログインできます。</p>
       <div className="mt-6 flex flex-col items-center gap-3">
-        <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="bg-ink px-8 py-3 font-bold tracking-wider text-white transition hover:bg-brand">
+        <Link href={`/login?next=${encodeURIComponent(pathname + search)}`} className={buttonClass("primary", "lg")}>
           ログイン・会員登録
         </Link>
         <button type="button" onClick={() => login({ name: "音楽好きのゆう", email: "yu@example.com", provider: "email" })} className="text-sm text-brand underline">

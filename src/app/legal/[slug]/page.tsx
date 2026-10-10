@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LEGAL_DOCS } from "@/lib/legal";
 import { formatDate } from "@/lib/format";
+import { chipClass } from "@/components/ui/chip";
 
 export const dynamicParams = false;
 
@@ -12,7 +13,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  return { title: LEGAL_DOCS.find((d) => d.slug === slug)?.title };
+  const doc = LEGAL_DOCS.find((d) => d.slug === slug);
+  if (!doc) return {};
+  return { title: doc.title, description: `OTOFUND（仮）の${doc.title}。`, alternates: { canonical: `/legal/${slug}/` } };
 }
 
 export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) {
@@ -28,7 +31,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) 
             key={d.slug}
             href={`/legal/${d.slug}`}
             aria-current={d.slug === doc.slug ? "page" : undefined}
-            className={`rounded-full border px-3 py-1 ${d.slug === doc.slug ? "border-ink bg-ink text-white" : "border-stone-300 bg-white hover:border-brand hover:text-brand"}`}
+            className={chipClass(d.slug === doc.slug)}
           >
             {d.title}
           </Link>

@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/site-footer";
 import { SideRails } from "@/components/side-rails";
 import { MotionRoot } from "@/components/motion/motion-root";
 import { Toaster } from "@/components/ui/toast";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { JsonLd } from "@/components/json-ld";
+import { baseOpenGraph, IS_DEMO, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const notoSansJp = Noto_Sans_JP({
@@ -25,13 +26,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: `${SITE_NAME}｜音楽のクラウドファンディング`, template: `%s｜${SITE_NAME}` },
   description: SITE_DESCRIPTION,
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
-    locale: "ja_JP",
-    description: SITE_DESCRIPTION,
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "音楽は、ファンとつくる。OTOFUND" }],
-  },
+  // description は各ページの metadata.description から自動で受け継ぐので、ここでは固定しない
+  openGraph: { ...baseOpenGraph, images: [{ url: "/og.png", width: 1200, height: 630, alt: "音楽は、ファンとつくる。OTOFUND" }] },
   twitter: { card: "summary_large_image" },
 };
 
@@ -44,14 +40,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="sr-only z-[100] bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-2 focus:top-2">
           本文へスキップ
         </a>
+        {IS_DEMO && (
+          <div role="region" aria-label="デモ版のお知らせ" className="bg-pop-yellow px-4 py-1.5 text-center text-xs font-bold text-ink">
+            これはデモ版です。実際の決済やメールの送信は行われません。入力した内容は、このブラウザの中にだけ保存されます。
+          </div>
+        )}
         <MotionRoot />
         <SideRails />
         <SiteHeader />
-        <main id="main" className="flex-1">
+        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
           {children}
         </main>
         <SiteFooter />
         <Toaster />
+        <JsonLd
+          data={[
+            { "@context": "https://schema.org", "@type": "Organization", name: SITE_NAME, url: `${SITE_URL}/`, logo: `${SITE_URL}/og.png` },
+            { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${SITE_URL}/`, inLanguage: "ja" },
+          ]}
+        />
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { logout, newId, resetDemo, updateProfile, updateSettings, useDemo, type 
 import { Avatar } from "@/components/account-button";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
+import { Switch } from "@/components/ui/switch";
 
 const NOTIFY: { key: keyof Pick<DemoSettings, "notifyUpdates" | "notifyEnding" | "notifyFes" | "notifyNews">; label: string; body: string }[] = [
   { key: "notifyUpdates", label: "活動報告", body: "支援・お気に入りのプロジェクトに活動報告が投稿されたとき" },
@@ -16,7 +17,7 @@ const NOTIFY: { key: keyof Pick<DemoSettings, "notifyUpdates" | "notifyEnding" |
 
 const PROVIDER_LABELS = { email: "メールアドレス", google: "Google", x: "X" } as const;
 
-const input = "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none";
+const input = "mt-1 w-full border border-stone-500 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none";
 
 export function Settings() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export function Settings() {
   const [name, setName] = useState(user?.name ?? "");
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [deleting, setDeleting] = useState<Address | null>(null);
   const activeBackings = backings.length;
 
   if (!user) return null;
@@ -98,16 +100,13 @@ export function Settings() {
                   <span className="block text-xs text-stone-500">{a.phone}</span>
                 </span>
                 <span className="flex shrink-0 gap-2 text-xs">
-                  <button type="button" onClick={() => setEditingAddress(a)} className="text-brand underline">
+                  <button type="button" onClick={() => setEditingAddress(a)} className="min-h-11 px-1 text-brand underline">
                     編集
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      updateSettings({ addresses: settings.addresses.filter((x) => x.id !== a.id) });
-                      toast("お届け先を削除しました");
-                    }}
-                    className="text-stone-500 underline"
+                    onClick={() => setDeleting(a)}
+                    className="min-h-11 px-1 text-stone-500 underline"
                   >
                     削除
                   </button>
@@ -141,7 +140,7 @@ export function Settings() {
               toast("ログアウトしました");
               router.push("/");
             }}
-            className="border border-stone-300 px-5 py-2.5 text-sm hover:bg-stone-100"
+            className="min-h-11 border-2 border-ink px-5 text-sm font-bold hover:bg-ink hover:text-white"
           >
             ログアウト
           </button>
@@ -151,6 +150,19 @@ export function Settings() {
         </div>
       </Card>
 
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => {
+          if (!deleting) return;
+          updateSettings({ addresses: settings.addresses.filter((x) => x.id !== deleting.id) });
+          toast("お届け先を削除しました");
+        }}
+        title="このお届け先を削除しますか？"
+        body={deleting && <p>{deleting.name}（〒{deleting.postalCode} {deleting.address}）</p>}
+        confirmLabel="削除する"
+        danger
+      />
       <AddressDialog address={editingAddress} onClose={() => setEditingAddress(null)} onSave={saveAddress} />
       <ConfirmDialog
         open={confirmLeave}
@@ -184,15 +196,6 @@ function Card({ title, lead, children }: { title: string; lead?: string; childre
   );
 }
 
-export function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${checked ? "bg-brand" : "bg-stone-300"}`}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
-      <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? "left-6" : "left-1"}`} />
-      <span className="pointer-events-none absolute -inset-1 rounded-full ring-brand peer-focus-visible:ring-2" />
-    </span>
-  );
-}
 
 const ADDRESS_ERRORS: Record<"name" | "postalCode" | "address" | "phone", (v: string) => string | null> = {
   name: (v) => (v.trim() ? null : "お名前を入力してください"),

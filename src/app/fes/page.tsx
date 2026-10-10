@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
+import { baseOpenGraph } from "@/lib/site";
 import { Photo } from "@/components/ui/photo";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SpinBadge } from "@/components/motion/spin-badge";
@@ -10,7 +11,8 @@ import { FesSignup } from "./fes-signup";
 export const metadata: Metadata = {
   title: "ONE NOTE FES",
   description: "OTOFUNDから生まれる、ファンと共に創る音楽フェス（企画中）。",
-  openGraph: { title: "ONE NOTE FES", description: "ファンと共に創るフェス（企画中）", images: [{ url: "/images/one-note-fes.jpg", alt: "ONE NOTE FES by otofund" }] },
+  alternates: { canonical: "/fes/" },
+  openGraph: { ...baseOpenGraph, title: "ONE NOTE FES", description: "ファンと共に創るフェス（企画中）", url: "/fes/", images: [{ url: "/images/one-note-fes.jpg", width: 1376, height: 768, alt: "ONE NOTE FES by otofund" }] },
 };
 
 // 企画中なので、決まっていないこと（日程・会場・出演者）は書かない。構想として伝える
@@ -23,7 +25,7 @@ const PILLARS = [
   {
     en: "One note",
     title: "すべてのアーティストが、ひとつの音に",
-    body: "メジャーから高校生バンドまで。OTOFUNDで挑戦したアーティストが、同じステージでひとつになる瞬間を目指します。",
+    body: "高校生バンドからインディーズ、メジャーまで。OTOFUNDで挑戦したアーティストが、同じステージでひとつになる瞬間を目指します。",
   },
   {
     en: "Funded by you",

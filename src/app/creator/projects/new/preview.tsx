@@ -2,10 +2,13 @@
 
 /* eslint-disable @next/next/no-img-element -- 選んだファイルの一時 URL は next/image で最適化できない */
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useModal } from "@/lib/use-modal";
 import { FUNDING_MODEL_LABELS, GENRE_LABELS, REWARD_KIND_LABELS } from "@/types";
 import { formatDuration, formatYen } from "@/lib/format";
 import { budgetTotal, toEmbedUrl, toNumber, type Draft } from "./draft";
+import { buttonClass } from "@/components/ui/button";
 
 const monthLabel = (m: string) => (m ? `${m.slice(0, 4)}年${Number(m.slice(5, 7))}月` : "未定");
 
@@ -18,18 +21,14 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
   const goal = toNumber(d.goal);
   const image = d.images[Math.min(imageIndex, d.images.length - 1)];
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // プレビューは開いたときだけ描画されるので、常に open として扱う
+  useModal(true, onClose, rootRef, closeRef);
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink/80 backdrop-blur-sm animate-fade" role="dialog" aria-modal aria-label="プレビュー">
+  // 編集画面の中ではなく body 直下に出し、背景を操作できなくする
+  return createPortal(
+    <div ref={rootRef} className="fixed inset-0 z-[80] flex flex-col bg-ink/80 backdrop-blur-sm animate-fade" role="dialog" aria-modal aria-label="プレビュー">
       <div className="flex items-center justify-between gap-2 bg-ink px-4 py-3 text-white">
         <p className="text-sm font-bold">プレビュー（支援者にはこう見えます）</p>
         <div className="flex items-center gap-2 text-xs">
@@ -38,7 +37,7 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
               {v === "pc" ? "PC" : "スマホ"}
             </button>
           ))}
-          <button type="button" onClick={onClose} className="ml-2 bg-brand px-4 py-1.5 font-bold">
+          <button ref={closeRef} type="button" onClick={onClose} className="ml-2 bg-brand px-4 py-1.5 font-bold">
             閉じる
           </button>
         </div>
@@ -54,12 +53,12 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
               <div className="min-w-0 space-y-6">
                 <div>
                   <div className="aspect-[3/2] overflow-hidden bg-stone-200">
-                    {image ? <img key={image.id} src={image.url} alt="" className="h-full w-full object-cover animate-fade" /> : <div className="flex h-full items-center justify-center text-sm text-stone-400">メイン画像が未設定です</div>}
+                    {image ? <img key={image.id} src={image.url} alt="" className="h-full w-full object-cover animate-fade" /> : <div className="flex h-full items-center justify-center text-sm text-stone-500">メイン画像が未設定です</div>}
                   </div>
                   {d.images.length > 1 && (
                     <div className="mt-2 flex gap-2">
                       {d.images.map((img, i) => (
-                        <button key={img.id} type="button" onClick={() => setImageIndex(i)} className={`h-12 w-18 overflow-hidden transition ${i === imageIndex ? "ring-2 ring-brand" : "opacity-60 hover:opacity-100"}`}>
+                        <button key={img.id} type="button" onClick={() => setImageIndex(i)} aria-label={`画像 ${i + 1}`} aria-current={i === imageIndex} className={`h-12 w-18 overflow-hidden transition ${i === imageIndex ? "ring-2 ring-brand" : "opacity-60 hover:opacity-100"}`}>
                           <img src={img.url} alt="" className="h-full w-full object-cover" />
                         </button>
                       ))}
@@ -78,7 +77,7 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
                       {d.tracks.map((t) => (
                         <li key={t.id} className="flex justify-between py-2">
                           <span>{t.title}</span>
-                          <span className="text-stone-400">{formatDuration(Math.min(t.durationSec, 90))}</span>
+                          <span className="text-stone-500">{formatDuration(Math.min(t.durationSec, 90))}</span>
                         </li>
                       ))}
                     </ol>
@@ -177,7 +176,7 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
                   <p className="text-xs text-stone-500">目標 {goal > 0 ? (d.goalType === "participants" ? `${goal}人` : formatYen(goal)) : "未設定"}・{d.days}日間</p>
                   <div className="h-2 rounded-full bg-stone-100" />
                   <p className="bg-stone-50 p-2 text-xs text-stone-600">{FUNDING_MODEL_LABELS[d.fundingModel]}</p>
-                  <p className="rounded-full bg-brand py-2.5 text-center text-sm font-bold text-white">このプロジェクトを支援する</p>
+                  <p className={buttonClass("primary", "md", "pointer-events-none w-full")}>リターンを選んで支援する</p>
                 </div>
                 <p className="font-bold">リターンを選ぶ</p>
                 {d.rewards.map((r) => (
@@ -185,7 +184,7 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
                     {r.image && <img src={r.image.url} alt="" className="mb-3 aspect-[3/2] w-full object-cover" />}
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-xl font-bold">{r.kind === "free" ? "0円" : toNumber(r.price) > 0 ? formatYen(toNumber(r.price)) : "¥—"}</span>
-                      <span className="shrink-0 rounded-full bg-brand-soft px-2 py-0.5 text-xs text-brand">{REWARD_KIND_LABELS[r.kind]}</span>
+                      <span className="shrink-0 bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand">{REWARD_KIND_LABELS[r.kind]}</span>
                     </div>
                     <p className="mt-2 font-bold">{r.title || "（リターン名未入力）"}</p>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-stone-600">{r.description}</p>
@@ -219,7 +218,8 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -298,6 +298,17 @@ export function applyFix(d: Draft, fieldId: string, excerpt: string, replacement
   }
 }
 
+/** 選んだファイルの一時 URL をすべて解放する（リセット時・画面を離れるとき） */
+export function revokeFiles(d: Draft) {
+  const urls = [
+    ...d.images.map((i) => i.url),
+    ...d.tracks.map((t) => t.url),
+    ...d.story.filter((b) => b.type === "image" && b.url).map((b) => b.url as string),
+    ...d.rewards.flatMap((r) => (r.image ? [r.image.url] : [])),
+  ];
+  urls.filter((u) => u.startsWith("blob:")).forEach((u) => URL.revokeObjectURL(u));
+}
+
 const STORAGE_KEY = "otofund:project-draft";
 
 /** 画像・音源の一時 URL はページを閉じると無効になるので、文章だけ保存する */
@@ -320,7 +331,34 @@ export function saveDraft(d: Draft): boolean {
 export function loadDraft(): Draft | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...initialDraft, ...(JSON.parse(raw) as Partial<Draft>) } : null;
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<Record<keyof Draft, unknown>>;
+    if (!v || typeof v !== "object") return null;
+    // 配列であるべき項目が壊れていたら、その項目だけ初期値に戻す
+    const arr = <K extends keyof Draft>(k: K) => (Array.isArray(v[k]) ? (v[k] as Draft[K]) : initialDraft[k]);
+    const text = <K extends keyof Draft>(k: K) => (typeof v[k] === "string" ? (v[k] as Draft[K]) : initialDraft[k]);
+    return {
+      ...initialDraft,
+      title: text("title"),
+      catchcopy: text("catchcopy"),
+      genre: text("genre"),
+      fundingModel: text("fundingModel"),
+      goalType: text("goalType"),
+      goal: text("goal"),
+      days: text("days"),
+      risks: text("risks"),
+      videoUrl: text("videoUrl"),
+      artistTypes: arr("artistTypes"),
+      summary: arr("summary"),
+      story: arr("story"),
+      budget: arr("budget"),
+      schedule: arr("schedule"),
+      faqs: arr("faqs"),
+      rewards: arr("rewards"),
+      guardianConsent: v.guardianConsent === true,
+      identityVerified: v.identityVerified === true,
+      bankRegistered: v.bankRegistered === true,
+    };
   } catch {
     return null;
   }

@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import type { Project } from "@/types";
 import { useDemo } from "@/lib/demo-store";
+import { useOpenForSupport } from "./support-cta";
+import { buttonClass } from "@/components/ui/button";
 
 /**
  * 支援者限定の本文。そのプロジェクトを支援した人にだけ見せる。
  * TODO: 本番では本文をサーバーから、支援者の認証つきで取得する（HTML に埋め込まない）
  */
-export function BackersOnly({ projectSlug, body }: { projectSlug: string; body: string }) {
+export function BackersOnly({ project, body }: { project: Pick<Project, "slug" | "status" | "endAt">; body: string }) {
+  const projectSlug = project.slug;
+  const open = useOpenForSupport(project);
   const { backings } = useDemo();
   const backed = backings.some((b) => b.projectSlug === projectSlug);
 
@@ -19,9 +24,11 @@ export function BackersOnly({ projectSlug, body }: { projectSlug: string; body: 
       </p>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/60 text-center text-sm">
         <p className="font-bold">🔒 この活動報告は支援者だけが読めます</p>
-        <Link href={`/projects/${projectSlug}/support`} className="bg-brand px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-dark">
-          支援して読む
-        </Link>
+        {open && (
+          <Link href={`/projects/${projectSlug}/support`} className={buttonClass("primary", "md")}>
+            支援して読む
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -5,15 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { login, type DemoUser } from "@/lib/demo-store";
 import { toast } from "@/components/ui/toast";
+import { safeNext } from "@/lib/safe-redirect";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 // TODO: Supabase Auth（メールのマジックリンク＋Google/X）に置き換える
 export function LoginForm() {
   const router = useRouter();
-  const next = useSearchParams().get("next") ?? "/mypage";
   // 外部サイトへ飛ばされないよう、サイト内のパスだけを受け付ける
-  const redirectTo = next.startsWith("/") && !next.startsWith("//") ? next : "/mypage";
+  const redirectTo = safeNext(useSearchParams().get("next"));
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(false);
@@ -30,7 +30,7 @@ export function LoginForm() {
         <p className="text-4xl" aria-hidden>
           ✉️
         </p>
-        <p className="font-bold">{email} にログインリンクを送りました</p>
+        <p className="font-bold">（デモ版）本番では {email} にログインリンクが届きます</p>
         <p className="text-sm leading-relaxed text-stone-600">メールのリンクを開くと、ログインが完了します。リンクの有効期限は1時間です。</p>
         <button type="button" onClick={() => finish({ name: email.split("@")[0], email, provider: "email" })} className="w-full bg-brand py-3 font-bold text-white transition hover:bg-brand-dark">
           （デモ）リンクを開いたことにしてログイン
@@ -67,7 +67,7 @@ export function LoginForm() {
               setError(false);
             }}
             aria-invalid={error}
-            className={`mt-1 w-full rounded-lg border px-3 py-2.5 focus:border-brand focus:outline-none ${error ? "border-rose-500" : "border-stone-300"}`}
+            className={`mt-1 w-full border px-3 py-2.5 focus:border-brand focus:outline-none ${error ? "border-rose-500" : "border-stone-500"}`}
           />
           {error && <span className="mt-1 block text-xs text-rose-600">メールアドレスを正しく入力してください</span>}
         </label>
@@ -76,7 +76,7 @@ export function LoginForm() {
         </button>
         <p className="text-center text-xs text-stone-500">パスワードは不要です。はじめての方は、そのまま会員登録になります。</p>
       </form>
-      <div className="my-6 flex items-center gap-3 text-xs text-stone-400">
+      <div className="my-6 flex items-center gap-3 text-xs text-stone-500">
         <span className="h-px flex-1 bg-stone-200" />
         または
         <span className="h-px flex-1 bg-stone-200" />

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FAQ_GROUPS } from "./faq";
 import { FaqSearch } from "./faq-search";
+import { buttonClass } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "はじめての方へ・よくある質問" };
+export const metadata: Metadata = { title: "はじめての方へ・よくある質問", description: "支援のしかた、決済のタイミング、リターン、メンバーシップ、ONE NOTE FES についてのよくある質問。", alternates: { canonical: "/help/" } };
 
 const STEPS = [
   { en: "Find", title: "応援したい音楽を見つける", body: "試聴して、アーティストの想いを読んで、気に入ったら。" },
@@ -22,7 +23,7 @@ export default function HelpPage() {
         {STEPS.map((s, i) => (
           <li key={s.title} className="border-t-[3px] border-pop-teal bg-white p-4">
             <p className="font-en text-3xl font-black text-pop-teal/30">0{i + 1}</p>
-            <p className="font-en text-xs font-bold text-pop-teal">{s.en}</p>
+            <p className="font-en text-xs font-bold text-teal-700">{s.en}</p>
             <p className="mt-1 font-bold">{s.title}</p>
             <p className="mt-1 text-sm text-stone-600">{s.body}</p>
           </li>
@@ -33,7 +34,7 @@ export default function HelpPage() {
 
       <div className="mt-12 bg-stone-100 p-6 text-center text-sm">
         <p>解決しない場合は、お気軽にお問い合わせください。</p>
-        <Link href="/contact" className="mt-3 inline-block bg-ink px-6 py-2.5 font-bold text-white transition hover:bg-brand">
+        <Link href="/contact" className={buttonClass("dark", "md", "mt-3")}>
           お問い合わせ
         </Link>
       </div>

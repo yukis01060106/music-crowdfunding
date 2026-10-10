@@ -9,6 +9,8 @@ import { lowestPlanPrice } from "@/lib/membership";
 import { FRAME_COLORS } from "@/components/project/project-card";
 import { VerifiedBadge } from "@/components/project/verified-badge";
 import { Photo } from "@/components/ui/photo";
+import { chipClass } from "@/components/ui/chip";
+import { searchInputClass } from "@/components/ui/input";
 
 /** アーティストをタイプで絞り込み、名前で検索する */
 export function ArtistDirectory({ artists, projectCounts }: { artists: Artist[]; projectCounts: Record<string, number> }) {
@@ -24,7 +26,6 @@ export function ArtistDirectory({ artists, projectCounts }: { artists: Artist[];
       (!q || `${a.name} ${a.bio} ${a.genres.map((g) => GENRE_LABELS[g]).join(" ")}`.toLowerCase().includes(q)),
   );
   const usedTypes = (Object.keys(ARTIST_TYPE_LABELS) as ArtistType[]).filter((t) => artists.some((a) => a.types.includes(t)));
-  const chip = (on: boolean) => `rounded-full border px-3 py-1 text-sm transition ${on ? "border-ink bg-ink text-white" : "border-stone-300 bg-white hover:border-brand hover:text-brand"}`;
 
   return (
     <>
@@ -35,14 +36,14 @@ export function ArtistDirectory({ artists, projectCounts }: { artists: Artist[];
           onChange={(e) => setQuery(e.target.value)}
           placeholder="アーティスト名・ジャンルで検索"
           aria-label="アーティストを検索"
-          className="w-full rounded-full border border-stone-300 bg-white px-5 py-2.5 focus:border-brand focus:outline-none sm:max-w-md"
+          className={searchInputClass}
         />
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => setType("all")} aria-pressed={type === "all"} className={chip(type === "all")}>
+          <button type="button" onClick={() => setType("all")} aria-pressed={type === "all"} className={chipClass(type === "all")}>
             すべて
           </button>
           {usedTypes.map((t) => (
-            <button key={t} type="button" onClick={() => setType(t)} aria-pressed={type === t} className={chip(type === t)}>
+            <button key={t} type="button" onClick={() => setType(t)} aria-pressed={type === t} className={chipClass(type === t)}>
               {ARTIST_TYPE_LABELS[t]}
             </button>
           ))}

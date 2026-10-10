@@ -33,7 +33,7 @@ const QUEUE: QueueItem[] = [
     submittedAt: "2026-09-27",
     goal: "参加 100人",
     story: "3年生最後の定期演奏会を、はじめてライブハウスで開きます。会場費の一部を募ります。",
-    rewards: ["¥0 応援する", "¥1,000 入場チケット"],
+    rewards: ["0円 応援する", "¥1,000 入場チケット"],
     flags: { identity: true, cover: false, minor: true },
   },
 ];

@@ -21,15 +21,16 @@ export function ProjectTabs({
   ];
 
   return (
-    <nav className="flex gap-1 border-b border-stone-200">
+    <nav aria-label="プロジェクトの情報" className="flex gap-1 overflow-x-auto border-b border-stone-200">
       {tabs.map((tab) => {
         const active = pathname === tab.href;
         return (
           <Link
             key={tab.href}
             href={tab.href}
-            className={`-mb-px border-b-2 px-4 py-3 text-sm font-medium ${
-              active ? "border-brand text-brand" : "border-transparent text-stone-500 hover:text-stone-900"
+            aria-current={active ? "page" : undefined}
+            className={`-mb-px shrink-0 border-b-2 px-4 py-3 text-sm font-medium ${
+              active ? "border-brand text-brand" : "border-transparent text-stone-600 hover:text-stone-900"
             }`}
           >
             {tab.label}

@@ -49,7 +49,7 @@ export function TrackList({ tracks }: { tracks: Track[] }) {
           </li>
         ))}
       </ol>
-      {hasDemoAudio && <p className="mt-2 text-xs text-stone-400">※デモ用の合成音です</p>}
+      {hasDemoAudio && <p className="mt-2 text-xs text-stone-500">※デモ用の合成音です</p>}
       <audio ref={audioRef} onEnded={() => setPlaying(null)} />
     </section>
   );

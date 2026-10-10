@@ -6,6 +6,11 @@ export function formatYen(amount: number): string {
   return `¥${yen.format(amount)}`;
 }
 
+/** 価格の表示。0円のプランは「¥0」ではなく「0円」と書く */
+export function formatPrice(amount: number): string {
+  return amount === 0 ? "0円" : formatYen(amount);
+}
+
 export function formatNumber(n: number): string {
   return yen.format(n);
 }
@@ -16,6 +21,22 @@ export function formatDate(iso: string): string {
     year: "numeric",
     month: "long",
     day: "numeric",
+  });
+}
+
+/** 日本時間の日付（YYYY-MM-DD）。ファイル名やグラフの日付に使う（toISOString は UTC で1日ずれる） */
+export function jstDateKey(date: Date = new Date()): string {
+  return date.toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
+}
+
+/** 日時（メッセージなど）。どこから見ても日本時間で表示する */
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 

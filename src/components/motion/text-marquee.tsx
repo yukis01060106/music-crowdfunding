@@ -8,7 +8,7 @@ export function TextMarquee({ words, tone = "ink" }: { words: string[]; tone?: "
   const line = [...words, ...words];
   return (
     <div className={`overflow-hidden py-4 ${styles}`} aria-hidden>
-      <div className="flex w-max animate-marquee-left gap-10 whitespace-nowrap font-en text-4xl font-black tracking-tight sm:text-6xl">
+      <div className="flex w-max animate-marquee-left gap-10 hover:[animation-play-state:paused] whitespace-nowrap font-en text-4xl font-black tracking-tight sm:text-6xl">
         {[0, 1].map((copy) => (
           <div key={copy} className="flex gap-10">
             {line.map((w, i) => (

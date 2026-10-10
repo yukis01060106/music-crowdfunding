@@ -15,7 +15,7 @@ export function HeroPhotoColumns() {
             <div className={`${col === 0 ? "animate-marquee-up" : "animate-marquee-down"} flex flex-col gap-2 sm:gap-3`}>
               {[...photos, ...photos].map((src, i) => (
                 <div key={`${src}-${i}`} className="relative aspect-[2/3] w-full shrink-0 bg-stone-100">
-                  <Photo src={src} alt="" sizes="(min-width: 1024px) 260px, 50vw" priority={i < 2} />
+                  <Photo src={src} alt="" sizes="(min-width: 1024px) 260px, 50vw" priority={col === 0 ? i === 0 : i === photos.length} />
                 </div>
               ))}
             </div>

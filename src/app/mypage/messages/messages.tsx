@@ -5,10 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { Artist, Project } from "@/types";
 import { markThreadRead, sendMessage, useDemo } from "@/lib/demo-store";
+import { formatDateTime } from "@/lib/format";
 import { Photo } from "@/components/ui/photo";
 import { toast } from "@/components/ui/toast";
 
-const formatAt = (iso: string) => new Date(iso).toLocaleString("ja-JP", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const formatAt = formatDateTime;
 
 const SUBJECTS = ["リターンについて", "お届け先の変更", "支援について", "その他"];
 
@@ -101,7 +102,7 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
           <div className="flex-1 p-4">
             <label className="block text-sm">
               件名
-              <select value={subject} onChange={(e) => setSubject(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2">
+              <select value={subject} onChange={(e) => setSubject(e.target.value)} className="mt-1 w-full border border-stone-500 bg-white px-3 py-2">
                 {SUBJECTS.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
@@ -117,14 +118,14 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
               <li key={i} className={`flex animate-rise ${m.from === "me" ? "justify-end" : ""}`}>
                 <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed ${m.from === "me" ? "bg-brand text-white" : "bg-stone-100"}`}>
                   {m.body}
-                  <p className={`mt-1 text-[10px] ${m.from === "me" ? "text-white/70" : "text-stone-400"}`}>{formatAt(m.at)}</p>
+                  <p className={`mt-1 text-[10px] ${m.from === "me" ? "text-white/70" : "text-stone-500"}`}>{formatAt(m.at)}</p>
                 </div>
               </li>
             ))}
           </ol>
         )}
         <div className="flex gap-2 border-t border-stone-100 p-4">
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="メッセージを書く" aria-label="メッセージ" className="flex-1 rounded-lg border border-stone-300 p-2 text-sm focus:border-brand focus:outline-none" />
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="メッセージを書く" aria-label="メッセージ" className="flex-1 border border-stone-500 p-2 text-sm focus:border-brand focus:outline-none" />
           <button type="button" onClick={send} disabled={!draft.trim()} className="self-end bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand disabled:bg-stone-300">
             送信
           </button>

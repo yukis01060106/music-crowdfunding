@@ -4,7 +4,7 @@ import { ShipmentTable } from "./shipment-table";
 
 // リターン種別ごとのお届け方法。デジタルとチケットは自動で届ける
 const methods: { kind: RewardKind; how: string }[] = [
-  { kind: "digital", how: "配信日にダウンロードリンクを自動でメール送信" },
+  { kind: "digital", how: "配信日（お届け予定の月に設定）にダウンロードリンクを自動でメール送信" },
   { kind: "ticket", how: "公演の2週間前にQRチケットを自動発行" },
   { kind: "physical", how: "お届け先をCSVで出力し、発送後に追跡番号を登録" },
   { kind: "credit", how: "掲載名の確認フォームを支援者に送信" },

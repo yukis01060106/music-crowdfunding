@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useDemo } from "@/lib/demo-store";
+import { buttonClass } from "@/components/ui/button";
+import { inputClass } from "@/components/ui/input";
 
 const CATEGORIES = ["支援について", "メンバーシップについて", "プロジェクトを立ち上げたい", "掲載中のプロジェクトの通報", "取材・提携", "その他"] as const;
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-const input = "mt-1 w-full rounded-lg border bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none";
+const input = inputClass;
 
 // TODO: 送信内容を Supabase に保存し、運営のメールと自動返信メールを送る
 export function ContactForm() {
@@ -38,7 +40,7 @@ export function ContactForm() {
         </p>
         <p className="mt-3 text-lg font-bold text-emerald-800">お問い合わせを受け付けました</p>
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
-          {contactEmail} に受付メールをお送りしました。
+          （デモ版）本番では {contactEmail} に受付メールが届きます。
           <br />
           通常2営業日以内にお返事します。
         </p>
@@ -64,7 +66,7 @@ export function ContactForm() {
     >
       <label className="block text-sm">
         お問い合わせの種類
-        <select value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])} className={`${input} border-stone-300`}>
+        <select value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])} className={input}>
           {CATEGORIES.map((c) => (
             <option key={c}>{c}</option>
           ))}
@@ -78,21 +80,21 @@ export function ContactForm() {
       <div className="grid gap-5 sm:grid-cols-2">
         <label className="block text-sm">
           お名前
-          <input value={contactName} onChange={(e) => setName(e.target.value)} autoComplete="name" aria-invalid={showErrors && Boolean(errors.name)} className={`${input} ${showErrors && errors.name ? "border-rose-500" : "border-stone-300"}`} />
+          <input value={contactName} onChange={(e) => setName(e.target.value)} autoComplete="name" aria-invalid={showErrors && Boolean(errors.name)} className={input} />
           {showErrors && errors.name && <span className="mt-1 block text-xs text-rose-600">{errors.name}</span>}
         </label>
         <label className="block text-sm">
           メールアドレス
-          <input type="email" value={contactEmail} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={showErrors && Boolean(errors.email)} className={`${input} ${showErrors && errors.email ? "border-rose-500" : "border-stone-300"}`} />
+          <input type="email" value={contactEmail} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={showErrors && Boolean(errors.email)} className={input} />
           {showErrors && errors.email && <span className="mt-1 block text-xs text-rose-600">{errors.email}</span>}
         </label>
       </div>
       <label className="block text-sm">
         内容
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} maxLength={2000} aria-invalid={showErrors && Boolean(errors.body)} className={`${input} ${showErrors && errors.body ? "border-rose-500" : "border-stone-300"}`} placeholder="プロジェクト名や支援した日など、わかる範囲でご記入ください" />
+        <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} maxLength={2000} aria-invalid={showErrors && Boolean(errors.body)} className={input} placeholder="プロジェクト名や支援した日など、わかる範囲でご記入ください" />
         <span className="mt-1 flex justify-between text-xs">
           <span className="text-rose-600">{showErrors && errors.body}</span>
-          <span className="text-stone-400">{body.length}/2000</span>
+          <span className="text-stone-500">{body.length}/2000</span>
         </span>
       </label>
       <label className="flex items-start gap-2 text-sm">
@@ -105,7 +107,7 @@ export function ContactForm() {
           {showErrors && errors.agreed && <span className="block text-xs text-rose-600">{errors.agreed}</span>}
         </span>
       </label>
-      <button type="submit" className="w-full bg-ink py-3.5 font-bold tracking-wider text-white transition hover:bg-brand">
+      <button type="submit" className={buttonClass("primary", "lg", "w-full")}>
         送信する
       </button>
     </form>

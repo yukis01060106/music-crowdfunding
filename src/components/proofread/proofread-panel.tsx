@@ -45,7 +45,7 @@ export function ProofreadPanel({
       setNotice("デモ版ではルールチェックのみ動きます。AI校正（Gemini）はサーバー版で使えます。");
     } else {
       try {
-        const res = await fetch(assetPath("/api/proofread"), {
+        const res = await fetch(assetPath("/api/proofread/"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields }),
@@ -88,28 +88,33 @@ export function ProofreadPanel({
       </p>
       <button
         type="button"
-        onClick={run}
-        disabled={loading || fields.length === 0}
-        className="mt-3 w-full bg-ink py-2.5 font-bold tracking-wider text-white transition hover:bg-brand disabled:bg-stone-300"
+        onClick={() => !loading && fields.length > 0 && run()}
+        aria-disabled={loading || fields.length === 0}
+        className="mt-3 min-h-11 w-full bg-ink font-bold tracking-wider text-white transition hover:bg-brand aria-disabled:cursor-not-allowed aria-disabled:bg-stone-300"
       >
         {loading ? "校正しています…" : issues ? "もう一度チェック" : "文章をチェックする"}
       </button>
       {HAS_SERVER && (
-        <p className="mt-2 text-[11px] leading-relaxed text-stone-400">
+        <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
           AI校正は Google の Gemini API を使います。無料枠では、送った文章が Google のサービス改善に使われることがあります。
         </p>
       )}
+      {/* 結果の件数と注意を読み上げソフトにも伝える */}
+      <p className="sr-only" role="status">
+        {loading ? "校正しています" : issues ? (visible.length === 0 ? "気になる表現は見つかりませんでした" : `${visible.length}件の指摘があります`) : ""}
+        {notice ?? ""}
+      </p>
       {notice && <p className="mt-3 bg-amber-50 p-2 text-xs text-amber-800">{notice}</p>}
 
       {issues && visible.length === 0 && !loading && (
         <p className="mt-3 bg-emerald-50 p-3 text-xs text-emerald-800">気になる表現は見つかりませんでした。</p>
       )}
-      <ul className="mt-3 max-h-[28rem] space-y-2 overflow-y-auto">
+      <ul className="mt-3 max-h-[28rem] space-y-2 overflow-y-auto" aria-busy={loading}>
         {visible.map((issue) => (
           <li key={keyOf(issue)} className="animate-rise border border-stone-200 p-3">
             <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
               <span className={`px-1.5 py-0.5 font-bold ${SEVERITY_STYLES[issue.severity]}`}>{SEVERITY_LABELS[issue.severity]}</span>
-              <span className="text-stone-400">{issue.source === "ai" ? "AI" : "ルール"}</span>
+              <span className="text-stone-500">{issue.source === "ai" ? "AI" : "ルール"}</span>
               <button type="button" onClick={() => onJump?.(issue.fieldId)} className="truncate text-stone-500 underline-offset-2 hover:underline">
                 {labelOf.get(issue.fieldId) ?? issue.fieldId}
               </button>
@@ -118,7 +123,7 @@ export function ProofreadPanel({
               <span className="bg-rose-50 text-rose-700 line-through decoration-rose-300">{issue.excerpt}</span>
               {issue.suggestion !== undefined && (
                 <>
-                  <span className="mx-1 text-stone-400" aria-hidden>
+                  <span className="mx-1 text-stone-500" aria-hidden>
                     →
                   </span>
                   <span className="bg-emerald-50 font-bold text-emerald-700">{issue.suggestion || "（削除）"}</span>

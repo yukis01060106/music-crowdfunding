@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS, REWARD_KIND_LABELS, type ArtistType, type Genre } from "@/types";
@@ -10,14 +11,18 @@ import { CircleLink, SectionHeading } from "@/components/ui/section-heading";
 import { HeroPhotoColumns } from "@/components/home/hero-photo-columns";
 import { VoicesMarquee } from "@/components/home/voices-marquee";
 import { MembershipArtistCard } from "@/components/membership/membership-artist-card";
-import { withMembership } from "@/lib/membership";
+import { MEMBERSHIP_MIN_PRICE, withMembership } from "@/lib/membership";
 import { CountUp } from "@/components/motion/count-up";
 import { SpinBadge } from "@/components/motion/spin-badge";
 import { TextMarquee } from "@/components/motion/text-marquee";
+import { buttonClass } from "@/components/ui/button";
+import { chipClass } from "@/components/ui/chip";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export const revalidate = 300;
 
-/** 気軽に応援できる価格の上限。支援者の約半数は1回の予算が1万円未満 */
+/** 気軽に応援できる価格の上限。1回の支援は数千円が中心になりやすい */
 const SMALL_BUDGET = 3000;
 
 const HOW_IT_WORKS = [
@@ -67,11 +72,11 @@ export default async function HomePage() {
             ファンが支援する、音楽のためのクラウドファンディングです。
           </p>
           <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:750ms]">
-            <Link href="/projects" className="group relative overflow-hidden bg-ink px-7 py-4 font-bold tracking-wider text-white transition hover:bg-brand">
+            <Link href="/projects" className={buttonClass("primary", "lg", "group relative overflow-hidden")}>
               <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 animate-shine bg-white/20" aria-hidden />
               プロジェクトをさがす <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
             </Link>
-            <Link href="/start" className="border-2 border-ink px-7 py-3.5 font-bold tracking-wider transition hover:bg-ink hover:text-white">
+            <Link href="/start" className={buttonClass("secondary", "lg")}>
               アーティストの方へ
             </Link>
           </div>
@@ -81,11 +86,26 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* 注目のプロジェクト：支援がいちばんの目的なので、ヒーローの直後に置く */}
+      <div className="mx-auto max-w-6xl px-4 pt-20">
+        <section className="space-y-10">
+          <SectionHeading en="Pickup" ja="注目のプロジェクト" />
+          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {popular.slice(0, 6).map((p, i) => (
+              <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i} />
+            ))}
+          </div>
+          <div className="flex justify-end">
+            <CircleLink href="/projects" color="teal" />
+          </div>
+        </section>
+      </div>
+
       <div className="mt-16 -rotate-1">
         <TextMarquee words={["MUSIC", "WITH", "FANS", "OTOFUND", "ONE NOTE FES"]} tone="yellow" />
       </div>
 
-      {/* ONE NOTE FES：ヒーロー直後に置く、企画中のフェス告知 */}
+      {/* ONE NOTE FES：注目のプロジェクトの後ろに置く、企画中のフェス告知 */}
       <section className="-mt-3 bg-ink py-16 text-white sm:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
           <div className="relative">
@@ -103,7 +123,7 @@ export default async function HomePage() {
             <p className="mt-4 text-xl font-bold tracking-[0.12em] sm:text-2xl">ファンと共に創るフェス</p>
             <p className="mt-5 text-sm leading-loose tracking-wider text-white/80">
               OTOFUNDから生まれる音楽フェス。
-              すべてのアーティストとファンが、ひとつになる瞬間を創ります。
+              すべてのアーティストとファンが、ひとつになる瞬間を目指して企画中です。
               出演者もステージも、ファンの応援で形にしていく予定です。
             </p>
             <p className="mt-6 border-l-4 border-pop-yellow pl-4 text-sm font-bold leading-relaxed tracking-wider">
@@ -121,17 +141,6 @@ export default async function HomePage() {
       </section>
 
       <div className="mx-auto max-w-6xl space-y-28 px-4 py-24">
-        <section className="space-y-10">
-          <SectionHeading en="Pickup" ja="注目のプロジェクト" />
-          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {popular.slice(0, 6).map((p, i) => (
-              <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i} />
-            ))}
-          </div>
-          <div className="flex justify-end">
-            <CircleLink href="/projects" color="teal" />
-          </div>
-        </section>
 
         {/* メンバーシップ：クラファンの合間も、毎月の応援でつながる */}
         <section data-reveal="zoom" className="relative bg-brand-soft p-8 sm:p-12">
@@ -140,7 +149,7 @@ export default async function HomePage() {
             <div>
               <SectionHeading en="Membership" ja="毎月、推しのとなりに。" />
               <p className="mt-5 text-sm leading-loose tracking-wider text-stone-700">
-                月額300円から、好きなアーティストのメンバーに。メンバーは新しいプロジェクトを公開前から支援でき、
+                月額{formatYen(MEMBERSHIP_MIN_PRICE)}から、好きなアーティストのメンバーに。メンバーは新しいプロジェクトを公開前から支援でき、
                 限定リターンも先に選べます。
               </p>
               <div className="mt-6">
@@ -166,22 +175,22 @@ export default async function HomePage() {
             {HOW_IT_WORKS.map((s, i) => (
               <li key={s.title}>
                 <p className="font-en text-5xl font-black text-pop-teal/25">0{i + 1}</p>
-                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-pop-teal">{s.en}</p>
+                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-teal-700">{s.en}</p>
                 <p className="mt-2 font-bold tracking-wider">{s.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">{s.body}</p>
               </li>
             ))}
           </ol>
           <p className="mt-10 bg-stone-100 p-4 text-sm font-medium tracking-wide">
-            ✓ 多くのプロジェクトは「目標に届かなければお支払いなし」。表示価格はすべて税込・送料込みです。
-            <Link href="/help" className="ml-2 text-pop-teal underline">
+            ✓ All-or-Nothing のプロジェクトは、目標に届かなければお支払いなし。方式は各プロジェクトに表示しています。表示価格はすべて税込・送料込みです。
+            <Link href="/help" className="ml-2 text-teal-700 underline">
               よくある質問
             </Link>
           </p>
         </section>
 
         <section className="space-y-10">
-          <SectionHeading en="Ending soon" ja="まもなく終了" lead="支援できるのはあと少し。" />
+          <SectionHeading en="Ending soon" ja="まもなく終了" lead="募集の終了が近いプロジェクトです。" />
           <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {endingSoon.map((p, i) => (
               <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i + 1} />
@@ -258,7 +267,7 @@ export default async function HomePage() {
             <p className="mb-4 font-en text-xs tracking-wide text-white/70">Artist type</p>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(ARTIST_TYPE_LABELS) as ArtistType[]).map((t) => (
-                <Link key={t} href={`/types/${t}`} className="border border-white/40 px-4 py-2 text-sm font-bold tracking-wider hover:bg-white hover:text-ink">
+                <Link key={t} href={`/types/${t}`} className={chipClass(false, true)}>
                   {ARTIST_TYPE_LABELS[t]}
                 </Link>
               ))}
@@ -266,7 +275,7 @@ export default async function HomePage() {
             <p className="mb-4 mt-8 font-en text-xs tracking-wide text-white/70">Genre</p>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(GENRE_LABELS) as Genre[]).map((g) => (
-                <Link key={g} href={`/genres/${g}`} className="border border-white/40 px-4 py-2 text-sm tracking-wider hover:bg-white hover:text-ink">
+                <Link key={g} href={`/genres/${g}`} className={chipClass(false, true)}>
                   {GENRE_LABELS[g]}
                 </Link>
               ))}
@@ -288,7 +297,7 @@ export default async function HomePage() {
           <SectionHeading en="For artists" ja="あなたの音楽を、ファンと一緒に。" />
           <p className="mt-6 leading-loose tracking-wider text-stone-700">
             アルバム制作、ライブ、MV。0円プランや参加人数目標で、お金以外の応援も集められます。
-            メジャーから高校生バンドまで、掲載は無料です。
+            高校生バンドから歌い手、インディーズ、メジャーまで。掲載は無料です。
           </p>
           <div className="mt-8">
             <CircleLink href="/start" color="purple">

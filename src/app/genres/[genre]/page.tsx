@@ -18,7 +18,15 @@ function isGenre(value: string): value is Genre {
 
 export async function generateMetadata({ params }: PageProps<"/genres/[genre]">): Promise<Metadata> {
   const { genre } = await params;
-  return { title: isGenre(genre) ? `${GENRE_LABELS[genre]}のプロジェクト` : undefined };
+  if (!isGenre(genre)) return {};
+  const count = (await getProjectsByGenre(genre)).length;
+  return {
+    title: `${GENRE_LABELS[genre]}のプロジェクト`,
+    description: `${GENRE_LABELS[genre]}の音楽プロジェクト一覧。インディーズや若手アーティストのアルバム・ライブ・MVを支援しよう。`,
+    alternates: { canonical: `/genres/${genre}/` },
+    // まだ1件もないページは、検索結果に出さない
+    robots: count === 0 ? { index: false } : undefined,
+  };
 }
 
 export default async function GenrePage({ params }: PageProps<"/genres/[genre]">) {

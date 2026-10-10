@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDateTime } from "@/lib/format";
 
 interface Message {
   from: "backer" | "me";
@@ -31,9 +32,12 @@ const THREADS: Thread[] = [
     id: "t2",
     name: "ゆう",
     reward: "サイン入りCD＋先行配信",
-    subject: "サインの宛名",
-    unread: true,
-    messages: [{ from: "backer", body: "サインに「ゆうへ」と名前を入れてもらうことはできますか？", at: "9月23日 08:40" }],
+    subject: "サインの宛名について",
+    unread: false,
+    messages: [
+      { from: "backer", body: "サインに名前を入れてもらうことはできますか？", at: "9月20日 19:05" },
+      { from: "me", body: "もちろんです！発送前にお名前の確認フォームをお送りしますね。", at: "9月21日 10:30" },
+    ],
   },
   {
     id: "t3",
@@ -42,7 +46,7 @@ const THREADS: Thread[] = [
     subject: "配信の形式",
     unread: false,
     messages: [
-      { from: "backer", body: "先行配信はハイレゾでも受け取れますか？", at: "9月20日 19:05" },
+      { from: "backer", body: "先行配信はハイレゾでも受け取れますか？", at: "9月19日 21:40" },
       { from: "me", body: "ご支援ありがとうございます！MP3とFLAC（24bit/48kHz）の両方をお届けする予定です。", at: "9月20日 22:30" },
     ],
   },
@@ -68,7 +72,7 @@ export function Inbox() {
 
   function send() {
     if (!draft.trim()) return;
-    const now = new Date().toLocaleString("ja-JP", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    const now = formatDateTime(new Date().toISOString());
     setThreads((prev) => prev.map((t) => (t.id === active.id ? { ...t, messages: [...t.messages, { from: "me", body: draft.trim(), at: now }] } : t)));
     setDraft("");
   }
@@ -100,7 +104,7 @@ export function Inbox() {
             <li key={i} className={`flex animate-rise ${m.from === "me" ? "justify-end" : ""}`}>
               <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed ${m.from === "me" ? "bg-brand text-white" : "bg-stone-100"}`}>
                 {m.body}
-                <p className={`mt-1 text-[10px] ${m.from === "me" ? "text-white/70" : "text-stone-400"}`}>{m.at}</p>
+                <p className={`mt-1 text-[10px] ${m.from === "me" ? "text-white/70" : "text-stone-500"}`}>{m.at}</p>
               </div>
             </li>
           ))}
@@ -114,7 +118,7 @@ export function Inbox() {
             ))}
           </div>
           <div className="flex gap-2">
-            <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="返信を書く" aria-label="返信" className="flex-1 rounded-lg border border-stone-300 p-2 text-sm focus:border-brand focus:outline-none" />
+            <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="返信を書く" aria-label="返信" className="flex-1 border border-stone-500 p-2 text-sm focus:border-brand focus:outline-none" />
             <button type="button" onClick={send} disabled={!draft.trim()} className="self-end bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand disabled:bg-stone-300">
               送信
             </button>

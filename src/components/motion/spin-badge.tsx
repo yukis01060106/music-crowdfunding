@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 /**
  * 円に沿った文字がゆっくり回るバッジ。レコードのラベルのイメージ。
  * 置き場所は className で指定する（absolute など）。指定がなければ relative で流し込む。
@@ -15,7 +17,8 @@ export function SpinBadge({
   className?: string;
   tone?: "dark" | "light";
 }) {
-  const id = `spin-${text.length}-${size}`;
+  // 同じページに同じ大きさのバッジが2つあっても、円の線を取り違えないよう固有の id にする
+  const id = useId();
   const fg = tone === "dark" ? "fill-white" : "fill-ink";
   return (
     <div className={className || "relative"} style={{ width: size, height: size }} aria-hidden>

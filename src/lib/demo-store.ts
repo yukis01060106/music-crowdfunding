@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { jstDateKey } from "./format";
 
 // デモ用の保存領域。ログイン・お気に入り・支援・メンバーシップ・メッセージ・設定を
 // ブラウザ（localStorage）に保存して、サイト全体でつながって見えるようにする。
@@ -32,6 +33,8 @@ export interface MembershipSub {
   joinedAt: string;
   /** 解約を申し込んだ日。次の更新日まで特典は使える */
   canceledAt?: string;
+  /** 下位プランへの変更を申し込んだとき、次の更新日から切り替わるプラン */
+  pendingPlanId?: string;
 }
 
 export interface ThreadMessage {
@@ -120,11 +123,46 @@ export const INITIAL_STATE: DemoState = {
 let cache: DemoState | null = null;
 const listeners = new Set<() => void>();
 
+/** 保存する形の版。形を変えたら上げて、古い値は捨てる */
+const VERSION = 1;
+
+/**
+ * 保存された値を検証して、形の合わない項目は初期値に戻す（古い版の値や、手で書き換えられた値で画面が落ちないように）。
+ * 注意：ここの値はブラウザで自由に書き換えられる。本番では、金額・支援の有無・ログイン中のユーザーを必ずサーバーで確かめる。
+ */
+const isStr = (v: unknown): v is string => typeof v === "string";
+const isDate = (v: unknown) => isStr(v) && !Number.isNaN(Date.parse(v));
+const isBacking = (x: Record<string, unknown>) =>
+  isStr(x.id) && isStr(x.projectSlug) && isStr(x.rewardId) && Number.isFinite(x.amount) && Number.isInteger(x.quantity) && Number.isFinite(x.tip) && isStr(x.paymentMethod) && isDate(x.backedAt);
+const isMembership = (x: Record<string, unknown>) => isStr(x.artistId) && isStr(x.planId) && isDate(x.joinedAt) && (x.canceledAt === undefined || isDate(x.canceledAt));
+const isAddress = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.name) && isStr(x.postalCode) && isStr(x.address) && isStr(x.phone);
+const isSubmission = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.title) && isStr(x.artist) && isDate(x.submittedAt) && isStr(x.goal) && isStr(x.story) && Array.isArray(x.rewards) && x.rewards.every(isStr) && !!x.flags && typeof x.flags === "object";
+const isThread = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.projectSlug) && isStr(x.subject) && Array.isArray(x.messages);
+
+function sanitize(raw: unknown): DemoState {
+  if (!raw || typeof raw !== "object" || (raw as { v?: unknown }).v !== VERSION) return INITIAL_STATE;
+  const r = raw as Partial<DemoState>;
+  // 配列の中身も、形の正しい項目だけ残す
+  const arr = <T,>(v: unknown, fallback: T[], valid: (x: Record<string, unknown>) => boolean = () => true): T[] =>
+    Array.isArray(v) ? (v.filter((x) => x && typeof x === "object" && valid(x as Record<string, unknown>)) as T[]) : fallback;
+  const user = r.user && typeof r.user === "object" && typeof r.user.name === "string" && typeof r.user.email === "string" ? r.user : null;
+  const settings = r.settings && typeof r.settings === "object" ? { ...INITIAL_STATE.settings, ...r.settings, addresses: arr(r.settings.addresses, [], isAddress) } : INITIAL_STATE.settings;
+  return {
+    user,
+    favorites: Array.isArray(r.favorites) ? r.favorites.filter((f): f is string => typeof f === "string") : INITIAL_STATE.favorites,
+    backings: arr(r.backings, INITIAL_STATE.backings, isBacking),
+    memberships: arr(r.memberships, INITIAL_STATE.memberships, isMembership),
+    threads: arr<Thread>(r.threads, INITIAL_STATE.threads, isThread).map((t) => ({ ...t, messages: arr(t.messages, [], (m) => isStr(m.body) && isDate(m.at) && (m.from === "me" || m.from === "artist")) })),
+    settings,
+    submissions: arr(r.submissions, [], isSubmission),
+  };
+}
+
 function read(): DemoState {
   if (cache) return cache;
   try {
     const raw = localStorage.getItem(KEY);
-    cache = raw ? { ...INITIAL_STATE, ...(JSON.parse(raw) as Partial<DemoState>) } : INITIAL_STATE;
+    cache = raw ? sanitize(JSON.parse(raw)) : INITIAL_STATE;
   } catch {
     cache = INITIAL_STATE;
   }
@@ -134,7 +172,7 @@ function read(): DemoState {
 function write(next: DemoState) {
   cache = next;
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(KEY, JSON.stringify({ ...next, v: VERSION }));
   } catch {
     // 保存できない環境（プライベートブラウズなど）では、開いている間だけ覚えておく
   }
@@ -197,14 +235,23 @@ export function addBacking(b: Omit<Backing, "id" | "backedAt">) {
   update((s) => ({ ...s, backings: [{ ...b, id: newId(), backedAt: new Date().toISOString() }, ...s.backings] }));
 }
 
-export function joinMembership(artistId: string, planId: string) {
-  update((s) => ({
-    ...s,
-    // 同じアーティストのプランを変えた場合は、加入日をそのままにプランだけ差し替える
-    memberships: s.memberships.some((m) => m.artistId === artistId)
-      ? s.memberships.map((m) => (m.artistId === artistId ? { ...m, planId, canceledAt: undefined } : m))
-      : [...s.memberships, { artistId, planId, joinedAt: new Date().toISOString() }],
-  }));
+/**
+ * 加入、またはプランの変更。上位への変更はすぐ切り替え、下位への変更は次の更新日から（pendingPlanId に入れておく）。
+ * 加入日（＝毎月の更新日）は変えない。
+ */
+export function joinMembership(artistId: string, planId: string, change: "new" | "upgrade" | "downgrade" = "new") {
+  update((s) => {
+    const existing = s.memberships.find((m) => m.artistId === artistId);
+    const fresh: MembershipSub = { artistId, planId, joinedAt: new Date().toISOString() };
+    if (!existing) return { ...s, memberships: [...s.memberships, fresh] };
+    // 終了したメンバーシップに入り直すときは、今日を新しい加入日（＝更新日）にする
+    if (change === "new") return { ...s, memberships: s.memberships.map((m) => (m.artistId === artistId ? fresh : m)) };
+    const next: MembershipSub =
+      change === "downgrade"
+        ? { ...existing, canceledAt: undefined, pendingPlanId: planId === existing.planId ? undefined : planId }
+        : { ...existing, planId, canceledAt: undefined, pendingPlanId: undefined };
+    return { ...s, memberships: s.memberships.map((m) => (m.artistId === artistId ? next : m)) };
+  });
 }
 
 export function cancelMembership(artistId: string) {
@@ -236,7 +283,7 @@ export function updateSettings(patch: Partial<DemoSettings>) {
 }
 
 export function submitProject(s: Omit<Submission, "id" | "submittedAt">) {
-  update((st) => ({ ...st, submissions: [{ ...s, id: newId(), submittedAt: new Date().toISOString().slice(0, 10) }, ...st.submissions] }));
+  update((st) => ({ ...st, submissions: [{ ...s, id: newId(), submittedAt: jstDateKey() }, ...st.submissions] }));
 }
 
 /** 退会・デモのリセット。保存内容をすべて消して最初の状態に戻す */

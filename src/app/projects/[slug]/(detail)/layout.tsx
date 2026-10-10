@@ -15,6 +15,11 @@ import { StatusBadges } from "@/components/project/status-badges";
 import { VerifiedBadge } from "@/components/project/verified-badge";
 import { TrackList } from "@/components/project/track-list";
 import { ProjectMedia } from "@/components/project/project-media";
+import { baseOpenGraph, OG_SIZE, SITE_URL } from "@/lib/site";
+import { JsonLd } from "@/components/json-ld";
+import { SupportCta } from "@/components/project/support-cta";
+import { TrustLines } from "@/components/project/trust-lines";
+import { buttonClass } from "@/components/ui/button";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 
@@ -34,7 +39,15 @@ export async function generateMetadata({ params }: LayoutProps<"/projects/[slug]
   return {
     title: project.title,
     description: project.catchcopy,
-    openGraph: { title: project.title, description: project.catchcopy, type: "article", images: [{ url: project.cover, alt: project.title }] },
+    alternates: { canonical: `/projects/${project.slug}/` },
+    openGraph: {
+      ...baseOpenGraph,
+      type: "article",
+      title: project.title,
+      description: project.catchcopy,
+      url: `/projects/${project.slug}/`,
+      images: [{ url: `/og/projects/${project.slug}/image.png`, width: OG_SIZE.width, height: OG_SIZE.height, alt: project.title }],
+    },
   };
 }
 
@@ -46,8 +59,40 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
   const popularId = mostPopularRewardId(project.rewards);
   const recentBackers = [...project.comments].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
 
+  const prices = project.rewards.map((r) => r.price);
+  const soldOut = project.rewards.every((r) => r.limit !== undefined && r.backers >= r.limit);
+  const structured = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "プロジェクト", item: `${SITE_URL}/projects/` },
+        { "@type": "ListItem", position: 2, name: GENRE_LABELS[project.genre], item: `${SITE_URL}/genres/${project.genre}/` },
+        { "@type": "ListItem", position: 3, name: project.title, item: `${SITE_URL}/projects/${project.slug}/` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: project.title,
+      description: project.catchcopy,
+      image: `${SITE_URL}${project.cover}`,
+      brand: artist ? { "@type": "Brand", name: artist.name } : undefined,
+      offers: {
+        "@type": "AggregateOffer",
+        priceCurrency: "JPY",
+        lowPrice: Math.min(...prices),
+        highPrice: Math.max(...prices),
+        offerCount: project.rewards.length,
+        availability: project.status === "live" && !soldOut ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+        url: `${SITE_URL}/projects/${project.slug}/`,
+      },
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-6 lg:pb-8">
+      <JsonLd data={structured} />
       <nav aria-label="パンくずリスト" className="text-xs text-stone-500">
         <Link href="/projects" className="hover:text-brand">
           プロジェクト
@@ -102,9 +147,10 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             <p className="text-xs text-stone-500">
               目標 {formatGoal(project)}・{formatNumber(project.backers)}人が支援・残り <DaysLeft endAt={project.endAt} />
             </p>
-            <a href="#rewards" className="block rounded-lg border border-brand py-2 text-center text-sm font-bold text-brand">
+            <a href="#rewards" className={buttonClass("secondary", "md", "w-full")}>
               リターンを見る（{project.rewards.length}種類）
             </a>
+            <TrustLines project={project} />
           </div>
 
           <TrackList tracks={project.tracks} />
@@ -136,12 +182,10 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               <br />
               {formatDate(project.endAt)}まで募集
             </p>
-            <Link
-              href={`/projects/${project.slug}/support`}
-              className="block rounded-full bg-brand py-3.5 text-center font-bold text-white hover:bg-brand-dark"
-            >
-              このプロジェクトを支援する
-            </Link>
+            <SupportCta project={project} className={buttonClass("primary", "lg", "w-full")}>
+              リターンを選んで支援する
+            </SupportCta>
+            <TrustLines project={project} />
             <FavoriteButton slug={project.slug} />
             {recentBackers.length > 0 && (
               <div className="border-t border-stone-100 pt-4">
@@ -152,7 +196,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
                       <span className="truncate">
                         <span className="font-medium">{c.userName}</span>さんが支援しました
                       </span>
-                      <span className="shrink-0 text-stone-400">{formatDate(c.createdAt)}</span>
+                      <span className="shrink-0 text-stone-500">{formatDate(c.createdAt)}</span>
                     </li>
                   ))}
                 </ul>
@@ -175,7 +219,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           </h2>
           <div className="space-y-4">
             {project.rewards.map((r) => (
-              <RewardCard key={r.id} reward={r} projectSlug={project.slug} popular={r.id === popularId} />
+              <RewardCard key={r.id} reward={r} project={project} popular={r.id === popularId} />
             ))}
           </div>
         </aside>

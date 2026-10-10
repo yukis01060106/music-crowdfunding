@@ -14,7 +14,7 @@ import {
   type Genre,
   type RewardKind,
 } from "@/types";
-import { formatDuration, formatYen } from "@/lib/format";
+import { formatDate, formatDuration, formatYen } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import { PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
 import {
@@ -118,7 +118,7 @@ export function BasicsSection({ d, update }: SectionProps) {
         </Field>
         <Field
           label="募集期間（日）"
-          hint={`${DAYS_MIN}〜${DAYS_MAX}日。30〜45日がおすすめ。支援は最初と最後の数日に集まります。${endDate ? `今日公開すると ${endDate.toLocaleDateString("ja-JP")} まで。` : ""}`}
+          hint={`${DAYS_MIN}〜${DAYS_MAX}日。30〜45日がおすすめ。支援は最初と最後の数日に集まりやすいです。${endDate ? `今日公開すると ${formatDate(endDate.toISOString())} まで。` : ""}`}
           error={d.days && (days < DAYS_MIN || days > DAYS_MAX) ? `${DAYS_MIN}〜${DAYS_MAX}日の間で入力してください` : null}
         >
           <input type="number" inputMode="numeric" min={DAYS_MIN} max={DAYS_MAX} value={d.days} onChange={(e) => set("days", e.target.value)} className={inputClass} />
@@ -256,7 +256,7 @@ export function MediaSection({ d, update }: SectionProps) {
                 </span>
                 <div className="flex items-center">
                   {i !== 0 && (
-                    <button type="button" onClick={() => set("images", move(d.images, i, 0))} className="rounded px-2 py-1.5 text-brand hover:bg-brand-soft">
+                    <button type="button" onClick={() => set("images", move(d.images, i, 0))} className="min-h-11 px-2 text-brand hover:bg-brand-soft">
                       表紙にする
                     </button>
                   )}
@@ -304,6 +304,7 @@ const BLOCK_LABELS: Record<StoryBlockType, string> = { heading: "見出し", tex
 
 export function StorySection({ d, update }: SectionProps) {
   const set = setter(update);
+  const [blockErrors, setBlockErrors] = useState<Record<string, string>>({});
   const length = storyText(d).length;
   const setBlock = (id: string, patch: Partial<StoryBlock>) =>
     update((prev) => ({ ...prev, story: prev.story.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
@@ -326,7 +327,7 @@ export function StorySection({ d, update }: SectionProps) {
                 aria-label={`実現すること ${i + 1}`}
               />
               {d.summary.length > 1 && (
-                <button type="button" onClick={() => set("summary", d.summary.filter((_, j) => j !== i))} className="shrink-0 px-2 text-xs text-stone-500 hover:text-rose-600">
+                <button type="button" onClick={() => set("summary", d.summary.filter((_, j) => j !== i))} className="min-h-11 shrink-0 px-2 text-xs text-stone-600 hover:text-rose-700">
                   削除
                 </button>
               )}
@@ -338,7 +339,7 @@ export function StorySection({ d, update }: SectionProps) {
 
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-stone-100 pt-5">
         <p className="text-sm font-medium">ストーリー</p>
-        <p className={`text-xs ${length >= STORY_MIN ? "text-emerald-600" : "text-stone-500"}`}>
+        <p className={`text-xs ${length >= STORY_MIN ? "text-emerald-700" : "text-stone-500"}`}>
           {length}文字 {length >= STORY_MIN ? "✓" : `（あと${STORY_MIN - length}文字）`}
         </p>
       </div>
@@ -354,7 +355,10 @@ export function StorySection({ d, update }: SectionProps) {
           <li key={b.id} className="animate-rise rounded-lg border border-stone-200 p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold text-stone-500">{BLOCK_LABELS[b.type]}</span>
-              <RowActions index={i} length={d.story.length} onMove={(from, to) => set("story", move(d.story, from, to))} onRemove={() => set("story", d.story.filter((x) => x.id !== b.id))} />
+              <RowActions index={i} length={d.story.length} onMove={(from, to) => set("story", move(d.story, from, to))} onRemove={() => {
+                  if (b.type === "image" && b.url) URL.revokeObjectURL(b.url);
+                  set("story", d.story.filter((x) => x.id !== b.id));
+                }} />
             </div>
             {b.type === "heading" && (
               <input value={b.text} onChange={(e) => setBlock(b.id, { text: e.target.value })} className={`${inputClass} mt-0 font-bold`} placeholder="見出し" aria-label="見出し" />
@@ -375,12 +379,22 @@ export function StorySection({ d, update }: SectionProps) {
                       className="sr-only"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
-                        if (!file || file.size > IMAGE_MAX_MB * 1024 * 1024) return;
-                        const { url } = await readImage(file);
-                        setBlock(b.id, { url });
+                        if (!file) return;
+                        // メイン画像と同じチェック（種類・大きさ・読み込めるか）を通す
+                        const img = await toDraftImage(file);
+                        if (typeof img === "string") setBlockErrors((prev) => ({ ...prev, [b.id]: img }));
+                        else {
+                          setBlockErrors((prev) => ({ ...prev, [b.id]: "" }));
+                          setBlock(b.id, { url: img.url });
+                        }
                       }}
                     />
                   </label>
+                )}
+                {blockErrors[b.id] && (
+                  <p role="alert" className="text-xs text-rose-700">
+                    {blockErrors[b.id]}
+                  </p>
                 )}
                 <input value={b.text} onChange={(e) => setBlock(b.id, { text: e.target.value })} className={`${inputClass} mt-0`} placeholder="キャプション（任意）" aria-label="キャプション" />
               </div>
@@ -471,7 +485,10 @@ export function TracksSection({ d, update }: SectionProps) {
             <div className="flex items-center gap-2">
               <span className="font-en text-lg font-black text-brand/40">{String(i + 1).padStart(2, "0")}</span>
               <input value={t.title} onChange={(e) => setTrack(t.id, { title: e.target.value })} className={`${inputClass} mt-0`} aria-label="曲名" />
-              <RowActions index={i} length={d.tracks.length} onMove={(from, to) => set("tracks", move(d.tracks, from, to))} onRemove={() => set("tracks", d.tracks.filter((x) => x.id !== t.id))} />
+              <RowActions index={i} length={d.tracks.length} onMove={(from, to) => set("tracks", move(d.tracks, from, to))} onRemove={() => {
+                URL.revokeObjectURL(t.url);
+                set("tracks", d.tracks.filter((x) => x.id !== t.id));
+              }} />
             </div>
             <audio src={t.url} controls className="h-9 w-full" />
             <p className={`text-xs ${t.durationSec > TRACK_MAX_SEC ? "text-amber-700" : "text-stone-500"}`}>
@@ -521,7 +538,7 @@ export function MoneySection({ d, update }: SectionProps) {
                 aria-label="項目"
               />
               <div className="relative w-40">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-400">¥</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-500">¥</span>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -607,7 +624,7 @@ export function MoneySection({ d, update }: SectionProps) {
 
 const KIND_HINTS: Record<RewardKind, string> = {
   free: "支援者の母数を増やし、シェアのきっかけに。お礼のメッセージなど。",
-  digital: "音源の先行配信・壁紙など。支払い完了後に自動でお届けします。",
+  digital: "音源の先行配信・壁紙など。配信日（お届け予定の月に実行者が決めます）に、ダウンロードリンクを自動でメールでお送りします。",
   physical: "CD・レコード・グッズ。お届け先の住所を支援者に入力してもらいます。",
   ticket: "ライブチケット。公演の2週間前にQRチケットを自動発行します。",
   experience: "レコーディング見学など。日時・場所・人数を具体的に。",
@@ -625,8 +642,8 @@ export function RewardsSection({ d, update }: SectionProps) {
   return (
     <>
       <Tip>
-        {REWARD_RECOMMENDED.min}〜{REWARD_RECOMMENDED.max}種類がおすすめ。主力は1,500〜3,000円です。金額は<strong>税込・送料込み</strong>で入力してください。
-        {!hasMain && prices.length > 0 && " いま1,500〜3,000円のリターンがありません。いちばん選ばれる価格帯なので、1つ用意しましょう。"}
+        {REWARD_RECOMMENDED.min}〜{REWARD_RECOMMENDED.max}種類がおすすめ。主力は¥1,500〜¥3,000が目安です。金額は<strong>税込・送料込み</strong>で入力してください。
+        {!hasMain && prices.length > 0 && " いま¥1,500〜¥3,000のリターンがありません。選ばれやすい価格帯なので、1つ用意しましょう。"}
       </Tip>
       <ol className="space-y-3">
         {d.rewards.map((r, i) => {
@@ -635,8 +652,8 @@ export function RewardsSection({ d, update }: SectionProps) {
           return (
             <li key={r.id} className={`overflow-hidden rounded-lg border transition ${open ? "border-brand shadow-md" : "border-stone-200"}`}>
               <div className="flex items-center gap-2 p-3">
-                <button type="button" onClick={() => setOpenId(open ? null : r.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                  <span className={`text-stone-400 transition ${open ? "rotate-90" : ""}`} aria-hidden>
+                <button type="button" onClick={() => setOpenId(open ? null : r.id)} aria-expanded={open} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-left">
+                  <span className={`text-stone-500 transition ${open ? "rotate-90" : ""}`} aria-hidden>
                     ▶
                   </span>
                   <span className="min-w-0">
@@ -650,8 +667,9 @@ export function RewardsSection({ d, update }: SectionProps) {
                 {problems.length > 0 ? (
                   <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">未入力 {problems.length}</span>
                 ) : (
-                  <span className="shrink-0 text-emerald-600" aria-label="入力済み">
-                    ✓
+                  <span className="shrink-0 text-emerald-700">
+                    <span aria-hidden>✓</span>
+                    <span className="sr-only">入力済み</span>
                   </span>
                 )}
                 <RowActions index={i} length={d.rewards.length} onMove={(from, to) => set("rewards", move(d.rewards, from, to))} />
@@ -726,11 +744,11 @@ export function RewardsSection({ d, update }: SectionProps) {
                         set("rewards", [...d.rewards.slice(0, i + 1), copy, ...d.rewards.slice(i + 1)]);
                         setOpenId(copy.id);
                       }}
-                      className="border border-stone-300 px-3 py-1.5 hover:bg-stone-100"
+                      className="min-h-11 border border-stone-500 px-3 hover:bg-stone-100"
                     >
                       複製する
                     </button>
-                    <button type="button" onClick={() => set("rewards", d.rewards.filter((x) => x.id !== r.id))} className="border border-stone-300 px-3 py-1.5 text-stone-500 hover:border-rose-300 hover:text-rose-600">
+                    <button type="button" onClick={() => set("rewards", d.rewards.filter((x) => x.id !== r.id))} className="min-h-11 border border-stone-500 px-3 text-stone-600 hover:border-rose-300 hover:text-rose-700">
                       削除する
                     </button>
                   </div>
@@ -757,12 +775,19 @@ function RewardImage({ reward, onChange }: { reward: DraftReward; onChange: (ima
   return (
     <div className="text-sm">
       <p className="font-medium">
-        リターンの画像<span className="ml-1.5 text-xs font-normal text-stone-400">任意</span>
+        リターンの画像<span className="ml-1.5 text-xs font-normal text-stone-500">任意</span>
       </p>
       {reward.image ? (
         <div className="mt-1 flex items-center gap-3">
           <img src={reward.image.url} alt="" className="h-20 w-28 object-cover" />
-          <button type="button" onClick={() => onChange(undefined)} className="text-xs text-stone-500 hover:text-rose-600">
+          <button
+            type="button"
+            onClick={() => {
+              if (reward.image) URL.revokeObjectURL(reward.image.url);
+              onChange(undefined);
+            }}
+            className="min-h-11 px-2 text-xs text-stone-500 hover:text-rose-600"
+          >
             画像を外す
           </button>
         </div>
@@ -813,7 +838,7 @@ export function RisksSection({ d, update }: SectionProps) {
                 <RowActions index={i} length={d.faqs.length} onMove={(from, to) => set("faqs", move(d.faqs, from, to))} onRemove={() => set("faqs", d.faqs.filter((x) => x.id !== f.id))} />
               </div>
               <div className="flex gap-2">
-                <span className="pt-2 font-bold text-stone-400">A</span>
+                <span className="pt-2 font-bold text-stone-500">A</span>
                 <textarea value={f.a} onChange={(e) => set("faqs", d.faqs.map((x) => (x.id === f.id ? { ...x, a: e.target.value } : x)))} rows={2} className={`${inputClass} mt-0`} placeholder="回答" aria-label="回答" />
               </div>
             </li>
@@ -850,9 +875,9 @@ export function IdentitySection({ d, update }: SectionProps) {
               <p className="text-xs leading-relaxed text-stone-500">{s.body}</p>
             </div>
             {d[s.key] ? (
-              <span className="text-sm font-bold text-emerald-600">完了</span>
+              <span className="text-sm font-bold text-emerald-700">完了</span>
             ) : (
-              <button type="button" onClick={() => set(s.key, true)} className="bg-ink px-4 py-2 text-sm font-bold text-white transition hover:bg-brand">
+              <button type="button" onClick={() => set(s.key, true)} className="bg-ink min-h-11 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand">
                 {s.action}
               </button>
             )}

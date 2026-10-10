@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getArtist, getCreatorProjects } from "@/lib/data";
-import { formatDate, formatNumber, formatYen, progressPercent } from "@/lib/format";
+import { formatDate, formatNumber, formatYen, jstDateKey, progressPercent } from "@/lib/format";
 import { payoutAmount } from "@/lib/fees";
 import { totalMembers } from "@/lib/membership";
 import { PageTitle } from "@/components/side-nav";
@@ -9,6 +9,7 @@ import { DaysLeft } from "@/components/project/days-left";
 import { CountUp } from "@/components/motion/count-up";
 import { STATUS_LABELS } from "./project-status";
 import { SupportChart, type DailyPoint } from "./support-chart";
+import { UpdateReminder } from "./update-reminder";
 
 // TODO: 認証を入れたら、ログイン中のアーティストに差し替える
 const CURRENT_ARTIST_ID = "hoshizora-radio";
@@ -25,7 +26,7 @@ function dailySupport(raised: number, startAt: string): DailyPoint[] {
   const start = new Date(startAt);
   return weights.map((w, i) => {
     const d = new Date(start.getTime() + i * 86_400_000);
-    return { date: d.toISOString().slice(0, 10), amount: Math.round(((raised * 0.6) / sum) * w / 100) * 100 };
+    return { date: jstDateKey(d), amount: Math.round(((raised * 0.6) / sum) * w / 100) * 100 };
   });
 }
 
@@ -37,7 +38,7 @@ export default async function CreatorDashboardPage() {
   const todos = [
     { label: "未返信のメッセージが2件あります", href: "/creator/messages", tone: "bg-pop-pink" },
     { label: "発送待ちのリターンが2件あります", href: "/creator/shipping", tone: "bg-pop-yellow" },
-    { label: "最後の活動報告から8日たちました。近況を伝えましょう", href: "/creator/updates", tone: "bg-pop-teal" },
+    { label: <UpdateReminder lastAt={projects[0]?.updates.at(-1)?.publishedAt} />, href: "/creator/updates", tone: "bg-pop-teal" },
   ];
 
   return (
@@ -57,7 +58,7 @@ export default async function CreatorDashboardPage() {
               <Link href={t.href} className="group flex items-center gap-3 border border-stone-200 bg-white p-3 text-sm transition hover:border-brand">
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${t.tone}`} aria-hidden />
                 <span className="flex-1">{t.label}</span>
-                <span className="text-stone-400 transition-transform group-hover:translate-x-1" aria-hidden>
+                <span className="text-stone-500 transition-transform group-hover:translate-x-1" aria-hidden>
                   →
                 </span>
               </Link>

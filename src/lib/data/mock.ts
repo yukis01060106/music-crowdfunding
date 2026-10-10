@@ -123,7 +123,7 @@ export const artists: Artist[] = [
     id: "sunny-side",
     catchline: "放課後の音を、かたちに",
     photo: "/images/sunny-side.jpg",
-    verified: false,
+    verified: true,
     name: "SUNNY SIDE",
     bio: "県立高校の軽音部で結成した4ピースバンド。全国大会出場を目指している。",
     genres: ["rock"],
@@ -133,7 +133,7 @@ export const artists: Artist[] = [
   },
 ];
 
-export const projects: Project[] = [
+const rawProjects: Project[] = [
   {
     slug: "hoshizora-1st-album",
     cover: "/images/records-wall.jpg",
@@ -488,9 +488,9 @@ export const projects: Project[] = [
       "作曲・MVイラスト・動画編集の費用に使います。",
     ],
     budget: [
-      { label: "作曲・編曲", amount: 250000 },
+      { label: "作曲・編曲", amount: 290000 },
       { label: "MVイラスト・動画", amount: 250000 },
-      { label: "手数料", amount: 100000 },
+      { label: "手数料（10%）", amount: 60000 },
     ],
     schedule: [
       { date: "2026年10月25日", label: "募集終了" },
@@ -668,3 +668,18 @@ export const projects: Project[] = [
     color: "from-yellow-400 to-orange-500",
   },
 ];
+
+/**
+ * 支援総額と支援者数を、リターンごとの支援者数から計算し直す（画面の数字どうしが食い違わないように）。
+ * 支援総額 = 各リターンの金額 × 支援者数 の合計 + 上乗せ支援。上乗せ支援は、元の値との差額があればそれを、なければ合計の2%とする。
+ * TODO: Supabase に移したら、支援のテーブルから集計した値を使う
+ */
+function withTotals(p: Project): Project {
+  const backers = p.rewards.reduce((sum, r) => sum + r.backers, 0);
+  const rewardTotal = p.rewards.reduce((sum, r) => sum + r.price * r.backers, 0);
+  const tips = Math.max(p.raised - rewardTotal, Math.round((rewardTotal * 0.02) / 100) * 100);
+  return { ...p, backers, raised: rewardTotal + tips };
+}
+
+export const projects: Project[] = rawProjects.map(withTotals);
+

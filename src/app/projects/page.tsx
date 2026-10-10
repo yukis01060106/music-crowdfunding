@@ -3,7 +3,7 @@ import { getArtists, getPublicProjects } from "@/lib/data";
 import { BrowseNav } from "@/components/project/browse-nav";
 import { ProjectExplorer } from "@/components/project/project-explorer";
 
-export const metadata: Metadata = { title: "プロジェクトをさがす" };
+export const metadata: Metadata = { title: "プロジェクトをさがす", description: "募集中の音楽プロジェクト一覧。インディーズバンドや歌い手のアルバム・ライブ・MVを支援しよう。", alternates: { canonical: "/projects/" } };
 export const revalidate = 300;
 
 export default async function ProjectsPage() {

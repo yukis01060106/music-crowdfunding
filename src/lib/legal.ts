@@ -1,4 +1,5 @@
 import { PLATFORM_FEE_RATE } from "./fees";
+import { PLAN_CHANGE_RULE } from "./membership";
 
 // 法務ページの本文（たたき台）。公開前に必ず弁護士など専門家の確認を受けて差し替える。
 // 〔 〕は運営会社の情報が決まったら埋める箇所。
@@ -23,7 +24,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "terms",
     title: "利用規約",
-    updatedAt: "2026-09-29",
+    updatedAt: "2026-10-10",
     sections: [
       {
         heading: "第1条（この規約について）",
@@ -66,7 +67,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "第6条（メンバーシップ）",
         body: [
-          "メンバーシップの料金は、加入した日に1か月分を支払い、以降は毎月同じ日に自動で更新されます。",
+          "メンバーシップの料金は、加入した日に1か月分を支払い、以降は毎月同じ日（その日がない月は月末）に自動で更新されます。",
+          `プランの変更について：${PLAN_CHANGE_RULE}`,
           "支援者は、マイページからいつでも解約できます。解約した場合、次の更新日の前日まで特典を利用でき、日割りでの返金は行いません。",
         ],
       },
@@ -117,7 +119,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "privacy",
     title: "プライバシーポリシー",
-    updatedAt: "2026-09-29",
+    updatedAt: "2026-10-10",
     sections: [
       {
         heading: "1. 集める情報",
@@ -171,7 +173,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "tokushoho",
     title: "特定商取引法に基づく表記",
-    updatedAt: "2026-09-29",
+    updatedAt: "2026-10-10",
     sections: [
       {
         heading: "リターン・メンバーシップの販売者について",
@@ -188,7 +190,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       { label: "連絡先", value: "お問い合わせフォームよりご連絡ください（電話番号は請求があった場合、遅滞なく開示します）" },
       { label: "販売価格", value: "各プロジェクトページ・メンバーシップのページに表示（税込・送料込み）" },
       { label: "商品代金以外の必要料金", value: "なし（インターネット接続にかかる通信料はお客様のご負担です）" },
-      { label: "支払方法", value: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払い（メンバーシップはコンビニ払いを除く）" },
+      { label: "支払方法", value: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払い（All-or-Nothing のプロジェクトはクレジットカードと Apple Pay / Google Pay のみ。メンバーシップはコンビニ払いを除く）" },
       { label: "支払時期", value: "All-or-Nothing方式：目標達成時に募集終了後に決済／All-in方式：支援時に決済／メンバーシップ：加入時と毎月の更新日" },
       { label: "引渡時期", value: "各リターンに記載の「お届け予定」のとおり。メンバーシップの特典は加入後すぐにご利用いただけます" },
       { label: "返品・キャンセル", value: "リターンの性質上、決済完了後のキャンセル・返品はお受けできません。リターンに不備があった場合は実行者が対応します。メンバーシップはいつでも解約でき、次の更新日以降の請求は発生しません" },

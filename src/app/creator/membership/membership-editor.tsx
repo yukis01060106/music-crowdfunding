@@ -4,14 +4,15 @@ import { useState } from "react";
 import type { Membership, MembershipPlan } from "@/types";
 import { formatYen } from "@/lib/format";
 import { PLATFORM_FEE_RATE } from "@/lib/fees";
-import { MEMBER_COMMON_PERKS } from "@/lib/membership";
+import { MEMBER_COMMON_PERKS, MEMBERSHIP_MAX_PRICE, MEMBERSHIP_MIN_PRICE } from "@/lib/membership";
 import { PlanCard, mostPopularPlanId } from "@/components/membership/plan-card";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
+import { Switch } from "@/components/ui/switch";
 import { AddButton, Field, inputClass, move, RowActions } from "../projects/new/editor-ui";
 
 /** 月額の下限と上限。下限は決済手数料で赤字にならない額 */
-const PRICE_MIN = 300;
-const PRICE_MAX = 10_000;
+const PRICE_MIN = MEMBERSHIP_MIN_PRICE;
+const PRICE_MAX = MEMBERSHIP_MAX_PRICE;
 const PLAN_MAX = 5;
 
 interface DraftPlan {
@@ -77,10 +78,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
             <span className="block font-bold">メンバーシップを開設する</span>
             <span className="mt-1 block text-xs text-stone-500">オンにすると、{artistName}のページに月額プランが表示されます。</span>
           </span>
-          <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${enabled ? "bg-brand" : "bg-stone-300"}`}>
-            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} className="sr-only" />
-            <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${enabled ? "left-6" : "left-1"}`} />
-          </span>
+          <Switch checked={enabled} onChange={setEnabled} />
         </label>
 
         {enabled && (

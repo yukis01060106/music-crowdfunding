@@ -51,7 +51,7 @@ export function SiteFooter() {
           </nav>
         ))}
       </div>
-      <p className="border-t border-white/10 py-4 text-center font-en text-xs text-white/40">© OTOFUND</p>
+      <p className="border-t border-white/10 py-4 text-center font-en text-xs text-white/60">© OTOFUND</p>
     </footer>
   );
 }

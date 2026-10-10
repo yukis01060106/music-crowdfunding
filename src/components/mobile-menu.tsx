@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { logout, useDemo } from "@/lib/demo-store";
+import { useModal } from "@/lib/use-modal";
 import { Avatar } from "./account-button";
 
 export interface MenuItem {
@@ -34,8 +35,8 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
   const pathname = usePathname();
   const isClient = useIsClient();
   const { user } = useDemo();
-  const toggleRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // ページを移ったら閉じる
   const [lastPath, setLastPath] = useState(pathname);
@@ -44,32 +45,24 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
     setOpen(false);
   }
 
+  const close = () => setOpen(false);
+  useModal(open, close, rootRef, firstLinkRef);
+
+  // 画面を広げてPCのメニューが出たら閉じる
   useEffect(() => {
     if (!open) return;
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    firstLinkRef.current?.focus();
-
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     const wide = window.matchMedia("(min-width: 1024px)");
     const onWide = () => wide.matches && setOpen(false);
-    window.addEventListener("keydown", onKey);
     wide.addEventListener("change", onWide);
-    const toggle = toggleRef.current;
-    return () => {
-      document.body.style.overflow = overflow;
-      window.removeEventListener("keydown", onKey);
-      wide.removeEventListener("change", onWide);
-      toggle?.focus();
-    };
+    return () => wide.removeEventListener("change", onWide);
   }, [open]);
 
-  const close = () => setOpen(false);
+  // ログイン後に今のページへ戻れるようにする
+  const loginHref = pathname === "/login" ? "/login" : `/login?next=${encodeURIComponent(pathname)}`;
 
   return (
     <>
       <button
-        ref={toggleRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
@@ -83,6 +76,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
       {isClient &&
         createPortal(
           <div
+            ref={rootRef}
             id="mobile-menu"
             role="dialog"
             aria-modal="true"
@@ -163,10 +157,10 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
                   </>
                 ) : (
                   <>
-                    <Link href="/login" onClick={close} className="bg-white py-3.5 text-center font-bold tracking-wider text-ink">
+                    <Link href={loginHref} onClick={close} className="bg-white py-3.5 text-center font-bold tracking-wider text-ink">
                       ログイン
                     </Link>
-                    <Link href="/login" onClick={close} className="border border-white/40 py-3.5 text-center font-bold tracking-wider">
+                    <Link href={loginHref} onClick={close} className="border border-white/40 py-3.5 text-center font-bold tracking-wider">
                       会員登録
                     </Link>
                   </>

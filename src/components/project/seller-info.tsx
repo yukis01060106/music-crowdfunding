@@ -26,7 +26,7 @@ export function SellerInfo({ artist, kind }: { artist: Artist; kind: "project" |
     <details className="group border border-stone-200 bg-white">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4 text-sm font-medium">
         特定商取引法に基づく表記（販売者）
-        <span className="text-stone-400 transition group-open:rotate-45" aria-hidden>
+        <span className="text-stone-500 transition group-open:rotate-45" aria-hidden>
           ＋
         </span>
       </summary>
@@ -38,7 +38,7 @@ export function SellerInfo({ artist, kind }: { artist: Artist; kind: "project" |
           </div>
         ))}
       </dl>
-      <p className="px-4 pb-4 text-[11px] text-stone-400">
+      <p className="px-4 pb-4 text-[11px] text-stone-500">
         プラットフォームの運営者については<Link href="/legal/tokushoho" className="underline">こちら</Link>
       </p>
     </details>

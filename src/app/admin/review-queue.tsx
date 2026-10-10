@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ruleCheck } from "@/lib/proofread";
+import { formatDate } from "@/lib/format";
 import { useDemo } from "@/lib/demo-store";
 import { Dialog } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
@@ -79,7 +80,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{q.title}</p>
                 <p className="text-sm text-stone-500">
-                  {q.artist}・{q.submittedAt} 提出・目標 {q.goal}
+                  {q.artist}・{formatDate(q.submittedAt)} 提出・目標 {q.goal}
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
                   {!q.flags.identity && <span className="bg-rose-100 px-1.5 py-0.5 text-rose-700">本人確認 未完了</span>}
@@ -119,7 +120,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
         {open && (
           <div className="space-y-5 text-sm">
             <p className="text-stone-500">
-              {open.artist}・目標 {open.goal}・{open.submittedAt} 提出
+              {open.artist}・目標 {open.goal}・{formatDate(open.submittedAt)} 提出
             </p>
             <div className="bg-stone-50 p-4 leading-relaxed text-stone-700">{open.story}</div>
             <div>
@@ -161,7 +162,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
                   <button type="button" onClick={() => setMode("reject")} className="border border-stone-300 px-5 py-2.5 hover:bg-stone-100">
                     差し戻す
                   </button>
-                  <button type="button" disabled={!allChecked || !open.flags.identity} onClick={() => decide("approved")} className="bg-emerald-600 px-5 py-2.5 font-bold text-white hover:bg-emerald-700 disabled:bg-stone-300">
+                  <button type="button" disabled={!allChecked || !open.flags.identity} onClick={() => decide("approved")} className="bg-emerald-700 px-5 py-2.5 font-bold text-white hover:bg-emerald-800 disabled:bg-stone-300">
                     承認する
                   </button>
                 </div>
@@ -170,7 +171,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
               <>
                 <label className="block">
                   <span className="font-bold">差し戻しの理由（実行者に届きます）</span>
-                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} className="mt-1 w-full rounded-lg border border-stone-300 p-2" />
+                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} className="mt-1 w-full border border-stone-500 p-2" />
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {REJECT_TEMPLATES.map((t) => (

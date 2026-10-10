@@ -41,7 +41,7 @@ export type ProjectStatus =
 /** 音楽特化のリターン種別 */
 export type RewardKind =
   | "free" // 0円プラン（応援・参加表明）
-  | "digital" // 音源の先行配信など。支払い完了後に自動配信
+  | "digital" // 音源の先行配信など。配信日（お届け予定の月に実行者が決める）にダウンロードリンクを自動でメール送信
   | "physical" // CD・レコード・グッズ。配送先が必要
   | "ticket" // ライブチケット（QR）
   | "experience" // レコーディング見学など
@@ -185,7 +185,7 @@ export const ARTIST_TYPE_LABELS: Record<ArtistType, string> = {
 export const MINOR_ARTIST_TYPES: readonly ArtistType[] = ["high_school"];
 
 export const REWARD_KIND_LABELS: Record<RewardKind, string> = {
-  free: "0円応援",
+  free: "0円プラン",
   digital: "デジタル音源",
   physical: "CD・グッズ",
   ticket: "ライブチケット",

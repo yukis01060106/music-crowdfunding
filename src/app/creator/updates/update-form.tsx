@@ -32,12 +32,12 @@ export function UpdateForm() {
       >
         <label className="block text-sm">
           タイトル
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:border-brand focus:outline-none" />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full border border-stone-500 px-3 py-2 focus:border-brand focus:outline-none" />
         </label>
         <label className="block text-sm">
           本文
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={10} className="mt-1 w-full rounded-lg border border-stone-300 p-3 leading-relaxed focus:border-brand focus:outline-none" />
-          <span className="mt-1 block text-right text-xs text-stone-400">{body.length}文字</span>
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={10} className="mt-1 w-full border border-stone-500 p-3 leading-relaxed focus:border-brand focus:outline-none" />
+          <span className="mt-1 block text-right text-xs text-stone-500">{body.length}文字</span>
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={backersOnly} onChange={(e) => setBackersOnly(e.target.checked)} className="accent-brand" />

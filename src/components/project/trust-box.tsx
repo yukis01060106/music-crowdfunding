@@ -6,9 +6,8 @@ export function TrustBox({ fundingModel, verified }: { fundingModel: FundingMode
     fundingModel === "all_or_nothing"
       ? { title: "目標に届かなければ支払いなし", body: "All-or-Nothing方式です。目標未達の場合、決済は行われません。" }
       : { title: "目標に届かなくても実施", body: "All-in方式です。達成の有無にかかわらず、プロジェクトは実行されます。" },
-    verified
-      ? { title: "本人確認済みの実行者", body: "運営が本人確認書類を確認しています。" }
-      : { title: "本人確認は審査中", body: "運営による本人確認が完了するまでお待ちください。" },
+    // 本人確認が済んでいないときは、✓ 付きで出すと済んでいるように見えるので出さない
+    ...(verified ? [{ title: "本人確認済みの実行者", body: "運営が本人確認書類を確認しています。" }] : []),
     { title: "表示価格は税込・送料込み", body: "リターンの金額以外に、追加の費用はかかりません。" },
     { title: "カード情報は保存しません", body: "決済は国際セキュリティ基準（PCI DSS）に準拠した決済会社が行います。" },
     { title: "届かないときはサポートへ", body: "実行者と連絡が取れない場合は、運営が間に入って対応します。" },

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { jstDateKey } from "@/lib/format";
 
 type Status = "未発送" | "発送済み";
 
@@ -17,6 +19,7 @@ interface Shipment {
 }
 
 // モック。住所の全文は CSV 出力時だけ扱い、画面には都道府県までしか出さない
+// TODO（本番前に必須）: 住所の全文はクライアントに渡さない。一覧は都道府県まで、CSV はサーバーで認証つきで作る
 const SHIPMENTS: Shipment[] = [
   { id: "s1", name: "ゆう", reward: "サイン入りCD＋先行配信", prefecture: "東京都", address: "〒150-0001 東京都渋谷区神宮前1-2-3", status: "未発送", tracking: "" },
   { id: "s2", name: "mika", reward: "サイン入りCD＋先行配信", prefecture: "大阪府", address: "〒530-0001 大阪府大阪市北区梅田4-5-6", status: "未発送", tracking: "" },
@@ -33,14 +36,7 @@ export function ShipmentTable() {
 
   function exportCsv() {
     const target = rows.filter((r) => r.status === "未発送");
-    const cell = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const csv = "\uFEFF" + [["お名前", "住所", "リターン"], ...target.map((r) => [r.name, r.address, r.reward])].map((line) => line.map(cell).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `shipping-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv(`shipping-${jstDateKey()}.csv`, toCsv([["お名前", "住所", "リターン"], ...target.map((r) => [r.name, r.address, r.reward])]));
     toast(`未発送の${target.length}件をCSVで出力しました`);
   }
 
@@ -78,11 +74,11 @@ export function ShipmentTable() {
                 <td className="p-3">{r.reward}</td>
                 <td className="p-3 text-stone-500">{r.prefecture}</td>
                 <td className="p-3">
-                  <input value={r.tracking} onChange={(e) => setRow(r.id, { tracking: e.target.value })} placeholder="未入力" aria-label={`${r.name}さんの追跡番号`} className="w-36 rounded border border-stone-300 px-2 py-1 text-xs" />
+                  <input value={r.tracking} onChange={(e) => setRow(r.id, { tracking: e.target.value })} placeholder="未入力" aria-label={`${r.name}さんの追跡番号`} className="w-36 border border-stone-500 px-2 py-1 text-xs" />
                 </td>
                 <td className="p-3">
                   {r.status === "発送済み" ? (
-                    <span className="text-xs font-bold text-emerald-600">✓ 発送済み</span>
+                    <span className="text-xs font-bold text-emerald-700">✓ 発送済み</span>
                   ) : (
                     <button
                       type="button"

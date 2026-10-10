@@ -3,7 +3,7 @@
 // 作成画面の部品。入力欄・並べ替えボタン・ファイル読み込み
 
 export const inputClass =
-  "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20";
+  "mt-1 w-full border border-stone-500 bg-white px-3 py-2 text-sm transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30";
 
 export function Field({
   label,
@@ -22,11 +22,11 @@ export function Field({
     <label className="block text-sm">
       <span className="font-medium">
         {label}
-        {optional && <span className="ml-1.5 text-xs font-normal text-stone-400">任意</span>}
+        {optional && <span className="ml-1.5 text-xs font-normal text-stone-500">任意</span>}
       </span>
       {children}
       {error ? (
-        <span className="mt-1 block text-xs text-rose-600">{error}</span>
+        <span className="mt-1 block text-xs text-rose-700">{error}</span>
       ) : (
         hint && <span className="mt-1 block text-xs leading-relaxed text-stone-500">{hint}</span>
       )}
@@ -52,7 +52,7 @@ export function RowActions({
   onRemove?: () => void;
   removeLabel?: string;
 }) {
-  const btn = "flex h-8 w-8 items-center justify-center rounded text-stone-500 hover:bg-stone-100 disabled:opacity-30";
+  const btn = "flex h-11 w-11 items-center justify-center text-stone-600 hover:bg-stone-100 disabled:opacity-30";
   return (
     <div className="flex shrink-0 items-center gap-0.5">
       <button type="button" className={btn} disabled={index === 0} onClick={() => onMove(index, index - 1)} aria-label="上へ">
@@ -62,7 +62,7 @@ export function RowActions({
         ↓
       </button>
       {onRemove && (
-        <button type="button" className="rounded px-2 py-1.5 text-xs text-stone-500 hover:bg-rose-50 hover:text-rose-600" onClick={onRemove}>
+        <button type="button" className="min-h-11 px-2 text-xs text-stone-600 hover:bg-rose-50 hover:text-rose-700" onClick={onRemove}>
           {removeLabel}
         </button>
       )}

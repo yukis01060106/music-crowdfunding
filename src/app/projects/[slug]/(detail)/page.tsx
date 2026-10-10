@@ -4,6 +4,7 @@ import { formatYen } from "@/lib/format";
 import { TrustBox } from "@/components/project/trust-box";
 import { ArtistCard } from "@/components/project/artist-card";
 import { SellerInfo } from "@/components/project/seller-info";
+import { chipClass } from "@/components/ui/chip";
 
 const SECTIONS = [
   { id: "story", label: "ストーリー" },
@@ -40,7 +41,7 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
 
       <nav aria-label="目次" className="flex flex-wrap gap-2 text-sm">
         {SECTIONS.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className="rounded-full border border-stone-300 bg-white px-3 py-1 hover:border-brand hover:text-brand">
+          <a key={s.id} href={`#${s.id}`} className={chipClass()}>
             {s.label}
           </a>
         ))}
@@ -93,7 +94,7 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
             <details key={f.q} className="group p-4">
               <summary className="flex cursor-pointer list-none justify-between gap-4 font-medium">
                 Q. {f.q}
-                <span className="text-stone-400 transition group-open:rotate-45" aria-hidden>
+                <span className="text-stone-500 transition group-open:rotate-45" aria-hidden>
                   ＋
                 </span>
               </summary>

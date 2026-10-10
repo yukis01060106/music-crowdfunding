@@ -3,8 +3,9 @@ import Link from "next/link";
 import { FeeSimulator } from "./fee-simulator";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
+import { buttonClass } from "@/components/ui/button";
 
-export const metadata: Metadata = { title: "プロジェクトをはじめる" };
+export const metadata: Metadata = { title: "プロジェクトをはじめる", description: "アルバム・ライブ・MVを、ファンの支援で。掲載は無料。AI校正やプレビューで、はじめてでも安心してプロジェクトをつくれます。", alternates: { canonical: "/start/" } };
 
 const FEATURES = [
   { title: "試聴プレイヤー", body: "ページの一番上で、あなたの音楽をすぐ聴いてもらえます。" },
@@ -21,15 +22,15 @@ const IDEAS = ["アルバム・EP制作", "MV制作", "ワンマンライブ・�
 
 const REWARD_TIPS = [
   { price: "0円", body: "応援・参加表明。支援者の母数を増やし、シェアのきっかけに。" },
-  { price: "1,500〜3,000円", body: "主力のリターン。音源の先行配信やCDなど、いちばん選ばれる価格帯です。" },
-  { price: "5,000〜10,000円", body: "ライブ招待、サイン、クレジット掲載など「ここでしか手に入らない」もの。" },
-  { price: "30,000円〜", body: "レコーディング見学など、少数限定の体験。" },
+  { price: "¥1,500〜¥3,000", body: "主力のリターン。音源の先行配信やCDなど、選ばれやすい価格帯の目安です。" },
+  { price: "¥5,000〜¥10,000", body: "ライブ招待、サイン、クレジット掲載など「ここでしか手に入らない」もの。" },
+  { price: "¥30,000〜", body: "レコーディング見学など、少数限定の体験。" },
 ];
 
 const STEPS = [
   { title: "アカウント作成", body: "メールアドレスだけで登録できます。" },
   { title: "ページをつくる", body: "ストーリー、試聴音源、リターンを入力します。目安は1〜3週間。" },
-  { title: "審査", body: "提出から最短即日〜5営業日で結果をお知らせします。" },
+  { title: "審査", body: "審査の結果は、5営業日ほどを目安にお知らせします。" },
   { title: "公開・募集開始", body: "審査を通過したら、好きなタイミングで公開ボタンを押すだけ。" },
 ];
 
@@ -49,9 +50,9 @@ export default function StartPage() {
             ))}
           </h1>
           <p className="mt-6 max-w-md leading-loose tracking-wider text-stone-700">
-            メジャーアーティストから高校生バンドまで。音楽のために作ったクラウドファンディングです。掲載は無料。
+            高校生バンドから歌い手、インディーズ、メジャーまで。音楽のために作ったクラウドファンディングです。掲載は無料。
           </p>
-          <Link href="/creator/projects/new" className="mt-8 inline-block bg-ink px-8 py-4 font-bold tracking-wider text-white hover:bg-brand">
+          <Link href="/creator/projects/new" className={buttonClass("primary", "lg", "mt-8")}>
             無料でプロジェクトをつくる <span aria-hidden>→</span>
           </Link>
         </div>
@@ -90,7 +91,7 @@ export default function StartPage() {
         <section>
           <h2 data-reveal="up" className="mb-2 text-2xl font-bold tracking-[0.1em]">リターン設計のコツ</h2>
           <p className="mb-6 text-sm text-stone-500">
-            支援者の約半数は、1回の予算が1万円未満です。リターンは3〜5種類にしぼり、価格帯をばらけさせましょう。
+            1回の支援は数千円が中心になりやすいので、リターンは3〜5種類にしぼり、価格帯をばらけさせましょう。
           </p>
           <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
             {REWARD_TIPS.map((t) => (
@@ -132,7 +133,7 @@ export default function StartPage() {
             手数料や審査について詳しくは <Link href="/help#artist" className="text-brand underline">よくある質問</Link> へ。
           </p>
           <div className="mt-6 text-center">
-            <Link href="/creator/projects/new" className="inline-block bg-ink px-8 py-4 font-bold tracking-wider text-white hover:bg-brand">
+            <Link href="/creator/projects/new" className={buttonClass("primary", "lg")}>
               無料でプロジェクトをつくる
             </Link>
           </div>

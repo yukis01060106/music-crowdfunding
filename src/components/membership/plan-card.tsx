@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { MembershipPlan } from "@/types";
 import { formatNumber, formatYen } from "@/lib/format";
 import { isPlanFull } from "@/lib/membership";
+import { buttonClass } from "@/components/ui/button";
 
 /** 月額プラン1つ分。いちばん加入者の多いプランは枠で目立たせる */
 export function PlanCard({
@@ -49,7 +50,7 @@ export function PlanCard({
       ) : (
         <Link
           href={`/artists/${artistId}/join?plan=${plan.id}`}
-          className="mt-3 block bg-ink py-3 text-center text-sm font-bold tracking-wider text-white hover:bg-brand"
+          className={buttonClass("primary", "md", "mt-3 w-full")}
         >
           このプランでメンバーになる
         </Link>

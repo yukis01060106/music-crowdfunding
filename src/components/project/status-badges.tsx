@@ -15,12 +15,12 @@ export function StatusBadges({ project, className = "" }: { project: Project; cl
   const badges: { label: string; className: string }[] = [];
 
   if (progressPercent(project) >= 100) {
-    badges.push({ label: "目標達成", className: "bg-pop-teal" });
+    badges.push({ label: "目標達成", className: "bg-emerald-700" });
   }
   if (now !== null) {
     const left = new Date(project.endAt).getTime() - now;
     const since = now - new Date(project.startAt).getTime();
-    if (left > 0 && left <= 3 * DAY_MS) badges.push({ label: "まもなく終了", className: "bg-rose-500" });
+    if (left > 0 && left <= 3 * DAY_MS) badges.push({ label: "まもなく終了", className: "bg-rose-700" });
     else if (since >= 0 && since <= 7 * DAY_MS) badges.push({ label: "NEW", className: "bg-ink" });
   }
 

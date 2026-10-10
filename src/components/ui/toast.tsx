@@ -31,7 +31,7 @@ export function Toaster() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[90] flex flex-col items-center gap-2 px-4 lg:bottom-6" aria-live="polite" role="status">
+    <div data-modal-keep className="pointer-events-none fixed inset-x-0 bottom-20 z-[90] flex flex-col items-center gap-2 px-4 lg:bottom-6" aria-live="polite" role="status">
       {items.map((i) => (
         <p key={i.id} className="animate-rise bg-ink px-5 py-3 text-sm font-bold tracking-wider text-white shadow-xl">
           {i.message}

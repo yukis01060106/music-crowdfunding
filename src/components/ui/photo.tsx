@@ -24,7 +24,9 @@ export function Photo({
       alt={alt}
       fill
       sizes={sizes}
-      priority={priority}
+      // 最初の画面に見える写真だけを先に読む（Next 16 では priority は非推奨）
+      loading={priority ? "eager" : undefined}
+      fetchPriority={priority ? "high" : undefined}
       className={`object-cover ${className}`}
     />
   );
