@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { buttonClass } from "@/components/ui/button";
 import { useState } from "react";
 import { logout, newId, resetDemo, updateProfile, updateSettings, useDemo, type Address, type DemoSettings } from "@/lib/demo-store";
 import { Avatar } from "@/components/account-button";
@@ -55,7 +56,7 @@ export function Settings() {
               表示名
               <input value={name} onChange={(e) => setName(e.target.value)} maxLength={20} className={input} />
             </label>
-            <button type="submit" disabled={!name.trim() || name.trim() === user.name} className="bg-ink px-5 py-2 text-sm font-bold text-white hover:bg-brand disabled:bg-stone-300">
+            <button type="submit" disabled={!name.trim() || name.trim() === user.name} className={buttonClass("dark", "md")}>
               保存
             </button>
           </form>
@@ -120,7 +121,7 @@ export function Settings() {
         </button>
       </Card>
 
-      <Card title="お支払い方法" lead="カード情報は決済会社（Stripe）が管理し、OTOFUNDには保存されません。">
+      <Card title="お支払い方法" lead="カード情報は決済会社（Stripe）が管理し、Oto Fundには保存されません。">
         {/* TODO: Stripe の Customer Portal / SetupIntent で登録・変更する */}
         <div className="flex items-center justify-between gap-3 border border-stone-200 p-3 text-sm">
           <span className="flex items-center gap-3">
@@ -140,7 +141,7 @@ export function Settings() {
               toast("ログアウトしました");
               router.push("/");
             }}
-            className="min-h-11 border-2 border-ink px-5 text-sm font-bold hover:bg-ink hover:text-white"
+            className={buttonClass("secondary", "md")}
           >
             ログアウト
           </button>
@@ -246,7 +247,7 @@ function AddressDialog({ address, onClose, onSave }: { address: Address | null; 
         {field("postalCode", "郵便番号", { autoComplete: "postal-code", inputMode: "numeric", placeholder: "150-0001" })}
         {field("address", "住所", { autoComplete: "street-address" })}
         {field("phone", "電話番号", { autoComplete: "tel", type: "tel", placeholder: "09012345678" })}
-        <button type="submit" className="mt-2 w-full bg-brand py-3 font-bold text-white hover:bg-brand-dark">
+        <button type="submit" className={buttonClass("primary", "lg", "mt-2 w-full")}>
           保存する
         </button>
       </form>

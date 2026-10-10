@@ -37,7 +37,7 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
               {v === "pc" ? "PC" : "スマホ"}
             </button>
           ))}
-          <button ref={closeRef} type="button" onClick={onClose} className="ml-2 bg-brand px-4 py-1.5 font-bold">
+          <button ref={closeRef} type="button" onClick={onClose} className={buttonClass("primary", "md", "ml-2")}>
             閉じる
           </button>
         </div>

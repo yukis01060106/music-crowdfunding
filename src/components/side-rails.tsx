@@ -1,6 +1,6 @@
 /** 画面の両端に引く細い線と、縦に流れる英字。広い画面だけに出す */
 export function SideRails() {
-  const text = "MUSIC CROWDFUNDING OTOFUND · ".repeat(12);
+  const text = "MUSIC CROWDFUNDING OTO FUND · ".repeat(12);
   return (
     <div aria-hidden className="pointer-events-none fixed inset-y-0 left-0 right-0 z-30 hidden 2xl:block">
       {(["left", "right"] as const).map((side) => (

@@ -89,8 +89,8 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
             }`}
           >
             <div className="flex h-16 shrink-0 items-center justify-between px-4">
-              <Link href="/" onClick={close} className="font-en text-2xl font-black tracking-tight" aria-label="OTOFUND トップへ">
-                OTOFUND
+              <Link href="/" onClick={close} className="font-en text-2xl font-black tracking-tight" aria-label="Oto Fund（オトファンド） トップへ">
+                Oto Fund
               </Link>
               <button
                 type="button"

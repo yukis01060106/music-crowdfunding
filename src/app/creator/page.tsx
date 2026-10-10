@@ -1,97 +1,57 @@
 import Link from "next/link";
 import { getArtist, getCreatorProjects } from "@/lib/data";
+import { buttonClass } from "@/components/ui/button";
 import { TAG_BASE } from "@/components/ui/tag";
-import { formatDate, formatNumber, formatYen, jstDateKey, progressPercent } from "@/lib/format";
-import { payoutAmount } from "@/lib/fees";
+import { formatDate, formatNumber, formatYen } from "@/lib/format";
 import { totalMembers } from "@/lib/membership";
 import { PageTitle } from "@/components/side-nav";
-import { ProgressBar } from "@/components/project/progress";
 import { DaysLeft } from "@/components/project/days-left";
-import { CountUp } from "@/components/motion/count-up";
 import { STATUS_LABELS } from "./project-status";
-import { SupportChart, type DailyPoint } from "./support-chart";
-import { UpdateReminder } from "./update-reminder";
+import { CreatorProjectKpis, CreatorRemaining, CreatorSupportChart, CreatorStatusTag, CreatorTodos, SubmissionList } from "./dashboard-live";
 
-// TODO: 認証を入れたら、ログイン中のアーティストに差し替える
-const CURRENT_ARTIST_ID = "hoshizora-radio";
-const CHART_DAYS = 14;
-
-/**
- * 日ごとの支援額（モック）。クラファンは公開直後と終了間際に支援が集まるので、
- * 支援総額を「最初に多く、中だるみして、また増える」形に配分する。
- * TODO: 支援のテーブルから日別に集計する
- */
-function dailySupport(raised: number, startAt: string): DailyPoint[] {
-  const weights = Array.from({ length: CHART_DAYS }, (_, i) => 1 + 3 * Math.exp(-i / 2) + ((i * 7) % 5) / 4);
-  const sum = weights.reduce((a, b) => a + b, 0);
-  const start = new Date(startAt);
-  return weights.map((w, i) => {
-    const d = new Date(start.getTime() + i * 86_400_000);
-    return { date: jstDateKey(d), amount: Math.round(((raised * 0.6) / sum) * w / 100) * 100 };
-  });
-}
-
+import { CREATOR_ARTIST_ID as CURRENT_ARTIST_ID, CREATOR_PROJECT_SLUG } from "./creator-context";
 export default async function CreatorDashboardPage() {
   const [projects, artist] = await Promise.all([getCreatorProjects(), getArtist(CURRENT_ARTIST_ID)]);
   const membershipMonthly = artist?.membership?.plans.reduce((sum, p) => sum + p.price * p.members, 0) ?? 0;
 
-  // TODO: 未返信・未発送・活動報告の日付は、それぞれのテーブルから数える
-  const todos = [
-    { label: "未返信のメッセージが2件あります", href: "/creator/messages", tone: "bg-pop-pink" },
-    { label: "発送待ちのリターンが2件あります", href: "/creator/shipping", tone: "bg-pop-yellow" },
-    { label: <UpdateReminder lastAt={projects[0]?.updates.at(-1)?.publishedAt} />, href: "/creator/updates", tone: "bg-pop-teal" },
-  ];
+  // TODO（本番）: 未返信・未発送・活動報告の日付は、それぞれのテーブルから数える
+  const main = projects.find((p) => p.slug === CREATOR_PROJECT_SLUG) ?? projects[0];
 
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <PageTitle>ダッシュボード</PageTitle>
-        <Link href="/creator/projects/new" className="bg-brand px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-dark">
+        <Link href="/creator/projects/new" className={buttonClass("primary", "md")}>
           ＋ 新しいプロジェクト
         </Link>
       </div>
 
-      <section className="mb-8">
+      <section className="mb-8 mt-4">
         <h2 className="mb-3 text-sm font-bold text-stone-500">やること</h2>
-        <ul data-stagger className="space-y-2">
-          {todos.map((t) => (
-            <li key={t.href}>
-              <Link href={t.href} className="group flex items-center gap-3 border border-stone-200 bg-white p-3 text-sm transition hover:border-brand">
-                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${t.tone}`} aria-hidden />
-                <span className="flex-1">{t.label}</span>
-                <span className="text-stone-500 transition-transform group-hover:translate-x-1" aria-hidden>
-                  →
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <CreatorTodos lastSampleUpdate={main?.updates.at(-1)?.publishedAt} shippingRewardIds={(main?.rewards ?? []).filter((r) => r.requiresShipping).map((r) => r.id)} />
       </section>
+
+      <SubmissionList />
 
       {projects.map((p) => {
         const status = STATUS_LABELS[p.status];
         return (
           <section key={p.slug} className="space-y-5 border border-stone-200 bg-white p-5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`${TAG_BASE} ${status.className}`}>{status.label}</span>
+              <CreatorStatusTag slug={p.slug} label={status.label} className={`${TAG_BASE} ${status.className}`} />
               <Link href={`/projects/${p.slug}`} className="font-bold hover:text-brand">
                 {p.title}
               </Link>
               <span className="text-xs text-stone-500">{formatDate(p.endAt)}まで</span>
             </div>
-            <div data-stagger className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Kpi label="支援総額" value={<CountUp value={p.raised} format="yen" />} />
-              <Kpi label="達成率" value={<><CountUp value={progressPercent(p)} />%</>} />
-              <Kpi label="支援者" value={<><CountUp value={p.backers} />人</>} />
-              <Kpi label="残り" value={<DaysLeft endAt={p.endAt} />} />
-            </div>
-            <ProgressBar project={p} />
-            <p className="text-xs text-stone-500">
-              いま終了した場合の受け取り額：<span className="font-bold text-ink">{formatYen(payoutAmount(p.raised))}</span>
-              {p.fundingModel === "all_or_nothing" && progressPercent(p) < 100 && "（All-or-Nothingのため、目標達成が条件です）"}
+            <p className="text-sm text-stone-600">
+              <CreatorRemaining slug={p.slug}>
+                残り <DaysLeft endAt={p.endAt} />
+              </CreatorRemaining>
             </p>
+            <CreatorProjectKpis project={p} />
 
-            <SupportChart data={dailySupport(p.raised, p.startAt)} title={`日ごとの支援額（公開から${CHART_DAYS}日間）`} />
+            <CreatorSupportChart project={p} />
 
             <div>
               <h3 className="mb-2 text-sm font-bold text-stone-500">リターン別の支援状況</h3>
@@ -129,7 +89,7 @@ export default async function CreatorDashboardPage() {
               メンバー {formatNumber(totalMembers(artist.membership))}人・今月の売上 {formatYen(membershipMonthly)}
             </p>
           </div>
-          <Link href="/creator/membership" className="border border-stone-300 px-4 py-2 text-sm hover:bg-stone-100">
+          <Link href="/creator/membership" className={buttonClass("secondary", "md")}>
             設定を見る
           </Link>
         </section>
@@ -138,11 +98,3 @@ export default async function CreatorDashboardPage() {
   );
 }
 
-function Kpi({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="bg-stone-50 p-3">
-      <p className="text-xs text-stone-500">{label}</p>
-      <p className="font-en text-lg font-black">{value}</p>
-    </div>
-  );
-}

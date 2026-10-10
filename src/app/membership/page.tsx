@@ -76,7 +76,7 @@ export default async function MembershipPage() {
 
       <div className="mx-auto max-w-6xl space-y-24 px-4 py-20">
         <section className="space-y-10">
-          <SectionHeading en="Why OTOFUND" ja="OTOFUNDのメンバーシップ" />
+          <SectionHeading en="Why Oto Fund" ja="Oto Fundのメンバーシップ" />
           <ul data-stagger className="grid gap-8 sm:grid-cols-3">
             {POINTS.map((p) => (
               <li key={p.title} className="group border-t-[3px] border-brand pt-5">

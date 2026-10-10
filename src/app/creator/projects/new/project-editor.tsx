@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/button";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
 import { submitProject } from "@/lib/demo-store";
+import { IS_DEMO } from "@/lib/site";
 import { formatPrice, formatYen } from "@/lib/format";
 import { MINOR_ARTIST_TYPES, REWARD_KIND_LABELS } from "@/types";
 import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, revokeFiles, saveDraft, storyText, TABS, toNumber, type Draft, type Tab } from "./draft";
@@ -87,9 +89,11 @@ export function ProjectEditor() {
           審査を通過したら、好きなタイミングで公開ボタンを押して募集を始められます。
         </p>
         <div className="flex flex-col items-center gap-2">
-          <Link href="/admin" className="text-sm font-bold text-brand underline">
-            （デモ）運営の審査画面で確認する
-          </Link>
+          {IS_DEMO && (
+            <Link href="/admin/review" className="text-sm font-bold text-brand underline">
+              （デモ）運営の審査画面で確認する
+            </Link>
+          )}
           <button type="button" onClick={() => setSubmitted(false)} className="text-sm text-stone-500 underline">
             （デモ）編集画面に戻る
           </button>
@@ -166,17 +170,17 @@ export function ProjectEditor() {
             type="button"
             onClick={() => go(TABS[tabIndex - 1])}
             disabled={tabIndex === 0}
-            className="border border-stone-300 bg-white min-h-11 px-5 py-2.5 text-sm transition hover:bg-stone-100 disabled:invisible"
+            className={buttonClass("secondary", "md", "disabled:invisible")}
           >
             ← {TABS[tabIndex - 1]}
           </button>
           {tabIndex === TABS.length - 1 && (
-            <button type="button" onClick={() => submitRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" })} className="bg-ink min-h-11 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
+            <button type="button" onClick={() => submitRef.current?.scrollIntoView({ behavior: scrollBehavior(), block: "center" })} className={buttonClass("dark", "md")}>
               チェックして審査に提出 ↓
             </button>
           )}
           {tabIndex < TABS.length - 1 && (
-            <button type="button" onClick={() => go(TABS[tabIndex + 1])} className="bg-ink min-h-11 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand">
+            <button type="button" onClick={() => go(TABS[tabIndex + 1])} className={buttonClass("dark", "md")}>
               {TABS[tabIndex + 1]} →
             </button>
           )}
@@ -186,7 +190,7 @@ export function ProjectEditor() {
       <aside className="space-y-3 lg:self-start">
         {/* いちばん大事な操作（プレビュー・提出）は、欄の先頭に置いていつでも見えるようにする */}
         <div className="space-y-2 border-b border-stone-200 pb-3">
-        <button type="button" onClick={() => setPreviewing(true)} className="min-h-11 w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
+        <button type="button" onClick={() => setPreviewing(true)} className={buttonClass("secondary", "md", "w-full")}>
             プレビュー
           </button>
           <button
@@ -207,7 +211,7 @@ export function ProjectEditor() {
               setSubmitted(true);
               window.scrollTo({ top: 0, behavior: scrollBehavior() });
             }}
-            className="min-h-11 w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
+            className={buttonClass("primary", "lg", "w-full")}
           >
             審査に提出する
           </button>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { samePath } from "@/lib/path";
+import { useDemo } from "@/lib/demo-store";
 import { usePathname } from "next/navigation";
 
 export function ProjectTabs({
@@ -14,10 +15,13 @@ export function ProjectTabs({
   commentCount: number;
 }) {
   const pathname = usePathname();
+  // 実行者の画面から投稿した活動報告も数える
+  const { postedUpdates } = useDemo();
+  const posted = postedUpdates.filter((u) => u.projectSlug === slug).length;
   const base = `/projects/${slug}`;
   const tabs = [
     { href: base, label: "ストーリー" },
-    { href: `${base}/updates`, label: `活動報告 ${updateCount}` },
+    { href: `${base}/updates`, label: `活動報告 ${updateCount + posted}` },
     { href: `${base}/comments`, label: `応援コメント ${commentCount}` },
   ];
 

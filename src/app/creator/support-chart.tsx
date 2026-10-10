@@ -54,7 +54,7 @@ export function SupportChart({ data, title, width = 640 }: { data: DailyPoint[];
           {ticks.map((t) => (
             <g key={t}>
               <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke="#e7e5e4" strokeWidth={1} />
-              <text x={PAD.left - 8} y={y(t)} textAnchor="end" dominantBaseline="middle" className="fill-stone-500 text-[10px]">
+              <text x={PAD.left - 8} y={y(t)} textAnchor="end" dominantBaseline="middle" className="fill-stone-500 text-[10px] max-sm:text-[22px]">
                 {t >= 10_000 ? `${t / 10_000}万` : t.toLocaleString("ja-JP")}
               </text>
             </g>
@@ -68,12 +68,12 @@ export function SupportChart({ data, title, width = 640 }: { data: DailyPoint[];
                 {/* 当たり判定は棒より広く、帯全体にする */}
                 <rect x={PAD.left + band * i} y={PAD.top} width={band} height={plotH} fill="transparent" onMouseEnter={() => setActive(i)} />
                 {(i === 0 || i === data.length - 1 || i % 3 === 0) && (
-                  <text x={cx} y={HEIGHT - 8} textAnchor="middle" className="fill-stone-500 text-[10px]">
+                  <text x={cx} y={HEIGHT - 8} textAnchor="middle" className={`fill-stone-500 text-[10px] max-sm:text-[22px] ${i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2) ? "" : "max-sm:hidden"}`}>
                     {md(d.date)}
                   </text>
                 )}
                 {i === peak && active === null && (
-                  <text x={cx} y={y(d.amount) - 6} textAnchor="middle" className="fill-ink text-[10px] font-bold">
+                  <text x={cx} y={y(d.amount) - 6} textAnchor="middle" className="fill-ink text-[10px] font-bold max-sm:text-[22px]">
                     {formatYen(d.amount)}
                   </text>
                 )}

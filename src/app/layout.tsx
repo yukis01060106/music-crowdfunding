@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   title: { default: `${SITE_NAME}｜音楽のクラウドファンディング`, template: `%s｜${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   // description は各ページの metadata.description から自動で受け継ぐので、ここでは固定しない
-  openGraph: { ...baseOpenGraph, images: [{ url: "/og.png", width: 1200, height: 630, alt: "音楽は、ファンとつくる。OTOFUND" }] },
+  openGraph: { ...baseOpenGraph, images: [{ url: "/og.png", width: 1200, height: 630, alt: "音楽は、ファンとつくる。Oto Fund" }] },
   twitter: { card: "summary_large_image" },
 };
 

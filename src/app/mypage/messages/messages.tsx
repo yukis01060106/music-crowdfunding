@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { buttonClass } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Artist, Project } from "@/types";
 import { markThreadRead, sendMessage, useDemo } from "@/lib/demo-store";
 import { formatDateTime } from "@/lib/format";
@@ -42,6 +43,11 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
 
   // 新規作成で送ったら、作られたスレッドを開く
   const shownThread = active ?? (composing === null ? threads.find((t) => t.projectSlug === to) ?? threads[0] : undefined);
+  // 表示したスレッドは既読にする（クリックしなくても、最初に開いたものを読んだことにする）
+  const shownUnread = shownThread?.unread ? shownThread.id : null;
+  useEffect(() => {
+    if (shownUnread) markThreadRead(shownUnread);
+  }, [shownUnread]);
   const headerProject = composingProject ?? (shownThread && projectOf(shownThread.projectSlug));
 
   if (threads.length === 0 && !composingProject) {
@@ -73,6 +79,7 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
                   setComposing(null);
                   markThreadRead(t.id);
                 }}
+                aria-current={selected ? "true" : undefined}
                 className={`flex w-full gap-3 p-4 text-left transition ${selected ? "bg-brand-soft" : "hover:bg-stone-50"}`}
               >
                 <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">{p && <Photo src={artistOf(p)?.photo ?? p.cover} alt="" sizes="40px" />}</span>
@@ -113,12 +120,13 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
             </p>
           </div>
         ) : (
-          <ol key={shownThread?.id} className="flex-1 space-y-3 overflow-y-auto p-4">
+          <ol key={shownThread?.id} className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
             {shownThread?.messages.map((m, i) => (
               <li key={i} className={`flex animate-rise ${m.from === "me" ? "justify-end" : ""}`}>
                 <div className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed ${m.from === "me" ? "bg-brand text-white" : "bg-stone-100"}`}>
-                  {m.body}
-                  <p className={`mt-1 text-[10px] ${m.from === "me" ? "text-white/70" : "text-stone-500"}`}>{formatAt(m.at)}</p>
+                  <span className="sr-only">{m.from === "me" ? "あなた：" : `${artistOf(headerProject)?.name ?? "実行者"}：`}</span>
+                  <span className="whitespace-pre-wrap">{m.body}</span>
+                  <p className={`mt-1 text-[11px] ${m.from === "me" ? "text-white/80" : "text-stone-500"}`}>{formatAt(m.at)}</p>
                 </div>
               </li>
             ))}
@@ -126,7 +134,7 @@ export function Messages({ projects, artists }: { projects: Project[]; artists: 
         )}
         <div className="flex gap-2 border-t border-stone-100 p-4">
           <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={2} placeholder="メッセージを書く" aria-label="メッセージ" className="flex-1 border border-stone-500 p-2 text-sm focus:border-brand focus:outline-none" />
-          <button type="button" onClick={send} disabled={!draft.trim()} className="self-end bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand disabled:bg-stone-300">
+          <button type="button" onClick={send} disabled={!draft.trim()} className={buttonClass("dark", "md", "self-end")}>
             送信
           </button>
         </div>

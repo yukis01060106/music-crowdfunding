@@ -26,7 +26,7 @@ export default async function BackersPage() {
     <>
       <PageTitle>支援者一覧</PageTitle>
       {project && <p className="mb-4 text-sm text-stone-500">{project.title}</p>}
-      <BackerTable rows={rows} rewards={paid.map((r) => r.title)} />
+      <BackerTable rows={rows} rewards={(project?.rewards ?? []).map((r) => r.title)} rewardTitles={Object.fromEntries((project?.rewards ?? []).map((r) => [r.id, r.title]))} />
       <p className="mt-3 text-xs text-stone-500">お届け先の住所は、個人情報を守るため「リターン配送」の画面でのみ扱います。</p>
     </>
   );

@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { ruleCheck } from "@/lib/proofread";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { useDemo } from "@/lib/demo-store";
 import { Dialog } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
+import { decideReview, useAdmin } from "@/lib/admin-store";
+import { buttonClass } from "@/components/ui/button";
+import { tagClass } from "@/components/ui/tag";
+import { inputClass } from "@/components/ui/input";
+import { DANGER_BUTTON } from "./admin-ui";
 
 export interface QueueItem {
   id: string;
@@ -40,7 +45,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
   // 実行者画面から提出されたプロジェクトも並べる
   const { submissions } = useDemo();
   const items = [...submissions, ...fixed];
-  const [decisions, setDecisions] = useState<Record<string, { decision: Decision; note?: string }>>({});
+  const { reviewDecisions: decisions } = useAdmin();
   const [openId, setOpenId] = useState<string | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [reason, setReason] = useState("");
@@ -61,7 +66,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
 
   function decide(decision: Decision) {
     if (!open) return;
-    setDecisions((prev) => ({ ...prev, [open.id]: { decision, note: decision === "rejected" ? reason : undefined } }));
+    decideReview(open.id, open.title, decision, decision === "rejected" ? reason.trim() : undefined);
     toast(decision === "approved" ? `「${open.title}」を承認しました` : `「${open.title}」を差し戻しました`);
     setOpenId(null);
   }
@@ -69,10 +74,10 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
   return (
     <>
       <h2 className="mb-3 font-bold">
-        審査待ち <span className="ml-1 rounded-full bg-brand px-2 py-0.5 text-xs text-white">{pending.length}</span>
+        審査待ち <span className={tagClass("brand", "ml-1")}>{pending.length}件</span>
       </h2>
       {pending.length === 0 ? (
-        <p className="border-2 border-dashed border-stone-300 p-8 text-center text-sm text-stone-500">審査待ちのプロジェクトはありません 🎉</p>
+        <p className="border-2 border-dashed border-stone-300 p-8 text-center text-sm text-stone-500">審査待ちのプロジェクトはありません</p>
       ) : (
         <ul className="space-y-3">
           {pending.map((q) => (
@@ -82,13 +87,14 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
                 <p className="text-sm text-stone-500">
                   {q.artist}・{formatDate(q.submittedAt)} 提出・目標 {q.goal}
                 </p>
-                <div className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                  {!q.flags.identity && <span className="bg-rose-100 px-1.5 py-0.5 text-rose-700">本人確認 未完了</span>}
-                  {q.flags.cover && <span className="bg-amber-100 px-1.5 py-0.5 text-amber-800">カバー曲あり</span>}
-                  {q.flags.minor && <span className="bg-sky-100 px-1.5 py-0.5 text-sky-700">18歳未満（保護者同意）</span>}
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {/* 本人確認の未完了は、承認できない理由なので強く出す */}
+                  {!q.flags.identity && <span className={tagClass("danger")}>本人確認 未完了（承認できません）</span>}
+                  {q.flags.cover && <span className={tagClass("warning")}>カバー曲あり</span>}
+                  {q.flags.minor && <span className={tagClass("brand")}>18歳未満（保護者同意）</span>}
                 </div>
               </div>
-              <button type="button" onClick={() => start(q.id)} className="bg-ink px-4 py-2 text-sm font-bold text-white hover:bg-brand">
+              <button type="button" onClick={() => start(q.id)} aria-label={`「${q.title}」を審査する`} className={buttonClass("dark", "md")}>
                 審査する
               </button>
             </li>
@@ -104,10 +110,11 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
               const d = decisions[q.id];
               return (
                 <li key={q.id} className="flex flex-wrap items-center gap-3 border border-stone-200 bg-white p-3 text-sm">
-                  <span className={`px-2 py-0.5 text-xs font-bold ${d.decision === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                  <span className={tagClass(d.decision === "approved" ? "success" : "warning")}>
                     {d.decision === "approved" ? "承認" : "差し戻し"}
                   </span>
                   <span className="flex-1 font-medium">{q.title}</span>
+                  <span className="text-xs text-stone-500">{formatDateTime(d.at)}</span>
                   {d.note && <span className="w-full text-xs text-stone-500">理由：{d.note}</span>}
                 </li>
               );
@@ -147,8 +154,8 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
                   <ul className="mt-2 space-y-1.5">
                     {CHECKS.map((c) => (
                       <li key={c.key}>
-                        <label className="flex items-center gap-2">
-                          <input type="checkbox" checked={Boolean(checked[c.key])} onChange={(e) => setChecked((prev) => ({ ...prev, [c.key]: e.target.checked }))} className="accent-brand" />
+                        <label className="flex min-h-11 items-center gap-3">
+                          <input type="checkbox" checked={Boolean(checked[c.key])} onChange={(e) => setChecked((prev) => ({ ...prev, [c.key]: e.target.checked }))} className="size-5 shrink-0 accent-brand" />
                           {c.label}
                         </label>
                       </li>
@@ -159,10 +166,10 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
                   </ul>
                 </fieldset>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => setMode("reject")} className="border border-stone-300 px-5 py-2.5 hover:bg-stone-100">
+                  <button type="button" onClick={() => setMode("reject")} className={buttonClass("secondary")}>
                     差し戻す
                   </button>
-                  <button type="button" disabled={!allChecked || !open.flags.identity} onClick={() => decide("approved")} className="bg-emerald-700 px-5 py-2.5 font-bold text-white hover:bg-emerald-800 disabled:bg-stone-300">
+                  <button type="button" disabled={!allChecked || !open.flags.identity} onClick={() => decide("approved")} className={buttonClass("primary")}>
                     承認する
                   </button>
                 </div>
@@ -171,20 +178,25 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
               <>
                 <label className="block">
                   <span className="font-bold">差し戻しの理由（実行者に届きます）</span>
-                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} className="mt-1 w-full border border-stone-500 p-2" />
+                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={2000} className={inputClass} />
                 </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {REJECT_TEMPLATES.map((t) => (
-                    <button key={t} type="button" onClick={() => setReason((r) => (r ? `${r}\n${t}` : t))} className="rounded-full border border-stone-300 px-2.5 py-1 text-xs hover:border-brand hover:text-brand">
-                      ＋ {t.slice(0, 16)}…
-                    </button>
-                  ))}
+                <div>
+                  <p className="mb-2 text-xs font-bold text-stone-500">理由のひな形（押すと追記します）</p>
+                  <ul className="space-y-2">
+                    {REJECT_TEMPLATES.map((t) => (
+                      <li key={t}>
+                        <button type="button" onClick={() => setReason((r) => (r ? `${r}\n${t}` : t))} className="min-h-11 w-full border border-stone-500 bg-white px-3 py-2 text-left text-xs leading-relaxed hover:border-brand hover:text-brand">
+                          ＋ {t}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => setMode("review")} className="border border-stone-300 px-5 py-2.5 hover:bg-stone-100">
+                  <button type="button" onClick={() => setMode("review")} className={buttonClass("secondary")}>
                     戻る
                   </button>
-                  <button type="button" disabled={!reason.trim()} onClick={() => decide("rejected")} className="bg-rose-600 px-5 py-2.5 font-bold text-white hover:bg-rose-700 disabled:bg-stone-300">
+                  <button type="button" disabled={!reason.trim()} onClick={() => decide("rejected")} className={DANGER_BUTTON}>
                     差し戻す
                   </button>
                 </div>

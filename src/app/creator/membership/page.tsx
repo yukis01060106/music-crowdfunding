@@ -5,8 +5,8 @@ import { totalMembers } from "@/lib/membership";
 import { PageTitle } from "@/components/side-nav";
 import { MembershipEditor } from "./membership-editor";
 
-// TODO: 認証を入れたら、ログイン中のアーティストに差し替える
-const CURRENT_ARTIST_ID = "hoshizora-radio";
+import { CREATOR_ARTIST_ID as CURRENT_ARTIST_ID } from "../creator-context";
+import { NewMembers } from "./new-members";
 
 export default async function CreatorMembershipPage() {
   const artist = await getArtist(CURRENT_ARTIST_ID);
@@ -24,6 +24,7 @@ export default async function CreatorMembershipPage() {
           <Kpi label="受け取り（手数料引き後）" value={formatYen(payoutAmount(monthly))} />
         </div>
       )}
+      {membership && <NewMembers artistId={artist.id} plans={membership.plans} />}
       <MembershipEditor artistId={artist.id} artistName={artist.name} initial={membership} />
     </>
   );

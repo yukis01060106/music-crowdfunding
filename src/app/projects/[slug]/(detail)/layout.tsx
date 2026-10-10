@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LiveAmount, LiveBackers, LivePercent, LiveProgressBar } from "@/components/project/live-figures";
 import { notFound } from "next/navigation";
 import { getArtist, getProject, getPublicProjects } from "@/lib/data";
 import { FUNDING_MODEL_LABELS, GENRE_LABELS } from "@/types";
-import { formatDate, formatGoal, formatNumber, formatYen, progressPercent } from "@/lib/format";
-import { ProgressBar } from "@/components/project/progress";
+import { formatDate, formatGoal } from "@/lib/format";
 import { DaysLeft } from "@/components/project/days-left";
 import { ProjectTabs } from "@/components/project/project-tabs";
 import { RewardCard, mostPopularRewardId } from "@/components/project/reward-card";
@@ -17,10 +17,11 @@ import { TrackList } from "@/components/project/track-list";
 import { ProjectMedia } from "@/components/project/project-media";
 import { baseOpenGraph, OG_SIZE, SITE_URL } from "@/lib/site";
 import { JsonLd } from "@/components/json-ld";
-import { SupportCta } from "@/components/project/support-cta";
+import { SupportCta, SuspendedNotice } from "@/components/project/support-cta";
 import { TrustLines } from "@/components/project/trust-lines";
 import { buttonClass } from "@/components/ui/button";
 import { Photo } from "@/components/ui/photo";
+import { ReportButton } from "@/components/project/report-button";
 import { Sticker } from "@/components/ui/shapes";
 
 // 公開中のプロジェクトはビルド時に静的生成し、支援額などは60秒ごとに再生成する（ISR）。
@@ -103,6 +104,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         </Link>
       </nav>
 
+      <SuspendedNotice slug={project.slug} />
       <header className="mt-3">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadges project={project} />
@@ -138,15 +140,13 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           <div className="space-y-3 border border-stone-200 bg-white p-4 lg:hidden">
             <div className="flex items-end justify-between gap-2">
               <p className="font-en text-2xl font-black tracking-tight">
-                {project.goalType === "participants"
-                  ? `${formatNumber(project.backers)}人`
-                  : formatYen(project.raised)}
+                <LiveAmount project={project} />
               </p>
-              <p className={`font-en text-lg font-black ${progressPercent(project) >= 100 ? "text-emerald-700" : "text-brand"}`}>{progressPercent(project)}%</p>
+              <p><LivePercent project={project} className="font-en text-lg font-black" /></p>
             </div>
-            <ProgressBar project={project} />
+            <LiveProgressBar project={project} />
             <p className="text-xs text-stone-500">
-              目標 {formatGoal(project)}・{formatNumber(project.backers)}人が支援・残り <DaysLeft endAt={project.endAt} />
+              目標 {formatGoal(project)}・<LiveBackers project={project} />人が支援・残り <DaysLeft endAt={project.endAt} />
             </p>
             <a href="#rewards" className={buttonClass("secondary", "md", "w-full")}>
               リターンを見る（{project.rewards.length}種類）
@@ -158,6 +158,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               <Link href={`/mypage/messages?to=${project.slug}`} className="flex min-h-11 items-center justify-center text-sm text-stone-600 underline hover:text-brand">
                 実行者に質問する
               </Link>
+              <div className="text-center"><ReportButton slug={project.slug} title={project.title} /></div>
             </div>
           </div>
 
@@ -174,16 +175,14 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
                 {project.goalType === "participants" ? "参加人数" : "現在の支援総額"}
               </p>
               <p className="font-en text-3xl font-black tracking-tight">
-                {project.goalType === "participants"
-                  ? `${formatNumber(project.backers)}人`
-                  : formatYen(project.raised)}
+                <LiveAmount project={project} />
               </p>
               <p className="text-xs text-stone-500">目標 {formatGoal(project)}</p>
             </div>
-            <ProgressBar project={project} />
+            <LiveProgressBar project={project} />
             <dl className="grid grid-cols-3 gap-2 text-center">
-              <Stat label="達成率" value={`${progressPercent(project)}%`} />
-              <Stat label="支援者" value={`${formatNumber(project.backers)}人`} />
+              <Stat label="達成率" value={<LivePercent project={project} />} />
+              <Stat label="支援者" value={<><LiveBackers project={project} />人</>} />
               <Stat label="残り" value={<DaysLeft endAt={project.endAt} />} />
             </dl>
             <p className="bg-stone-50 p-3 text-xs leading-relaxed text-stone-600">
@@ -220,6 +219,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             >
               実行者に質問する
             </Link>
+            <div className="text-center"><ReportButton slug={project.slug} title={project.title} /></div>
           </div>
 
           <h2 id="rewards" className="scroll-mt-20 pt-2 font-bold">

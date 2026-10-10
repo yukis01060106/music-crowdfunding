@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         off_session: true,
         confirm: true,
         metadata: { ...m, checkoutSession: session.id },
-        description: `目標達成による請求（${m.projectSlug}）`,
+        description: `目標達成による請求（${m.projectTitle ?? m.projectSlug}）`,
       },
       { idempotencyKey: `charge-${session.id}` },
     );

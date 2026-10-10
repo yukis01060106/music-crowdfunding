@@ -15,5 +15,5 @@ export async function generateStaticParams() {
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const artist = await getArtist(id);
-  return ogImage({ photo: artist?.photo ?? "/images/records-wall.jpg", label: "ARTIST ON OTOFUND", badge: artist?.membership ? "MEMBERSHIP" : undefined });
+  return ogImage({ photo: artist?.photo ?? "/images/records-wall.jpg", label: "ARTIST ON OTO FUND", badge: artist?.membership ? "MEMBERSHIP" : undefined });
 }

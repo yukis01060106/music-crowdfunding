@@ -1,6 +1,8 @@
 import { PageTitle } from "@/components/side-nav";
 import { REWARD_KIND_LABELS, type RewardKind } from "@/types";
 import { ShipmentTable } from "./shipment-table";
+import { getProject } from "@/lib/data";
+import { CREATOR_PROJECT_SLUG } from "../creator-context";
 
 // リターン種別ごとのお届け方法。デジタルとチケットは自動で届ける
 const methods: { kind: RewardKind; how: string }[] = [
@@ -11,12 +13,14 @@ const methods: { kind: RewardKind; how: string }[] = [
   { kind: "experience", how: "日程調整のメッセージを個別に送信" },
 ];
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const project = await getProject(CREATOR_PROJECT_SLUG);
+  const rewards = (project?.rewards ?? []).map((r) => ({ id: r.id, title: r.title, requiresShipping: r.requiresShipping }));
   return (
     <>
       <PageTitle>リターン配送</PageTitle>
       <h2 className="mb-3 font-bold">発送が必要なリターン</h2>
-      <ShipmentTable />
+      <ShipmentTable rewards={rewards} />
       <h2 className="mb-3 mt-10 font-bold">種類ごとのお届け方法</h2>
       <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
         {methods.map((m) => (

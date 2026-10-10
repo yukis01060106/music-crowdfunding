@@ -4,6 +4,7 @@
  * - dark：2番目に大事な行動
  * - secondary：枠だけの控えめなボタン
  * - onDark：黒・紫の背景の上に置く CTA（黄色）
+ * - danger：取り消しにくい操作の確定（返金・停止・差し戻しなど）
  * 大きさは size で選ぶ。タップしやすいよう、どれも高さ 44px 以上になる。
  */
 const BASE = "inline-flex min-h-11 items-center justify-center gap-1.5 text-center font-bold tracking-wider transition disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-white";
@@ -13,6 +14,7 @@ const VARIANTS = {
   dark: "bg-ink text-white hover:bg-brand",
   secondary: "border-2 border-ink bg-white text-ink hover:bg-ink hover:text-white",
   onDark: "bg-pop-yellow text-ink hover:bg-white",
+  danger: "bg-rose-700 text-white hover:bg-rose-800",
 } as const;
 
 const SIZES = {

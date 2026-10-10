@@ -40,6 +40,24 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+/** 年つきの日時（操作の記録など、年をまたいで見比べるもの） */
+export function formatDateTimeFull(iso: string): string {
+  return new Date(iso).toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** CSV 用の日時（日本時間の ISO 形式。表計算で並べ替えられるように） */
+export function isoJst(iso: string): string {
+  const d = new Date(iso);
+  return `${d.toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" }).replace(" ", "T")}+09:00`;
+}
+
 export function formatDuration(sec: number): string {
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 }

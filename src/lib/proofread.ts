@@ -61,7 +61,7 @@ const RULES: Rule[] = [
   {
     pattern: /寄付|寄附/g,
     severity: "warning",
-    reason: "OTOFUNDは寄付ではなく、リターンのある支援です。税金の控除などの誤解を防ぐため「支援」と書いてください。",
+    reason: "Oto Fundは寄付ではなく、リターンのある支援です。税金の控除などの誤解を防ぐため「支援」と書いてください。",
     suggestion: "支援",
   },
   {
@@ -121,7 +121,7 @@ export function ruleCheck(fields: ProofreadField[]): ProofreadIssue[] {
 }
 
 /** AI に渡す指示。ルールと同じ観点に加えて、誤字脱字や読みやすさも見てもらう */
-export const PROOFREAD_INSTRUCTION = `あなたは音楽専門の購入型クラウドファンディング「OTOFUND」の編集者です。
+export const PROOFREAD_INSTRUCTION = `あなたは音楽専門の購入型クラウドファンディング「Oto Fund」の編集者です。
 アーティストが書いたプロジェクトページの文章を校正してください。
 
 見る観点:

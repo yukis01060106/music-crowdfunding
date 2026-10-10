@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buttonClass } from "@/components/ui/button";
 import type { Membership, MembershipPlan } from "@/types";
 import { formatYen } from "@/lib/format";
 import { FEE_LABEL, payoutAmount } from "@/lib/fees";
@@ -88,7 +89,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
                 <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={2} className={inputClass} placeholder="例: ライブのない月も、毎月いっしょに。新曲はまずメンバーに届けます。" />
               </Field>
               <div className="bg-brand-soft p-4 text-sm">
-                <p className="font-bold text-brand">どのプランにも自動で付く、OTOFUND共通の特典</p>
+                <p className="font-bold text-brand">どのプランにも自動で付く、Oto Fund共通の特典</p>
                 <ul className="mt-2 space-y-1 text-stone-700">
                   {MEMBER_COMMON_PERKS.map((p) => (
                     <li key={p.title}>✓ {p.title}</li>
@@ -144,7 +145,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
 
             <section className="space-y-4">
               <h2 className="font-bold">プレビュー</h2>
-              <div className="grid gap-6 bg-stone-50 p-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 bg-stone-50 p-6 sm:grid-cols-2">
                 {preview.map((plan) => (
                   <PlanCard key={plan.id} plan={plan} artistId={artistId} popular={plan.id === popularId} />
                 ))}
@@ -180,7 +181,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
           type="button"
           disabled={enabled && !valid}
           onClick={() => setSaved(true)}
-          className="w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
+          className={buttonClass("primary", "lg", "w-full")}
         >
           {saved ? "✓ 保存しました" : "保存する"}
         </button>

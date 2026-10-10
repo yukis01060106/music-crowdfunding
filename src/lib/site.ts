@@ -15,7 +15,8 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 
-export const SITE_NAME = "OTOFUND（仮）";
+/** サービス名。ロゴは英字の「Oto Fund」、読みは「オトファンド」 */
+export const SITE_NAME = "Oto Fund（オトファンド）";
 export const SITE_DESCRIPTION = "アーティストとファンが一緒に音楽をつくる、音楽特化のクラウドファンディング。アルバム・ライブ・MVを、ファンの支援で。";
 
 /**

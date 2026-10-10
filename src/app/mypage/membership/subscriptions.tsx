@@ -94,7 +94,7 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
               </div>
               <div className="flex shrink-0 gap-2 self-start text-sm sm:flex-col">
                 {r.canceledAt && ended ? (
-                  <Link href={`/artists/${r.artist.id}/join?plan=${r.plan.id}`} className="inline-flex min-h-11 items-center bg-brand px-3 font-bold text-white hover:bg-brand-dark">
+                  <Link href={`/artists/${r.artist.id}/join?plan=${r.plan.id}`} className={buttonClass("primary", "md")}>
                     もう一度加入する
                   </Link>
                 ) : r.canceledAt ? (
@@ -114,7 +114,7 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
                         .finally(() => setBusy(null));
                     }}
                     disabled={busy === r.artistId}
-                    className="min-h-11 bg-brand px-3 font-bold text-white hover:bg-brand-dark disabled:bg-stone-300"
+                    className={buttonClass("primary", "md")}
                   >
                     再開する
                   </button>

@@ -475,7 +475,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
             {STRIPE_ENABLED ? (
               <section className="space-y-3 border border-stone-200 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
-                <p className="text-sm leading-relaxed">確認のあと、Stripe の安全な決済ページで、毎月のお支払いに使う方法を登録します。カード番号などは OTOFUND には届きません。</p>
+                <p className="text-sm leading-relaxed">確認のあと、Stripe の安全な決済ページで、毎月のお支払いに使う方法を登録します。カード番号などは Oto Fundには届きません。</p>
                 {STRIPE_TEST && (
                   <p className="bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
                     テストモードです。カード番号 4242 4242 4242 4242、有効期限は未来の日付、セキュリティコードは任意の3桁で試せます。実際のお金は動きません。

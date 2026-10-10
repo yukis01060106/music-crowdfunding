@@ -4,7 +4,9 @@ import Link from "next/link";
 import type { Project } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
 import { formatDate, formatDateTime, formatPrice, formatYen } from "@/lib/format";
-import { markCharged, useDemo, type Backing } from "@/lib/demo-store";
+import { markCharged, own, useDemo, type Backing } from "@/lib/demo-store";
+import { PAYMENT_LABELS, paymentState, useRefundedBackingIds, voucherExpired } from "@/lib/backing-state";
+import { useAdmin } from "@/lib/admin-store";
 import { chargeBacking, safeVoucherUrl, STRIPE_TEST } from "@/lib/payments";
 import { toast } from "@/components/ui/toast";
 import { useState } from "react";
@@ -12,6 +14,8 @@ import { useNow } from "@/lib/use-now";
 import { Photo } from "@/components/ui/photo";
 import { Avatar } from "@/components/account-button";
 import { buttonClass } from "@/components/ui/button";
+import { tagClass } from "@/components/ui/tag";
+import { RefundRequestButton, RefundStatusTag } from "./refund-request";
 
 /** 領収書を別ウィンドウで開いて印刷する。宛名はその場で入力してもらう */
 function openReceipt(b: Backing & { project: Project; rewardTitle: string; rewardPrice: number }, defaultName: string) {
@@ -29,32 +33,25 @@ dl{display:grid;grid-template-columns:8em 1fr;gap:8px;font-size:14px}.issuer{mar
 <body><h1>領収書</h1><p class="name">${esc(name)} 様</p><p class="amount">${esc(formatYen(b.amount))}（税込）</p>
 <p>但し、${esc(b.rewardTitle)}${b.quantity > 1 ? ` ×${b.quantity}` : ""}${b.tip > 0 ? "（上乗せ支援を含む）" : ""}の代金として、上記正に領収いたしました。</p>
 <dl><dt>内訳</dt><dd>リターン ${esc(formatYen(b.rewardPrice * b.quantity))}${b.tip > 0 ? ` ／ 上乗せ支援 ${esc(formatYen(b.tip))}` : ""}</dd><dt>領収書番号</dt><dd>OTO-${esc(b.id.toUpperCase())}</dd><dt>支援日</dt><dd>${esc(formatDate(b.backedAt))}</dd><dt>プロジェクト</dt><dd>${esc(b.project.title)}</dd><dt>お支払い方法</dt><dd>${esc(b.paymentMethod)}</dd></dl>
-<p class="issuer">〔運営会社名〕<br>OTOFUND 運営事務局<br>〔登録番号 T0000000000000〕</p>
+<p class="issuer">〔運営会社名〕<br>Oto Fund 運営事務局<br>〔登録番号 T0000000000000〕</p>
 <button onclick="window.print()">印刷する</button></body></html>`);
   w.document.close();
 }
 
-/** コンビニ払いで、支払期限を過ぎたもの（Webhook がないので、画面で期限から判断する） */
-const voucherExpired = (b: Backing, now: number | null) => Boolean(b.awaitingPayment && b.voucherExpiresAt && now !== null && now > Date.parse(b.voucherExpiresAt));
-
 function paymentStatus(project: Project, b: Backing, now: number | null): { label: string; className: string } {
-  // 0円の参加は請求がないので、決済の状況は出さない
-  if (b.amount === 0) return { label: "参加済み（0円）", className: "bg-brand-soft text-brand" };
-  // 目標に届かなかったプロジェクトは、Stripe で登録したカードにも請求しない
-  if (project.status === "failed" && project.fundingModel === "all_or_nothing") return { label: "決済なし（目標未達）", className: "bg-stone-100 text-stone-600" };
-  // Stripe で決済したものは、実際の状態を出す
-  if (voucherExpired(b, now)) return { label: "お支払い期限切れ（無効）", className: "bg-stone-100 text-stone-600" };
-  if (b.awaitingPayment) return { label: "お支払い待ち（コンビニ）", className: "bg-amber-100 text-amber-800" };
-  if (b.stripeSessionId && b.charged === true) return { label: "決済済み", className: "bg-emerald-100 text-emerald-700" };
-  if (b.stripeSessionId && b.charged === false) return { label: "決済予定（目標達成後）", className: "bg-amber-100 text-amber-800" };
-  if (project.fundingModel === "all_in") return { label: "決済済み", className: "bg-emerald-100 text-emerald-700" };
-  if (project.status === "succeeded") return { label: "決済済み（目標達成）", className: "bg-emerald-100 text-emerald-700" };
-  if (project.status === "failed") return { label: "決済なし（目標未達）", className: "bg-stone-100 text-stone-600" };
-  return { label: "決済予定（目標達成後）", className: "bg-amber-100 text-amber-800" };
+  const state = paymentState(project, b, now);
+  // 目標を達成して請求した All-or-Nothing は、そのことがわかるように
+  if (state === "charged" && project.fundingModel === "all_or_nothing" && project.status === "succeeded") return { ...PAYMENT_LABELS.charged, label: "決済済み（目標達成）" };
+  return PAYMENT_LABELS[state];
 }
 
 export function Backings({ projects }: { projects: Project[] }) {
-  const { user, backings, memberships, favorites } = useDemo();
+  const { user, backings, memberships, favorites, shipped, tracking, postedUpdates } = useDemo();
+  // 実行者が7日以内に投稿した活動報告があるか
+  const hasNewUpdate = (slug: string) => now !== null && postedUpdates.some((u) => u.projectSlug === slug && now - Date.parse(u.publishedAt) < 7 * 24 * 60 * 60 * 1000);
+  // 運営が返金したもの（合計に入れない）
+  const refunded = useRefundedBackingIds();
+  const admin = useAdmin();
   const now = useNow();
   const rows = backings.flatMap((b: Backing) => {
     const project = projects.find((p) => p.slug === b.projectSlug);
@@ -62,7 +59,7 @@ export function Backings({ projects }: { projects: Project[] }) {
     return project && reward ? [{ ...b, project, reward }] : [];
   });
   // 期限切れで無効になったコンビニ払いは、合計に入れない
-  const total = rows.reduce((sum, r) => sum + (voucherExpired(r, now) ? 0 : r.amount), 0);
+  const total = rows.reduce((sum, r) => sum + (voucherExpired(r, now) || refunded.has(r.id) ? 0 : r.amount), 0);
 
   return (
     <>
@@ -75,7 +72,7 @@ export function Backings({ projects }: { projects: Project[] }) {
       </div>
 
       <div data-stagger className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi label="支援したプロジェクト" value={`${rows.length}件`} />
+        <Kpi label="支援したプロジェクト" value={`${new Set(rows.map((r) => r.projectSlug)).size}件`} note={rows.length > new Set(rows.map((r) => r.projectSlug)).size ? `支援 ${rows.length}件` : undefined} />
         <Kpi label="支援の合計" value={formatYen(total)} />
         <Kpi label="メンバーシップ" value={`${memberships.filter((m) => !m.canceledAt).length}件`} href="/mypage/membership" />
         <Kpi label="お気に入り" value={`${favorites.length}件`} href="/mypage/favorites" />
@@ -100,7 +97,15 @@ export function Backings({ projects }: { projects: Project[] }) {
                 </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`px-2 py-0.5 text-[11px] font-bold ${status.className}`}>{status.label}</span>
+                    {!refunded.has(r.id) && <span className={`px-2 py-0.5 text-[11px] font-bold ${status.className}`}>{status.label}</span>}
+                    {/* 実行者の画面で発送済みにしたもの */}
+                    {own(shipped, r.id) && (
+                      <span className={tagClass("success")}>
+                        発送済み（{formatDate(own(shipped, r.id)!)}）{own(tracking, r.id) && `・追跡番号 ${own(tracking, r.id)}`}
+                      </span>
+                    )}
+                    <RefundStatusTag backingId={r.id} />
+                    {own(admin.suspendedProjects, r.project.slug) && <span className={tagClass("danger")}>掲載停止中</span>}
                     <span className="text-xs text-stone-500">{formatDate(r.backedAt)}に支援</span>
                   </div>
                   <Link href={`/projects/${r.project.slug}`} className="mt-1 line-clamp-1 font-bold hover:text-brand">
@@ -117,9 +122,14 @@ export function Backings({ projects }: { projects: Project[] }) {
                     {r.awaitingPayment && r.voucherExpiresAt && !voucherExpired(r, now) && `・${formatDateTime(r.voucherExpiresAt)}までにお支払いください`}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2 self-start text-xs sm:flex-col">
+                <div className="flex shrink-0 flex-wrap gap-2 self-start text-xs sm:w-44 sm:flex-col">
                   <Link href={`/projects/${r.project.slug}/updates`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
                     活動報告
+                    {hasNewUpdate(r.project.slug) && (
+                      <span className={tagClass("brand", "ml-1")}>
+                        新着<span className="sr-only">の活動報告があります</span>
+                      </span>
+                    )}
                   </Link>
                   <Link href={`/mypage/messages?to=${r.project.slug}`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
                     質問する
@@ -131,7 +141,9 @@ export function Backings({ projects }: { projects: Project[] }) {
                   )}
                   {/* テストモードだけ。募集中か目標を達成したプロジェクトの、まだ請求していない支援に出す */}
                   {STRIPE_TEST && r.stripeSessionId && r.charged === false && r.project.status !== "failed" && <ChargeButton sessionId={r.stripeSessionId} />}
-                  {r.amount > 0 && status.label.startsWith("決済済み") && (
+                  {/* 返金の相談は、決済が済んだ支援だけ（請求前の All-or-Nothing や、支払い前のコンビニ払いは返金の対象にならない） */}
+                  {paymentState(r.project, r, now) === "charged" && <RefundRequestButton backingId={r.id} projectSlug={r.project.slug} projectTitle={r.project.title} amount={r.amount} />}
+                  {r.amount > 0 && status.label.startsWith("決済済み") && !refunded.has(r.id) && (
                     <button type="button" onClick={() => openReceipt({ ...r, rewardTitle: r.reward.title, rewardPrice: r.reward.price }, user?.name ?? "")} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 hover:bg-stone-100">
                       領収書
                     </button>
@@ -146,11 +158,12 @@ export function Backings({ projects }: { projects: Project[] }) {
   );
 }
 
-function Kpi({ label, value, href }: { label: string; value: string; href?: string }) {
+function Kpi({ label, value, href, note }: { label: string; value: string; href?: string; note?: string }) {
   const body = (
     <>
       <p className="text-xs text-stone-500">{label}</p>
       <p className="mt-1 font-en text-xl font-black">{value}</p>
+      {note && <p className="text-xs text-stone-500">{note}</p>}
     </>
   );
   return href ? (

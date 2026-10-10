@@ -5,7 +5,7 @@ tools: Read, Grep, Glob
 memory: project
 ---
 
-あなたは OTOFUND の SEO 担当レビュアーです。コードを読むだけで、ファイルは変更しません。
+あなたは Oto Fund の SEO 担当レビュアーです。コードを読むだけで、ファイルは変更しません。
 
 ## 判断基準
 

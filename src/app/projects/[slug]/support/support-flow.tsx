@@ -11,7 +11,7 @@ import { addBacking, useDemo } from "@/lib/demo-store";
 import { TIP_OPTIONS as SHARED_TIP_OPTIONS } from "@/lib/support-options";
 import { confirmCheckout, safeVoucherUrl, startCheckout, STRIPE_ENABLED, STRIPE_TEST, type SupportResult } from "@/lib/payments";
 import { ShareButtons } from "@/components/project/share-buttons";
-import { useOpenForSupport } from "@/components/project/support-cta";
+import { useOpenForSupport, useSuspended } from "@/components/project/support-cta";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass } from "@/components/ui/input";
 import { chipClass } from "@/components/ui/chip";
@@ -144,6 +144,7 @@ export function SupportFlow({
   const wasCanceled = searchParams.get("canceled") === "1";
   const { user, settings } = useDemo();
   const open = useOpenForSupport(project);
+  const suspended = useSuspended(project.slug);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const rewardErrorId = useId();
@@ -174,6 +175,8 @@ export function SupportFlow({
           awaitingPayment: r.awaitingPayment,
           voucherUrl: r.voucherUrl ?? undefined,
           voucherExpiresAt: r.voucherExpiresAt ?? undefined,
+          // 決済の前に保存した下書きから、お届け先を取り出す（実行者の発送の画面に出る）
+          shipping: available.find((x) => x.id === r.rewardId)?.requiresShipping ? loadSupportDraft(projectSlug)?.shipping : undefined,
         });
         try {
           sessionStorage.removeItem(draftKey(projectSlug));
@@ -302,9 +305,11 @@ export function SupportFlow({
   if (!open && step !== "done") {
     return (
       <div className="mt-8 border border-stone-200 bg-white p-8 text-center">
-        <p className="text-lg font-bold">このプロジェクトの募集は終了しました</p>
+        <p className="text-lg font-bold">{suspended ? "このプロジェクトは支援の受付を停止しています" : "このプロジェクトの募集は終了しました"}</p>
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
-          {project.status === "failed"
+          {suspended
+            ? "運営の確認のため、掲載を停止しています。すでに支援した方には、マイページのメッセージでお知らせします。"
+            : project.status === "failed"
             ? "目標に届かなかったため、このプロジェクトは実施されません。All-or-Nothing 方式のため、支援した方への決済は行われていません。"
             : project.status === "succeeded"
               ? "たくさんのご支援ありがとうございました。目標を達成し、プロジェクトは実施されます。制作の様子は活動報告でお届けします。"
@@ -382,7 +387,16 @@ export function SupportFlow({
     if (step === "confirm" && reward) {
       // デモ（決済しない）。0円のプランも決済なしで記録する
       // TODO: 本番では金額をサーバーでリターンの価格から計算し直す（ブラウザの値は信用しない）
-      addBacking({ projectSlug, rewardId: reward.id, quantity: qty, tip: isFree ? 0 : tip, amount: total, paymentMethod: isFree ? "0円" : method, comment: comment.trim() || undefined });
+      addBacking({
+        projectSlug,
+        rewardId: reward.id,
+        quantity: qty,
+        tip: isFree ? 0 : tip,
+        amount: total,
+        paymentMethod: isFree ? "0円" : method,
+        comment: comment.trim() || undefined,
+        shipping: reward.requiresShipping ? shipping : undefined,
+      });
       try {
         sessionStorage.removeItem(draftKey(projectSlug));
       } catch {
@@ -629,7 +643,7 @@ export function SupportFlow({
               <section className="space-y-3 border border-stone-200 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
                 <p className="text-sm leading-relaxed">
-                  確認のあと、Stripe の安全な決済ページでお支払い方法を選びます。カード番号などは OTOFUND には届きません。
+                  確認のあと、Stripe の安全な決済ページでお支払い方法を選びます。カード番号などは Oto Fundには届きません。
                 </p>
                 <p className="text-xs leading-relaxed text-stone-600">
                   {fundingModel === "all_or_nothing"

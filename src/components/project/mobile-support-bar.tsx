@@ -1,7 +1,8 @@
 "use client";
 
 import type { Project } from "@/types";
-import { formatNumber, progressPercent } from "@/lib/format";
+import { LiveBackers, LivePercent } from "./live-figures";
+
 import { DaysLeft } from "./days-left";
 import { SupportCta, useOpenForSupport } from "./support-cta";
 import { buttonClass } from "@/components/ui/button";
@@ -16,10 +17,10 @@ export function MobileSupportBar({ project }: { project: Project }) {
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         <div className="text-xs leading-tight text-stone-600">
           <p>
-            <span className="text-base font-bold text-brand">{progressPercent(project)}%</span> 達成
+            <LivePercent project={project} className="text-base font-bold" /> 達成
           </p>
           <p>
-            {formatNumber(project.backers)}人・残り <DaysLeft endAt={project.endAt} />
+            <LiveBackers project={project} />人・残り <DaysLeft endAt={project.endAt} />
           </p>
         </div>
         <SupportCta project={project} className={buttonClass("primary", "md", "flex-1")}>

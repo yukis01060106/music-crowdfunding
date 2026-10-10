@@ -34,6 +34,8 @@ export interface Backing {
   /** コンビニ払いの払込票のページと支払期限 */
   voucherUrl?: string;
   voucherExpiresAt?: string;
+  /** 配送が必要なリターンのお届け先（実行者の発送の画面に出る） */
+  shipping?: { name: string; postalCode: string; address: string; phone: string };
 }
 
 export interface MembershipSub {
@@ -91,6 +93,39 @@ export interface Submission {
   flags: { identity: boolean; cover: boolean; minor: boolean };
 }
 
+/** 実行者が投稿した活動報告（プロジェクトの活動報告のページに出る） */
+export interface PostedUpdate {
+  id: string;
+  projectSlug: string;
+  title: string;
+  body: string;
+  backersOnly: boolean;
+  publishedAt: string;
+}
+
+/**
+ * 支援者から運営への連絡（お問い合わせ・通報・返金の相談）。運営の「問い合わせ・通報」と「お金の流れ」に並ぶ。
+ * 運営の返信と対応の結果は admin-store に残り、マイページで見られる
+ */
+export interface Inquiry {
+  id: string;
+  kind: "inquiry" | "report" | "refund";
+  subject: string;
+  body: string;
+  /** 対象のプロジェクト */
+  targetSlug?: string;
+  target?: string;
+  /** 返金の相談のとき、対象の支援 */
+  backingId?: string;
+  amount?: number;
+  /** 返金の相談の理由の種類 */
+  cause?: "duplicate" | "creator" | "supporter";
+  /** 送った人（お問い合わせのフォームに入れた名前とメール）。本文とは分けて持つ */
+  fromName?: string;
+  fromEmail?: string;
+  receivedAt: string;
+}
+
 export interface DemoState {
   user: DemoUser | null;
   favorites: string[];
@@ -99,6 +134,16 @@ export interface DemoState {
   threads: Thread[];
   settings: DemoSettings;
   submissions: Submission[];
+  postedUpdates: PostedUpdate[];
+  /** 発送済みにした支援（支援の ID → 発送した日時）。見本の支援者は "sample:◯◯" */
+  shipped: Record<string, string>;
+  /** 発送の追跡番号（支援の ID → 番号） */
+  tracking: Record<string, string>;
+  inquiries: Inquiry[];
+  /** 運営からの返信・対応の結果を、支援者が読んだ数（問い合わせの ID → 読んだ返信の数＋結果） */
+  seenOperator: Record<string, number>;
+  /** 実行者が見本の支援者に返信したメッセージ（見本のスレッドの ID → メッセージ） */
+  sampleReplies: Record<string, ThreadMessage[]>;
 }
 
 const KEY = "otofund:demo";
@@ -129,6 +174,13 @@ export const INITIAL_STATE: DemoState = {
   ],
   settings: { notifyUpdates: true, notifyEnding: true, notifyNews: false, notifyFes: true, addresses: [] },
   submissions: [],
+  postedUpdates: [],
+  // 見本の支援者のうち、もう発送したもの
+  shipped: { "sample:s3": "2026-09-30T15:00:00+09:00" },
+  tracking: { "sample:s3": "1234-5678-9012" },
+  inquiries: [],
+  seenOperator: {},
+  sampleReplies: {},
 };
 
 let cache: DemoState | null = null;
@@ -143,11 +195,22 @@ const VERSION = 1;
  */
 const isStr = (v: unknown): v is string => typeof v === "string";
 const isDate = (v: unknown) => isStr(v) && !Number.isNaN(Date.parse(v));
+/** 保存された値のうち、自分自身が持つキーだけを読む（"constructor" などのキーで関数を拾わないように） */
+export function own<T>(rec: Record<string, T>, key: string): T | undefined {
+  return Object.hasOwn(rec, key) ? rec[key] : undefined;
+}
+const clip = (v: string, n: number) => v.slice(0, n);
+const isPlainObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
+const isShipping = (v: unknown) => v === undefined || (!!v && typeof v === "object" && ["name", "postalCode", "address", "phone"].every((k) => isStr((v as Record<string, unknown>)[k])));
 const isBacking = (x: Record<string, unknown>) =>
+  isShipping(x.shipping) && (x.comment === undefined || isStr(x.comment)) &&
   isStr(x.id) && isStr(x.projectSlug) && isStr(x.rewardId) && Number.isFinite(x.amount) && Number.isInteger(x.quantity) && Number.isFinite(x.tip) && isStr(x.paymentMethod) && isDate(x.backedAt);
 const isMembership = (x: Record<string, unknown>) => isStr(x.artistId) && isStr(x.planId) && isDate(x.joinedAt) && (x.canceledAt === undefined || isDate(x.canceledAt));
 const isAddress = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.name) && isStr(x.postalCode) && isStr(x.address) && isStr(x.phone);
 const isSubmission = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.title) && isStr(x.artist) && isDate(x.submittedAt) && isStr(x.goal) && isStr(x.story) && Array.isArray(x.rewards) && x.rewards.every(isStr) && !!x.flags && typeof x.flags === "object";
+const isPostedUpdate = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.projectSlug) && isStr(x.title) && isStr(x.body) && typeof x.backersOnly === "boolean" && isDate(x.publishedAt);
+const isInquiry = (x: Record<string, unknown>) =>
+  isStr(x.id) && x.id.startsWith("my-") && (x.kind === "inquiry" || x.kind === "report" || x.kind === "refund") && isStr(x.subject) && isStr(x.body) && isDate(x.receivedAt) && (x.targetSlug === undefined || isStr(x.targetSlug)) && (x.target === undefined || isStr(x.target)) && (x.backingId === undefined || isStr(x.backingId)) && (x.amount === undefined || Number.isFinite(x.amount)) && (x.cause === undefined || x.cause === "duplicate" || x.cause === "creator" || x.cause === "supporter") && (x.fromName === undefined || isStr(x.fromName)) && (x.fromEmail === undefined || isStr(x.fromEmail));
 const isThread = (x: Record<string, unknown>) => isStr(x.id) && isStr(x.projectSlug) && isStr(x.subject) && Array.isArray(x.messages);
 
 function sanitize(raw: unknown): DemoState {
@@ -161,11 +224,32 @@ function sanitize(raw: unknown): DemoState {
   return {
     user,
     favorites: Array.isArray(r.favorites) ? r.favorites.filter((f): f is string => typeof f === "string") : INITIAL_STATE.favorites,
-    backings: arr(r.backings, INITIAL_STATE.backings, isBacking),
+    backings: arr<Backing>(r.backings, INITIAL_STATE.backings, isBacking).map((b) => ({
+      ...b,
+      comment: b.comment === undefined ? undefined : clip(b.comment, 500),
+      shipping: b.shipping && { name: clip(b.shipping.name, 100), postalCode: clip(b.shipping.postalCode, 10), address: clip(b.shipping.address, 200), phone: clip(b.shipping.phone, 20) },
+    })),
     memberships: arr(r.memberships, INITIAL_STATE.memberships, isMembership),
-    threads: arr<Thread>(r.threads, INITIAL_STATE.threads, isThread).map((t) => ({ ...t, messages: arr(t.messages, [], (m) => isStr(m.body) && isDate(m.at) && (m.from === "me" || m.from === "artist")) })),
+    threads: arr<Thread>(r.threads, INITIAL_STATE.threads, isThread).map((t) => ({ ...t, messages: arr<ThreadMessage>(t.messages, [], (m) => isStr(m.body) && isDate(m.at) && (m.from === "me" || m.from === "artist")).slice(-200).map((m) => ({ ...m, body: clip(m.body, 2000) })) })),
     settings,
     submissions: arr(r.submissions, [], isSubmission),
+    postedUpdates: arr<PostedUpdate>(r.postedUpdates, [], isPostedUpdate).slice(0, 200).map((u) => ({ ...u, title: clip(u.title, 200), body: clip(u.body, 5000) })),
+    shipped:
+      r.shipped && typeof r.shipped === "object" && !Array.isArray(r.shipped)
+        ? Object.fromEntries(Object.entries(r.shipped).filter(([, v]) => isDate(v)))
+        : INITIAL_STATE.shipped,
+    inquiries: arr<Inquiry>(r.inquiries, [], isInquiry)
+      .slice(0, 200)
+      .map((i) => ({ ...i, subject: clip(i.subject, 200), body: clip(i.body, 5000), target: i.target === undefined ? undefined : clip(i.target, 200) })),
+    tracking: isPlainObj(r.tracking) ? Object.fromEntries(Object.entries(r.tracking).filter(([, v]) => isStr(v)).map(([k, v]) => [k, clip(v as string, 40)])) : INITIAL_STATE.tracking,
+    seenOperator: isPlainObj(r.seenOperator) ? Object.fromEntries(Object.entries(r.seenOperator).filter(([, v]) => Number.isInteger(v))) : {},
+    sampleReplies: isPlainObj(r.sampleReplies)
+      ? Object.fromEntries(
+          Object.entries(r.sampleReplies)
+            .filter(([, v]) => Array.isArray(v))
+            .map(([k, v]) => [k, (v as unknown[]).filter((m): m is ThreadMessage => !!m && typeof m === "object" && isStr((m as ThreadMessage).body) && isDate((m as ThreadMessage).at) && (m as ThreadMessage).from === "artist").slice(-50)]),
+        )
+      : {},
   };
 }
 
@@ -305,6 +389,50 @@ export function updateSettings(patch: Partial<DemoSettings>) {
 
 export function submitProject(s: Omit<Submission, "id" | "submittedAt">) {
   update((st) => ({ ...st, submissions: [{ ...s, id: newId(), submittedAt: jstDateKey() }, ...st.submissions] }));
+}
+
+/* ───── 実行者・運営とのつながり（デモではすべて同じブラウザに保存する） ───── */
+
+/** 実行者がメッセージに返信する。支援者のマイページに未読として届く */
+export function replyAsArtist(threadId: string, body: string) {
+  const at = new Date().toISOString();
+  update((s) => ({ ...s, threads: s.threads.map((t) => (t.id === threadId ? { ...t, unread: true, messages: [...t.messages, { from: "artist", body, at }] } : t)) }));
+}
+
+/** 実行者が活動報告を投稿する */
+export function postUpdate(u: Omit<PostedUpdate, "id" | "publishedAt">) {
+  update((s) => ({ ...s, postedUpdates: [{ ...u, id: newId(), publishedAt: new Date().toISOString() }, ...s.postedUpdates] }));
+}
+
+/** 実行者がリターンを発送済みにする（取り消しもできる）。追跡番号も一緒に残し、支援者のマイページに出す */
+export function setShipped(id: string, shipped: boolean, trackingNo?: string) {
+  update((s) => {
+    const next = { ...s.shipped };
+    const tracking = { ...s.tracking };
+    if (shipped) {
+      next[id] = new Date().toISOString();
+      if (trackingNo?.trim()) tracking[id] = trackingNo.trim().slice(0, 40);
+    } else delete next[id];
+    return { ...s, shipped: next, tracking };
+  });
+}
+
+/** 実行者が見本の支援者に返信する（デモ：見本のスレッドへの返信も保存して、件数を合わせる） */
+export function replyToSample(threadId: string, body: string) {
+  const at = new Date().toISOString();
+  update((s) => ({ ...s, sampleReplies: { ...s.sampleReplies, [threadId]: [...(s.sampleReplies[threadId] ?? []), { from: "artist", body, at }] } }));
+}
+
+/** 運営からの返信・結果を読んだことにする（ヘッダーの未読の数を減らす） */
+export function markOperatorSeen(counts: Record<string, number>) {
+  update((s) => ({ ...s, seenOperator: { ...s.seenOperator, ...counts } }));
+}
+
+/** 支援者が運営に連絡する（お問い合わせ・通報・返金の相談） */
+export function addInquiry(i: Omit<Inquiry, "id" | "receivedAt">): string {
+  const id = `my-${newId()}`;
+  update((s) => ({ ...s, inquiries: [{ ...i, id, receivedAt: new Date().toISOString() }, ...s.inquiries] }));
+  return id;
 }
 
 /** 退会・デモのリセット。保存内容をすべて消して最初の状態に戻す */

@@ -17,7 +17,7 @@ export default function HelpPage() {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <p className="font-en text-xs tracking-wide text-stone-500">Guide</p>
       <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">はじめての方へ・よくある質問</h1>
-      <p className="mt-3 leading-relaxed text-stone-600">OTOFUNDは、アーティストの「これから」を支援して、完成した音楽やライブの体験を受け取るサービスです。</p>
+      <p className="mt-3 leading-relaxed text-stone-600">Oto Fundは、アーティストの「これから」を支援して、完成した音楽やライブの体験を受け取るサービスです。</p>
 
       <ol data-stagger className="mt-8 grid gap-4 sm:grid-cols-3">
         {STEPS.map((s, i) => (

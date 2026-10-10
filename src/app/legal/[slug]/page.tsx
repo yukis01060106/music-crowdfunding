@@ -1,3 +1,4 @@
+import { SITE_NAME } from "@/lib/site";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: PageProps<"/legal/[slug]">): 
   const { slug } = await params;
   const doc = LEGAL_DOCS.find((d) => d.slug === slug);
   if (!doc) return {};
-  return { title: doc.title, description: `OTOFUND（仮）の${doc.title}。`, alternates: { canonical: `/legal/${slug}/` } };
+  return { title: doc.title, description: `${SITE_NAME}の${doc.title}。`, alternates: { canonical: `/legal/${slug}/` } };
 }
 
 export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) {

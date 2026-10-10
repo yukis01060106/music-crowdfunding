@@ -1,5 +1,6 @@
 "use client";
 
+import { useOperatorNotices } from "@/lib/backing-state";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
@@ -29,7 +30,8 @@ export function AccountButton() {
     () => "",
   );
   const hydrated = useHydrated();
-  const unread = threads.filter((t) => t.unread).length;
+  // 実行者からの未読と、運営からの未読（返信・返金の結果）を合わせて数える
+  const unread = threads.filter((t) => t.unread).length + useOperatorNotices().unread;
 
   // 描画前はボタンの幅だけ確保して、ちらつきを防ぐ
   if (!hydrated) return <span className="inline-block h-11 w-24" aria-hidden />;

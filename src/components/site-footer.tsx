@@ -22,7 +22,7 @@ const COLUMNS = [
     ],
   },
   {
-    title: "OTOFUNDについて",
+    title: "Oto Fundについて",
     links: [...LEGAL_DOCS.map((d) => ({ href: `/legal/${d.slug}`, label: d.title })), { href: "/contact", label: "お問い合わせ" }],
   },
 ];
@@ -32,8 +32,9 @@ export function SiteFooter() {
     <footer className="mt-16 bg-ink text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-4">
         <div>
-          <p className="font-en text-3xl font-black tracking-tight">OTOFUND</p>
-          <p className="mt-2 text-xs leading-relaxed tracking-wider text-white/60">音楽のためのクラウドファンディング（仮称）</p>
+          <p className="font-en text-3xl font-black tracking-tight">Oto Fund</p>
+          <p className="mt-1 text-xs font-bold tracking-[0.3em] text-white/70">オトファンド</p>
+          <p className="mt-2 text-xs leading-relaxed tracking-wider text-white/60">音楽のためのクラウドファンディング</p>
           <p className="mt-4 text-xs leading-relaxed tracking-wider text-white/60">{FES_FUND_MESSAGE}</p>
         </div>
         {COLUMNS.map((col) => (
@@ -51,7 +52,7 @@ export function SiteFooter() {
           </nav>
         ))}
       </div>
-      <p className="border-t border-white/10 py-4 text-center font-en text-xs text-white/60">© OTOFUND</p>
+      <p className="border-t border-white/10 py-4 text-center font-en text-xs text-white/60">© Oto Fund</p>
     </footer>
   );
 }

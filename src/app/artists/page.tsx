@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { ArtistDirectory } from "./artist-directory";
 
-export const metadata: Metadata = { title: "アーティスト", description: "OTOFUNDで挑戦中のアーティスト一覧。高校生バンドから歌い手、インディーズまで。", alternates: { canonical: "/artists/" } };
+export const metadata: Metadata = { title: "アーティスト", description: "Oto Fundで挑戦中のアーティスト一覧。高校生バンドから歌い手、インディーズまで。", alternates: { canonical: "/artists/" } };
 export const revalidate = 300;
 
 export default async function ArtistsPage() {

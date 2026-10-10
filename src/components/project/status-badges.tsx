@@ -3,6 +3,7 @@
 import type { Project } from "@/types";
 import { progressPercent } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
+import { useLiveProject } from "./live-figures";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -12,9 +13,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  */
 export function StatusBadges({ project, className = "" }: { project: Project; className?: string }) {
   const now = useNow();
+  const live = useLiveProject(project);
   const badges: { label: string; className: string }[] = [];
 
-  if (progressPercent(project) >= 100) {
+  // 公開ページの数字と同じく、このブラウザの支援を足した達成率で判断する
+  if (progressPercent(live) >= 100) {
     badges.push({ label: "目標達成", className: "bg-emerald-700" });
   }
   if (now !== null) {

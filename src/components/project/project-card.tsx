@@ -1,13 +1,14 @@
 import Link from "next/link";
 import type { Artist, Project } from "@/types";
+import { LiveAmount, LiveBackers, LivePercent, LiveProgressBar } from "./live-figures";
 import { tagClass } from "@/components/ui/tag";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
-import { formatNumber, formatYen, progressPercent } from "@/lib/format";
+
 import { Photo } from "@/components/ui/photo";
-import { ProgressBar } from "./progress";
 import { DaysLeft } from "./days-left";
 import { StatusBadges } from "./status-badges";
 import { VerifiedBadge } from "./verified-badge";
+import { SuspendedCardBadge } from "./support-cta";
 
 /** カードの枠色。並び順で黄→ピンク→青→緑とめぐる */
 export const FRAME_COLORS = ["border-pop-yellow", "border-pop-pink", "border-pop-blue", "border-pop-teal"] as const;
@@ -26,6 +27,7 @@ export function ProjectCard({ project, artist, index = 0 }: { project: Project; 
           className="transition-transform duration-500 group-hover:scale-105"
         />
         <StatusBadges project={project} className="absolute left-0 top-0" />
+        <SuspendedCardBadge slug={project.slug} />
         <span className="absolute bottom-2 right-2 bg-white px-2 py-0.5 text-[11px] font-bold tracking-wider">
           {GENRE_LABELS[project.genre]}
         </span>
@@ -42,17 +44,15 @@ export function ProjectCard({ project, artist, index = 0 }: { project: Project; 
         </p>
         <h3 className="line-clamp-2 font-bold leading-snug tracking-wide group-hover:text-brand">{project.title}</h3>
         <div className="mt-auto space-y-2">
-          <ProgressBar project={project} />
+          <LiveProgressBar project={project} />
           <div className="flex items-end justify-between">
             <span className="font-en text-lg font-bold">
-              {project.goalType === "participants"
-                ? `${formatNumber(project.backers)}人`
-                : formatYen(project.raised)}
+              <LiveAmount project={project} />
             </span>
-            <span className={`font-en text-lg font-black ${progressPercent(project) >= 100 ? "text-emerald-700" : "text-brand"}`}>{progressPercent(project)}%</span>
+            <LivePercent project={project} className="font-en text-lg font-black" />
           </div>
           <p className="text-xs text-stone-500">
-            残り <DaysLeft endAt={project.endAt} />・{formatNumber(project.backers)}人が支援
+            残り <DaysLeft endAt={project.endAt} />・<LiveBackers project={project} />人が支援
           </p>
         </div>
       </div>

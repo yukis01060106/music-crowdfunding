@@ -10,9 +10,9 @@ import { FesSignup } from "./fes-signup";
 
 export const metadata: Metadata = {
   title: "ONE NOTE FES",
-  description: "OTOFUNDから生まれる、ファンと共に創る音楽フェス（企画中）。",
+  description: "Oto Fundから生まれる、ファンと共に創る音楽フェス（企画中）。",
   alternates: { canonical: "/fes/" },
-  openGraph: { ...baseOpenGraph, title: "ONE NOTE FES", description: "ファンと共に創るフェス（企画中）", url: "/fes/", images: [{ url: "/images/one-note-fes.jpg", width: 1376, height: 768, alt: "ONE NOTE FES by otofund" }] },
+  openGraph: { ...baseOpenGraph, title: "ONE NOTE FES", description: "ファンと共に創るフェス（企画中）", url: "/fes/", images: [{ url: "/images/one-note-fes.jpg", width: 1376, height: 768, alt: "ONE NOTE FES by Oto Fund" }] },
 };
 
 // 企画中なので、決まっていないこと（日程・会場・出演者）は書かない。構想として伝える
@@ -25,7 +25,7 @@ const PILLARS = [
   {
     en: "One note",
     title: "すべてのアーティストが、ひとつの音に",
-    body: "高校生バンドからインディーズ、メジャーまで。OTOFUNDで挑戦したアーティストが、同じステージでひとつになる瞬間を目指します。",
+    body: "高校生バンドからインディーズ、メジャーまで。Oto Fundで挑戦したアーティストが、同じステージでひとつになる瞬間を目指します。",
   },
   {
     en: "Funded by you",
@@ -37,7 +37,7 @@ const PILLARS = [
 const WAYS = [
   { title: "プロジェクトを支援する", body: "どのプロジェクトへの支援も、手数料の一部がフェスの開催費用になります。", href: "/projects", cta: "プロジェクトをさがす" },
   { title: "メンバーになる", body: "メンバーシップに入ると、フェスの情報をいちばん先にお届けします。", href: "/membership", cta: "メンバーシップを見る" },
-  { title: "アーティストとして挑戦する", body: "OTOFUNDでプロジェクトを立ち上げて、フェスのステージを目指しませんか。", href: "/start", cta: "プロジェクトをはじめる" },
+  { title: "アーティストとして挑戦する", body: "Oto Fundでプロジェクトを立ち上げて、フェスのステージを目指しませんか。", href: "/start", cta: "プロジェクトをはじめる" },
 ];
 
 export default function FesPage() {
@@ -46,7 +46,7 @@ export default function FesPage() {
     <div className="-mb-16 overflow-x-clip bg-ink text-white">
       <section className="relative">
         <div className="relative h-[70vh] min-h-[460px] w-full">
-          <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="100vw" priority className="animate-fade" />
+          <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by Oto Fund" sizes="100vw" priority className="animate-fade" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/20 to-transparent" aria-hidden />
         </div>
         <div className="relative mx-auto -mt-40 max-w-6xl px-4 pb-16">
@@ -66,7 +66,7 @@ export default function FesPage() {
             <br />
             すべてのアーティストとファンが、ひとつになる瞬間を。
           </p>
-          <SpinBadge text="ONE NOTE FES ✦ BY OTOFUND ✦ " center={<>COMING<br />SOON</>} size={130} className="absolute right-4 top-6 hidden sm:block" />
+          <SpinBadge text="ONE NOTE FES ✦ BY OTO FUND ✦ " center={<>COMING<br />SOON</>} size={130} className="absolute right-4 top-6 hidden sm:block" />
         </div>
       </section>
 

@@ -26,7 +26,7 @@ export async function ogImage({ photo, label, badge }: { photo: string; label: s
         <div style={{ position: "absolute", inset: 0, display: "flex", backgroundImage: "linear-gradient(to top, rgba(34,34,34,0.9), rgba(34,34,34,0) 60%)" }} />
         {/* 標準のフォントは細字しかないので、黒い帯の上に大きめに置いて読みやすくする */}
         <div style={{ position: "absolute", left: 0, bottom: 56, display: "flex", alignItems: "center", gap: 28, background: "#222222", padding: "22px 40px 22px 56px" }}>
-          <div style={{ display: "flex", color: "#ffffff", fontSize: 72, letterSpacing: 2 }}>OTOFUND</div>
+          <div style={{ display: "flex", color: "#ffffff", fontSize: 72, letterSpacing: 2 }}>Oto Fund</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {badge && <div style={{ display: "flex", alignSelf: "flex-start", background: "#ffd23f", color: "#222222", fontSize: 30, padding: "4px 14px" }}>{badge}</div>}
             <div style={{ display: "flex", color: "rgba(255,255,255,0.9)", fontSize: 24, letterSpacing: 4 }}>{label}</div>

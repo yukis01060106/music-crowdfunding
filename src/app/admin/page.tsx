@@ -1,69 +1,56 @@
+import Link from "next/link";
 import { getArtists, getPublicProjects } from "@/lib/data";
-import { formatNumber, formatYen } from "@/lib/format";
+import { formatNumber, formatYen, progressPercent } from "@/lib/format";
 import { PLATFORM_FEE_RATE } from "@/lib/fees";
 import { PageTitle } from "@/components/side-nav";
-import { ReviewQueue, type QueueItem } from "./review-queue";
-
-// モック: 審査待ちのプロジェクト。2件目は表現チェックに引っかかる例
-const QUEUE: QueueItem[] = [
-  {
-    id: "q1",
-    title: "地元の商店街で野外フェスを開きたい",
-    artist: "港町ブラス",
-    submittedAt: "2026-09-25",
-    goal: "¥1,200,000",
-    story: "結成10年の吹奏楽団です。コロナで中止になった商店街の夏祭りを、音楽フェスとして復活させたいと考えています。ステージの設営費と音響機材のレンタル費を募ります。",
-    rewards: ["¥3,000 フェスの入場チケット", "¥10,000 前方エリアのチケット＋記念タオル", "¥50,000 ステージにお名前を掲示"],
-    flags: { identity: true, cover: false, minor: false },
-  },
-  {
-    id: "q2",
-    title: "日本初！ボカロP 初のCDをコミケで頒布したい",
-    artist: "しおからP",
-    submittedAt: "2026-09-26",
-    goal: "¥300,000",
-    story: "絶対に後悔させません！投資していただいた方には、CDの売上から配当もお返しします。人気曲のカバーも収録予定です。",
-    rewards: ["¥1,500 CD", "¥5,000 CD＋サイン色紙"],
-    flags: { identity: false, cover: true, minor: false },
-  },
-  {
-    id: "q3",
-    title: "軽音部の定期演奏会をライブハウスで開きたい",
-    artist: "県立北高校 軽音部",
-    submittedAt: "2026-09-27",
-    goal: "参加 100人",
-    story: "3年生最後の定期演奏会を、はじめてライブハウスで開きます。会場費の一部を募ります。",
-    rewards: ["0円 応援する", "¥1,000 入場チケット"],
-    flags: { identity: true, cover: false, minor: true },
-  },
-];
+import { Kpi, SectionTitle } from "./admin-ui";
+import { InboxPreview, LiveKpis, RecentActivity, TodoList } from "./todo-list";
+import { FINISHED_PAYOUTS, INBOX, PAYMENT_FAILURES, REFUND_REQUESTS, REVIEW_QUEUE } from "./admin-data";
 
 export default async function AdminPage() {
   const [projects, artists] = await Promise.all([getPublicProjects(), getArtists()]);
-  const gmv = projects.reduce((sum, p) => sum + p.raised, 0);
+  // 掲載停止はこのブラウザに保存しているので、数字はクライアントの部品で差し引く
+  const liveRows = projects
+    .filter((p) => p.status === "live")
+    .map((p) => ({ slug: p.slug, raised: p.raised, earnsFee: p.fundingModel === "all_in" || progressPercent(p) >= 100 }));
   const members = artists.reduce((sum, a) => sum + (a.membership?.plans.reduce((s, p) => s + p.members, 0) ?? 0), 0);
   const membershipMonthly = artists.reduce((sum, a) => sum + (a.membership?.plans.reduce((s, p) => s + p.price * p.members, 0) ?? 0), 0);
 
   return (
     <>
-      <PageTitle>審査と運営状況</PageTitle>
-      <div data-stagger className="mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="掲載中のプロジェクト" value={`${projects.filter((p) => p.status === "live").length}件`} />
-        <Kpi label="累計の支援総額" value={formatYen(gmv)} />
-        <Kpi label="手数料収入の見込み（税別）" value={formatYen(Math.floor(gmv * PLATFORM_FEE_RATE))} />
-        <Kpi label="メンバーシップ" value={`${formatNumber(members)}人・${formatYen(membershipMonthly)}/月`} />
+      <PageTitle>ダッシュボード</PageTitle>
+      <div data-stagger className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <LiveKpis rows={liveRows} feeRate={PLATFORM_FEE_RATE} />
+        <Kpi label="メンバーシップ" value={`${formatNumber(members)}人`} note={`${formatYen(membershipMonthly)} / 月`} />
       </div>
-      <ReviewQueue items={QUEUE} />
+
+      <SectionTitle>対応が必要なもの</SectionTitle>
+      {/* 件数が多い順ではなく、お金と信頼に関わるものを上に置く */}
+      <TodoList refunds={REFUND_REQUESTS} failures={PAYMENT_FAILURES} payouts={FINISHED_PAYOUTS} inbox={INBOX} reviewIds={REVIEW_QUEUE.map((q) => q.id)} />
+
+      <SectionTitle
+        aside={
+          <Link href="/admin/inbox" className="inline-flex min-h-11 items-center text-sm text-brand underline">
+            すべて見る
+          </Link>
+        }
+      >
+        新しい問い合わせ・通報
+      </SectionTitle>
+      <InboxPreview inbox={INBOX} />
+
+      <SectionTitle
+        aside={
+          <Link href="/admin/logs" className="inline-flex min-h-11 items-center text-sm text-brand underline">
+            操作の記録をすべて見る
+          </Link>
+        }
+      >
+        最近の操作
+      </SectionTitle>
+      <RecentActivity />
+
       <p className="mt-8 text-xs text-stone-500">手数料収入の一部は、ONE NOTE FES の開催費用にあてます。あてる割合は事業計画で決めます。</p>
     </>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-stone-50 p-4">
-      <p className="text-xs text-stone-500">{label}</p>
-      <p className="mt-1 font-en text-lg font-black">{value}</p>
-    </div>
   );
 }

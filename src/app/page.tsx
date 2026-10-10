@@ -73,7 +73,7 @@ export default async function HomePage() {
             ))}
           </h1>
           <p className="mt-6 max-w-md animate-rise text-sm font-medium leading-loose tracking-wider text-stone-700 [animation-delay:600ms]">
-            OTOFUNDは、アルバム・ライブ・MVなど、アーティストの「これから」を
+            Oto Fundは、アルバム・ライブ・MVなど、アーティストの「これから」を
             ファンが支援する、音楽のためのクラウドファンディングです。
           </p>
           <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:750ms]">
@@ -193,7 +193,7 @@ export default async function HomePage() {
       </div>
 
       <div className="-rotate-1">
-        <TextMarquee words={["MUSIC", "WITH", "FANS", "OTOFUND", "ONE NOTE FES"]} tone="yellow" />
+        <TextMarquee words={["MUSIC", "WITH", "FANS", "OTO FUND", "ONE NOTE FES"]} tone="yellow" />
       </div>
 
       {/* ONE NOTE FES：注目のプロジェクトの後ろに置く、企画中のフェス告知 */}
@@ -201,19 +201,19 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
           <div className="relative">
             <Link href="/fes" data-reveal="curtain" className="group relative block aspect-[1376/768] w-full overflow-hidden">
-              <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="(min-width: 1024px) 640px, 100vw" className="transition-transform duration-700 group-hover:scale-105" />
+              <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by Oto Fund" sizes="(min-width: 1024px) 640px, 100vw" className="transition-transform duration-700 group-hover:scale-105" />
               <span className="absolute left-3 top-3 bg-pop-yellow px-3 py-1 text-xs font-black tracking-widest text-ink sm:text-sm">
                 企画中
               </span>
             </Link>
-            <SpinBadge text="ONE NOTE FES ✦ BY OTOFUND ✦ " center={<>COMING<br />SOON</>} size={110} className="absolute -bottom-10 -right-4 sm:-right-8" />
+            <SpinBadge text="ONE NOTE FES ✦ BY OTO FUND ✦ " center={<>COMING<br />SOON</>} size={110} className="absolute -bottom-10 -right-4 sm:-right-8" />
           </div>
           <div data-reveal="up">
             <p className="font-en text-xs font-medium tracking-wide text-white/70">Festival</p>
             <h2 className="mt-2 font-en text-3xl font-black tracking-wider sm:text-4xl">ONE NOTE FES</h2>
             <p className="mt-4 text-xl font-bold tracking-[0.12em] sm:text-2xl">ファンと共に創るフェス</p>
             <p className="mt-5 text-sm leading-loose tracking-wider text-white/80">
-              OTOFUNDから生まれる音楽フェス。
+              Oto Fundから生まれる音楽フェス。
               すべてのアーティストとファンが、ひとつになる瞬間を目指して企画中です。
               出演者もステージも、ファンの応援で形にしていく予定です。
             </p>
@@ -233,7 +233,7 @@ export default async function HomePage() {
 
       <div className="mx-auto max-w-6xl px-4 py-24">
         <section className="space-y-10">
-          <SectionHeading en="Data" ja="数字で見るOTOFUND" />
+          <SectionHeading en="Data" ja="数字で見るOto Fund" />
           <dl data-stagger className="grid gap-4 sm:grid-cols-3">
             <Stat label="累計支援額" value={<CountUp value={totalRaised} format="yen" />} />
             <Stat label="支援者" value={<CountUp value={totalBackers} />} unit="人" />

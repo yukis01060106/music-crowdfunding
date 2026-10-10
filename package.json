@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy:pages": "bash scripts/deploy-pages.sh"
+    "deploy:pages": "bash scripts/deploy-pages.sh",
+    "charge:aon": "node --env-file-if-exists=.env.local scripts/charge-aon.mjs"
   },
   "dependencies": {
     "next": "^16.3.6",

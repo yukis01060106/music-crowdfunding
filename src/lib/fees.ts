@@ -4,6 +4,9 @@
  */
 export const PLATFORM_FEE_RATE = 0.16;
 
+/** 募集の終了から振込までの日数（目安） */
+export const PAYOUT_DAYS = 14;
+
 /** 手数料にかかる消費税 */
 export const FEE_TAX_RATE = 0.1;
 
@@ -28,4 +31,4 @@ export function grossFor(net: number): number {
  * 手数料の使い道として打ち出すメッセージ。支援がフェスという「みんなの場」に返ってくる。
  * 充てる割合は未定なので、数字は出さない。
  */
-export const FES_FUND_MESSAGE = "OTOFUNDの手数料の一部は、ONE NOTE FES の開催費用にあてられます。";
+export const FES_FUND_MESSAGE = "Oto Fundの手数料の一部は、ONE NOTE FES の開催費用にあてられます。";

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "./contact-form";
 
-export const metadata: Metadata = { title: "お問い合わせ", description: "OTOFUND へのお問い合わせ。支援・メンバーシップ・掲載のご相談はこちらから。", alternates: { canonical: "/contact/" } };
+export const metadata: Metadata = { title: "お問い合わせ", description: "Oto Fundへのお問い合わせ。支援・メンバーシップ・掲載のご相談はこちらから。", alternates: { canonical: "/contact/" } };
 
 export default function ContactPage() {
   return (

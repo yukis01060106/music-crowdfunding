@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useDemo } from "@/lib/demo-store";
+import { addInquiry, useDemo } from "@/lib/demo-store";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass } from "@/components/ui/input";
 
@@ -11,7 +11,7 @@ const CATEGORIES = ["支援について", "メンバーシップについて", "
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 const input = inputClass;
 
-// TODO: 送信内容を Supabase に保存し、運営のメールと自動返信メールを送る
+// TODO（本番）: 送信内容を Supabase に保存し、運営のメールと自動返信メールを送る
 export function ContactForm() {
   const { user } = useDemo();
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>(CATEGORIES[0]);
@@ -42,7 +42,7 @@ export function ContactForm() {
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
           （デモ版）本番では {contactEmail} に受付メールが届きます。
           <br />
-          通常2営業日以内にお返事します。
+          通常2営業日以内にお返事します。{user ? "返信はマイページの「メッセージ」でも読めます。" : ""}
         </p>
         <Link href="/" className="mt-6 inline-block text-sm text-stone-600 underline">
           トップへ戻る
@@ -61,6 +61,8 @@ export function ContactForm() {
           setShowErrors(true);
           return;
         }
+        // 運営の「問い合わせ・通報」に届く（デモでは同じブラウザに保存）。返信はマイページのメッセージで読める
+        addInquiry({ kind: category === "掲載中のプロジェクトの通報" ? "report" : "inquiry", subject: category, body: body.trim(), fromName: contactName.trim(), fromEmail: contactEmail.trim() });
         setSent(true);
       }}
     >

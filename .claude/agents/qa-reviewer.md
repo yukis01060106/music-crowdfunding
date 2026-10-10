@@ -5,7 +5,7 @@ tools: Read, Grep, Glob
 memory: project
 ---
 
-あなたは OTOFUND の QA 担当レビュアーです。コードとデータを読むだけで、ファイルは変更しません。
+あなたは Oto Fund の QA 担当レビュアーです。コードとデータを読むだけで、ファイルは変更しません。
 
 ## 判断基準
 

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- 選んだファイルの一時 URL は next/image で最適化できない */
 
 import { useEffect, useRef, useState } from "react";
+import { buttonClass } from "@/components/ui/button";
 import { tagClass } from "@/components/ui/tag";
 import {
   ARTIST_TYPE_LABELS,
@@ -18,6 +19,7 @@ import {
 import { formatDate, formatDuration, formatYen } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import { FEE_LABEL, grossFor, payoutAmount } from "@/lib/fees";
+import { chipClass } from "@/components/ui/chip";
 import { REWARD_IDEAS, type RewardIdea } from "@/lib/reward-ideas";
 import { toast } from "@/components/ui/toast";
 import {
@@ -133,7 +135,7 @@ export function BasicsSection({ d, update }: SectionProps) {
           {(Object.entries(ARTIST_TYPE_LABELS) as [ArtistType, string][]).map(([t, label]) => {
             const on = d.artistTypes.includes(t);
             return (
-              <label key={t} className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 transition ${on ? "border-brand bg-brand-soft text-brand" : "border-stone-300 hover:border-stone-400"}`}>
+              <label key={t} className={`${chipClass(on)} cursor-pointer gap-1.5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand`}>
                 <input
                   type="checkbox"
                   checked={on}
@@ -920,7 +922,7 @@ export function IdentitySection({ d, update }: SectionProps) {
   ];
   return (
     <>
-      <Tip>本人確認と振込先の登録は、決済サービス Stripe の画面で行います。OTOFUNDに身分証や口座の情報は保存されません。</Tip>
+      <Tip>本人確認と振込先の登録は、決済サービス Stripe の画面で行います。Oto Fundに身分証や口座の情報は保存されません。</Tip>
       <ol className="space-y-3">
         {steps.map((s, i) => (
           <li key={s.key} className="flex flex-col gap-3 border border-stone-200 p-4 sm:flex-row sm:items-center">
@@ -934,7 +936,7 @@ export function IdentitySection({ d, update }: SectionProps) {
             {d[s.key] ? (
               <span className="text-sm font-bold text-emerald-700">完了</span>
             ) : (
-              <button type="button" onClick={() => set(s.key, true)} className="bg-ink min-h-11 px-4 py-2 text-sm font-bold text-white transition hover:bg-brand">
+              <button type="button" onClick={() => set(s.key, true)} className={buttonClass("dark", "md")}>
                 {s.action}
               </button>
             )}

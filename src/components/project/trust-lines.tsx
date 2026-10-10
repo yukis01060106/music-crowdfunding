@@ -4,7 +4,7 @@ import type { Project } from "@/types";
 import { useOpenForSupport } from "./support-cta";
 
 /** 支援ボタンのそばに出す、支援の不安を減らす短い3行。PC のサイドバーとスマホの支援状況で同じものを使う */
-export function TrustLines({ project }: { project: Pick<Project, "fundingModel" | "rewards" | "status" | "endAt"> }) {
+export function TrustLines({ project }: { project: Pick<Project, "fundingModel" | "rewards" | "status" | "endAt"> & { slug?: string } }) {
   // 募集が終わったら出さない（「届かなければお支払いなし」は、もう支援できない人には不要）
   const open = useOpenForSupport(project);
   if (!open) return null;

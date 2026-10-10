@@ -136,7 +136,7 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
               ))}
             </div>
             <div>
-              <p className="mb-4 text-sm font-bold tracking-wider">どのプランにも付く、OTOFUNDメンバー共通の特典</p>
+              <p className="mb-4 text-sm font-bold tracking-wider">どのプランにも付く、Oto Fundメンバー共通の特典</p>
               <CommonPerks />
             </div>
             <SellerInfo artist={artist} kind="membership" />

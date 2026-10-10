@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
             { key: "X-Frame-Options", value: "DENY" },
           ],
         },
+        // 管理画面・マイページは検索結果に出さない（meta の noindex に加えて、ヘッダーでも伝える）
+        ...["/admin/:path*", "/creator/:path*", "/mypage/:path*"].map((source) => ({
+          source,
+          headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        })),
       ];
     },
   }),

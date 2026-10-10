@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Artist, Project } from "@/types";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
+  // 並べ替えは見本の数字のまま（デモでは、このブラウザの支援で順位を動かさない）
 import { progressPercent } from "@/lib/format";
 import { ProjectGrid } from "./project-grid";
 import { searchInputClass } from "@/components/ui/input";

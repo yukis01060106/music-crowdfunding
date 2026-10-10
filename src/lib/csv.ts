@@ -4,8 +4,10 @@
  * 先頭に ' を付けて文字として扱わせる（CSV インジェクション対策）。
  */
 function cell(v: string | number): string {
-  let s = String(v);
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (typeof v === "number") return Number.isFinite(v) ? String(v) : '""';
+  let s = v;
+  // 全角の「＝＋－＠」も、Excel の設定によっては数式として扱われるので同じく対策する
+  if (/^[=+\-@\t\r＝＋－＠]/.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""')}"`;
 }
 

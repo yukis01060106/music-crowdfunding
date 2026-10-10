@@ -1,16 +1,15 @@
 import { getArtist, getCreatorProjects } from "@/lib/data";
-import { formatDate, formatYen, progressPercent } from "@/lib/format";
-import { FEE_LABEL, FES_FUND_MESSAGE, feeAmount, payoutAmount } from "@/lib/fees";
+import { formatYen } from "@/lib/format";
+import { FEE_LABEL, FES_FUND_MESSAGE, PAYOUT_DAYS, feeAmount, payoutAmount } from "@/lib/fees";
 import { PageTitle } from "@/components/side-nav";
+import { PayoutRow } from "./payout-row";
+import { CREATOR_ARTIST_ID } from "../creator-context";
 
 // TODO: Stripe Connect の Express アカウントで本人確認と振込先登録を行い、状態は Stripe から取得する
 const ACCOUNT = { identity: true, bank: "○○銀行 渋谷支店 普通 ****123", payoutsEnabled: true };
 
-/** 募集終了から振込までの目安 */
-const PAYOUT_DAYS = 14;
-
 export default async function PayoutPage() {
-  const [projects, artist] = await Promise.all([getCreatorProjects(), getArtist("hoshizora-radio")]);
+  const [projects, artist] = await Promise.all([getCreatorProjects(), getArtist(CREATOR_ARTIST_ID)]);
   const membershipMonthly = artist?.membership?.plans.reduce((sum, p) => sum + p.price * p.members, 0) ?? 0;
 
   return (
@@ -36,19 +35,9 @@ export default async function PayoutPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
-            {projects.map((p) => {
-              const achieved = p.fundingModel === "all_in" || progressPercent(p) >= 100;
-              const payDate = new Date(new Date(p.endAt).getTime() + PAYOUT_DAYS * 86_400_000).toISOString();
-              return (
-                <tr key={p.slug}>
-                  <td className="p-3 font-medium">{p.title}</td>
-                  <td className="p-3 text-right">{formatYen(p.raised)}</td>
-                  <td className="p-3 text-right text-stone-500">−{formatYen(feeAmount(p.raised))}</td>
-                  <td className="p-3 text-right font-bold">{formatYen(payoutAmount(p.raised))}</td>
-                  <td className="p-3 text-xs text-stone-500">{achieved ? `${formatDate(payDate)}ごろ` : "目標達成時のみ"}</td>
-                </tr>
-              );
-            })}
+            {projects.map((p) => (
+              <PayoutRow key={p.slug} project={p} />
+            ))}
           </tbody>
         </table>
       </div>

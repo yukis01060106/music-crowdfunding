@@ -25,6 +25,8 @@ export async function POST(request: Request) {
     tip: String(order.tip),
     amount: String(order.amount),
     fundingModel: order.fundingModel,
+    // メールの件名に使う（Stripe の metadata の値は500文字まで）
+    projectTitle: order.projectTitle.slice(0, 200),
   };
 
   try {

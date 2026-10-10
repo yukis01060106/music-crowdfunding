@@ -86,7 +86,7 @@ export function ConfirmDialog({
             onConfirm();
             onClose();
           }}
-          className={danger ? buttonClass("primary", "md", "bg-rose-700! hover:bg-rose-800!") : buttonClass("primary")}
+          className={buttonClass(danger ? "danger" : "primary")}
         >
           {confirmLabel}
         </button>
