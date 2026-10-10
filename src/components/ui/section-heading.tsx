@@ -28,7 +28,14 @@ const CIRCLE: Record<"teal" | "blue" | "purple" | "pink", string> = {
   pink: "bg-pop-pink",
 };
 
-/** 色付きの丸に文字が重なる「View more」 */
+/** 文字の横に、矢印の入った色付きの丸を置く「View more」。文字は丸に重ねない（読みやすさのため） */
+const ARROW_ON: Record<keyof typeof CIRCLE, string> = {
+  teal: "text-ink",
+  blue: "text-white",
+  purple: "text-white",
+  pink: "text-ink",
+};
+
 export function CircleLink({
   href,
   children = "View more",
@@ -41,13 +48,13 @@ export function CircleLink({
   dark?: boolean;
 }) {
   return (
-    <Link href={href} className="group relative inline-flex h-20 items-center pr-4">
+    <Link href={href} className={`group inline-flex min-h-11 items-center gap-3 font-en text-sm font-bold tracking-wide ${dark ? "text-white" : "text-ink"}`}>
+      <span className="underline-offset-4 group-hover:underline">{children}</span>
       <span
-        className={`absolute right-0 h-20 w-20 rounded-full ${CIRCLE[color]} transition-transform group-hover:scale-110`}
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${CIRCLE[color]} ${ARROW_ON[color]} text-lg transition-transform group-hover:translate-x-1 group-hover:scale-110`}
         aria-hidden
-      />
-      <span className={`relative font-en text-sm font-medium ${dark ? "text-white" : "text-ink"}`}>
-        {children} <span aria-hidden>→</span>
+      >
+        →
       </span>
     </Link>
   );

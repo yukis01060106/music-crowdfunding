@@ -1,4 +1,4 @@
-import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE } from "@/lib/fees";
+import { FEE_LABEL, FES_FUND_MESSAGE } from "@/lib/fees";
 import { formatYen } from "@/lib/format";
 import { MEMBERSHIP_MIN_PRICE, PLAN_CHANGE_RULE } from "@/lib/membership";
 
@@ -8,7 +8,7 @@ export interface FaqGroup {
   items: { q: string; a: string }[];
 }
 
-const FEE = `${PLATFORM_FEE_RATE * 100}%`;
+const FEE = FEE_LABEL;
 
 export const FAQ_GROUPS: FaqGroup[] = [
   {
@@ -26,9 +26,9 @@ export const FAQ_GROUPS: FaqGroup[] = [
     id: "money",
     title: "お金・決済について",
     items: [
-      { q: "支援金はいつ決済されますか？", a: "All-or-Nothing方式は、目標を達成した場合のみ募集終了後に決済されます。All-in方式は支援した時点で決済されます。" },
+      { q: "支援金はいつ決済されますか？", a: "All-or-Nothing方式は、目標を達成した場合のみ募集終了後に決済されます。All-in方式は支援した時点で決済されます（コンビニ払いは、お店でお支払いいただいた時点。期限内にお支払いがないと支援は無効になります）。" },
       { q: "送料はかかりますか？", a: "かかりません。表示価格はすべて税込・送料込みです。" },
-      { q: "使える支払い方法は？", a: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払いです。All-or-Nothing のプロジェクトは、目標を達成したときだけ請求するため、クレジットカードと Apple Pay / Google Pay に限ります。メンバーシップは、毎月の自動引き落としのため、コンビニ払いを除きます。" },
+      { q: "使える支払い方法は？", a: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払いです。All-or-Nothing のプロジェクトは、目標を達成したときだけ請求するため、クレジットカードと Apple Pay / Google Pay に限ります。メンバーシップは、毎月の自動引き落としのため、クレジットカードと Apple Pay / Google Pay です。" },
       { q: "カード情報は安全ですか？", a: "決済は国際的なセキュリティ基準（PCI DSS）に準拠した決済会社が行い、カード情報は当サイトに保存されません。" },
       { q: "領収書はもらえますか？", a: "決済が完了した支援は、マイページの「支援したプロジェクト」にある「領収書」から表示・印刷できます。宛名も入れられます。" },
     ],
@@ -77,7 +77,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
     id: "artist",
     title: "アーティストの方へ",
     items: [
-      { q: "手数料はいくらですか？", a: `集まった金額の${FEE}（決済手数料込み）です。掲載は無料で、All-or-Nothingで目標に届かなかった場合は手数料もかかりません。${FES_FUND_MESSAGE}` },
+      { q: "手数料はいくらですか？", a: `プロジェクトの支援金とメンバーシップの売上の、${FEE}（決済手数料込み）です。支援者に別の手数料はかかりません。掲載は無料で、All-or-Nothingで目標に届かなかった場合は手数料もかかりません。${FES_FUND_MESSAGE}` },
       { q: "審査にはどのくらいかかりますか？", a: "5営業日ほどが目安です。差し戻しの場合は、直してほしい点をお伝えします。" },
       { q: "AI校正とは？", a: "プロジェクトページの文章を、誤字脱字や読みやすさ、審査で差し戻されやすい表現（根拠のない「日本初」、「投資」「寄付」など）の観点でチェックする機能です。最終的な判断は運営の審査で行います。" },
       { q: "支援金はいつ振り込まれますか？", a: "募集終了から約14日後に、手数料を差し引いた金額を登録口座に振り込みます。メンバーシップの売上は、翌月15日に振り込みます。" },

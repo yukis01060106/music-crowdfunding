@@ -16,7 +16,7 @@ export default function HelpPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <p className="font-en text-xs tracking-wide text-stone-500">Guide</p>
-      <h1 className="mt-1 text-2xl font-bold tracking-wider">はじめての方へ・よくある質問</h1>
+      <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">はじめての方へ・よくある質問</h1>
       <p className="mt-3 leading-relaxed text-stone-600">OTOFUNDは、アーティストの「これから」を支援して、完成した音楽やライブの体験を受け取るサービスです。</p>
 
       <ol data-stagger className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -34,9 +34,14 @@ export default function HelpPage() {
 
       <div className="mt-12 bg-stone-100 p-6 text-center text-sm">
         <p>解決しない場合は、お気軽にお問い合わせください。</p>
-        <Link href="/contact" className={buttonClass("dark", "md", "mt-3")}>
-          お問い合わせ
-        </Link>
+        <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <Link href="/projects" className={buttonClass("primary", "md")}>
+            プロジェクトをさがす
+          </Link>
+          <Link href="/contact" className={buttonClass("dark", "md")}>
+            お問い合わせ
+          </Link>
+        </div>
       </div>
     </div>
   );

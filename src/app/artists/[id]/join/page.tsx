@@ -23,7 +23,7 @@ export default async function JoinPage({ params }: PageProps<"/artists/[id]/join
       <Link href={`/artists/${artist.id}#membership`} className="text-sm text-stone-500 hover:text-brand">
         ← {artist.name}のページに戻る
       </Link>
-      <h1 className="mt-2 text-xl font-bold leading-snug">{artist.name}のメンバーになる</h1>
+      <h1 className="mt-2 text-xl font-black leading-snug tracking-[0.08em] sm:text-2xl">{artist.name}のメンバーになる</h1>
       <Suspense>
         <JoinFlow artistId={artist.id} artistName={artist.name} plans={artist.membership.plans} />
       </Suspense>

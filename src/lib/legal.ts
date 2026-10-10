@@ -18,7 +18,7 @@ export interface LegalDoc {
   table?: { label: string; value: string }[];
 }
 
-const FEE = `${PLATFORM_FEE_RATE * 100}%`;
+const FEE = `${Math.round(PLATFORM_FEE_RATE * 100)}%`;
 
 export const LEGAL_DOCS: LegalDoc[] = [
   {
@@ -83,7 +83,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "第8条（手数料）",
         body: [
-          `実行者は、集まった支援金およびメンバーシップの売上の${FEE}（決済手数料を含む）を、当社に手数料として支払います。当社は、手数料を差し引いた金額を実行者に振り込みます。`,
+          `実行者は、集まった支援金およびメンバーシップの売上の${FEE}（決済手数料を含み、消費税は別）を、当社に手数料として支払います。当社は、手数料を差し引いた金額を実行者に振り込みます。`,
           "当社は、手数料の一部を、当社が企画・運営する音楽フェス「ONE NOTE FES」の開催費用にあてます。",
         ],
       },
@@ -190,8 +190,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
       { label: "連絡先", value: "お問い合わせフォームよりご連絡ください（電話番号は請求があった場合、遅滞なく開示します）" },
       { label: "販売価格", value: "各プロジェクトページ・メンバーシップのページに表示（税込・送料込み）" },
       { label: "商品代金以外の必要料金", value: "なし（インターネット接続にかかる通信料はお客様のご負担です）" },
-      { label: "支払方法", value: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払い（All-or-Nothing のプロジェクトはクレジットカードと Apple Pay / Google Pay のみ。メンバーシップはコンビニ払いを除く）" },
-      { label: "支払時期", value: "All-or-Nothing方式：目標達成時に募集終了後に決済／All-in方式：支援時に決済／メンバーシップ：加入時と毎月の更新日" },
+      { label: "支払方法", value: "クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払い（All-or-Nothing のプロジェクトとメンバーシップは、クレジットカードと Apple Pay / Google Pay のみ）" },
+      { label: "支払時期", value: "All-or-Nothing方式：目標を達成した場合のみ、募集終了後に決済／All-in方式：支援時に決済（コンビニ払いは店頭でのお支払い時。期限を過ぎると支援は無効）／メンバーシップ：加入時と毎月の更新日" },
       { label: "引渡時期", value: "各リターンに記載の「お届け予定」のとおり。メンバーシップの特典は加入後すぐにご利用いただけます" },
       { label: "返品・キャンセル", value: "リターンの性質上、決済完了後のキャンセル・返品はお受けできません。リターンに不備があった場合は実行者が対応します。メンバーシップはいつでも解約でき、次の更新日以降の請求は発生しません" },
     ],

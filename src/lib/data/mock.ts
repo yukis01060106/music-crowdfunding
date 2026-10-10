@@ -158,9 +158,10 @@ const rawProjects: Project[] = [
     ],
     budget: [
       { label: "スタジオ代（5日間）", amount: 450000 },
-      { label: "ミックス・マスタリング", amount: 350000 },
+      { label: "ミックス・マスタリング", amount: 300000 },
       { label: "CD・アナログ盤プレス", amount: 400000 },
-      { label: "リターン送料・手数料", amount: 300000 },
+      { label: "リターン送料", amount: 86000 },
+      { label: "手数料（16%＋税）", amount: 264000 },
     ],
     schedule: [
       { date: "2026年10月31日", label: "募集終了" },
@@ -300,8 +301,9 @@ const rawProjects: Project[] = [
     ],
     budget: [
       { label: "マスタリング（アナログ用）", amount: 200000 },
-      { label: "プレス・ジャケット", amount: 450000 },
-      { label: "送料・手数料", amount: 150000 },
+      { label: "プレス・ジャケット", amount: 400000 },
+      { label: "送料", amount: 59200 },
+      { label: "手数料（16%＋税）", amount: 140800 },
     ],
     schedule: [
       { date: "2026年10月12日", label: "募集終了" },
@@ -427,9 +429,10 @@ const rawProjects: Project[] = [
       "デビュー10周年を記念して、収録曲をファンのみなさんの投票で決めるベストアルバムを作ります。",
     ],
     budget: [
-      { label: "制作・リマスター", amount: 3000000 },
-      { label: "プレス・ブックレット", amount: 1500000 },
-      { label: "送料・手数料", amount: 500000 },
+      { label: "制作・リマスター", amount: 2600000 },
+      { label: "プレス・ブックレット", amount: 1400000 },
+      { label: "送料", amount: 120000 },
+      { label: "手数料（16%＋税）", amount: 880000 },
     ],
     schedule: [
       { date: "2026年11月30日", label: "募集終了・投票締切" },
@@ -488,9 +491,9 @@ const rawProjects: Project[] = [
       "作曲・MVイラスト・動画編集の費用に使います。",
     ],
     budget: [
-      { label: "作曲・編曲", amount: 290000 },
-      { label: "MVイラスト・動画", amount: 250000 },
-      { label: "手数料（10%）", amount: 60000 },
+      { label: "作曲・編曲", amount: 260000 },
+      { label: "MVイラスト・動画", amount: 234400 },
+      { label: "手数料（16%＋税）", amount: 105600 },
     ],
     schedule: [
       { date: "2026年10月25日", label: "募集終了" },
@@ -562,9 +565,10 @@ const rawProjects: Project[] = [
       "会場費・交通費・衣装に使います。",
     ],
     budget: [
-      { label: "会場費（3都市）", amount: 600000 },
-      { label: "交通・宿泊", amount: 400000 },
-      { label: "衣装", amount: 200000 },
+      { label: "会場費（3都市）", amount: 550000 },
+      { label: "交通・宿泊", amount: 300000 },
+      { label: "衣装", amount: 138800 },
+      { label: "手数料（16%＋税）", amount: 211200 },
     ],
     schedule: [
       { date: "2026年11月8日", label: "募集終了" },
@@ -624,9 +628,10 @@ const rawProjects: Project[] = [
       "このプロジェクトは顧問の先生と保護者の同意を得て実施しています。",
     ],
     budget: [
-      { label: "レコーディング", amount: 80000 },
-      { label: "CDプレス", amount: 50000 },
-      { label: "送料・手数料", amount: 20000 },
+      { label: "レコーディング", amount: 70000 },
+      { label: "CDプレス", amount: 45000 },
+      { label: "送料", amount: 8600 },
+      { label: "手数料（16%＋税）", amount: 26400 },
     ],
     schedule: [
       { date: "2026年10月20日", label: "募集終了" },

@@ -2,7 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element -- 選んだファイルの一時 URL は next/image で最適化できない */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { tagClass } from "@/components/ui/tag";
 import {
   ARTIST_TYPE_LABELS,
   FUNDING_MODEL_LABELS,
@@ -16,7 +17,9 @@ import {
 } from "@/types";
 import { formatDate, formatDuration, formatYen } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
-import { PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
+import { FEE_LABEL, grossFor, payoutAmount } from "@/lib/fees";
+import { REWARD_IDEAS, type RewardIdea } from "@/lib/reward-ideas";
+import { toast } from "@/components/ui/toast";
 import {
   budgetTotal,
   CATCHCOPY_MAX,
@@ -144,7 +147,7 @@ export function BasicsSection({ d, update }: SectionProps) {
         </div>
       </fieldset>
       {needsGuardian && (
-        <div className="animate-rise space-y-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="animate-rise space-y-2 bg-amber-50 p-3 text-sm text-amber-900">
           <p>18歳未満の方は、保護者の同意がないとプロジェクトを公開できません。</p>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={d.guardianConsent} onChange={(e) => set("guardianConsent", e.target.checked)} className="accent-brand" />
@@ -213,7 +216,7 @@ export function MediaSection({ d, update }: SectionProps) {
           setDragging(false);
           void addFiles(e.dataTransfer.files);
         }}
-        className={`rounded-lg border-2 border-dashed p-6 text-center transition ${dragging ? "scale-[1.01] border-brand bg-brand-soft" : "border-stone-300"}`}
+        className={`border-2 border-dashed p-6 text-center transition ${dragging ? "scale-[1.01] border-brand bg-brand-soft" : "border-stone-300"}`}
       >
         <p className="text-sm font-medium">ここに画像をドロップ</p>
         <p className="mt-1 text-xs text-stone-500">
@@ -352,7 +355,7 @@ export function StorySection({ d, update }: SectionProps) {
 
       <ol className="space-y-3">
         {d.story.map((b, i) => (
-          <li key={b.id} className="animate-rise rounded-lg border border-stone-200 p-3">
+          <li key={b.id} className="animate-rise border border-stone-200 p-3">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold text-stone-500">{BLOCK_LABELS[b.type]}</span>
               <RowActions index={i} length={d.story.length} onMove={(from, to) => set("story", move(d.story, from, to))} onRemove={() => {
@@ -371,7 +374,7 @@ export function StorySection({ d, update }: SectionProps) {
                 {b.url ? (
                   <img src={b.url} alt="" className="max-h-72 w-full object-contain" />
                 ) : (
-                  <label className="block cursor-pointer rounded-lg border-2 border-dashed border-stone-300 p-5 text-center text-sm text-stone-500 hover:border-brand">
+                  <label className="block cursor-pointer border-2 border-dashed border-stone-300 p-5 text-center text-sm text-stone-500 hover:border-brand">
                     画像を選ぶ（{IMAGE_MAX_MB}MBまで）
                     <input
                       type="file"
@@ -458,7 +461,7 @@ export function TracksSection({ d, update }: SectionProps) {
         試聴はページのいちばん上に表示されます。<strong>1曲{TRACK_MAX_SEC}秒まで・{TRACK_MAX_COUNT}曲まで</strong>。
         サビを含む部分を切り出すのがおすすめです。{TRACK_MAX_SEC}秒を超える音源は、公開時に先頭から{TRACK_MAX_SEC}秒で切って再生されます。
       </Tip>
-      <label className={`block cursor-pointer rounded-lg border-2 border-dashed border-stone-300 p-6 text-center text-sm transition hover:border-brand ${d.tracks.length >= TRACK_MAX_COUNT ? "pointer-events-none opacity-40" : ""}`}>
+      <label className={`block cursor-pointer border-2 border-dashed border-stone-300 p-6 text-center text-sm transition hover:border-brand ${d.tracks.length >= TRACK_MAX_COUNT ? "pointer-events-none opacity-40" : ""}`}>
         <span className="font-medium">音源を選ぶ（MP3・AAC・WAV）</span>
         <span className="mt-1 block text-xs text-stone-500">
           {d.tracks.length}/{TRACK_MAX_COUNT}曲
@@ -481,7 +484,7 @@ export function TracksSection({ d, update }: SectionProps) {
       ))}
       <ol className="space-y-3">
         {d.tracks.map((t, i) => (
-          <li key={t.id} className="animate-rise space-y-2 rounded-lg border border-stone-200 p-3">
+          <li key={t.id} className="animate-rise space-y-2 border border-stone-200 p-3">
             <div className="flex items-center gap-2">
               <span className="font-en text-lg font-black text-brand/40">{String(i + 1).padStart(2, "0")}</span>
               <input value={t.title} onChange={(e) => setTrack(t.id, { title: e.target.value })} className={`${inputClass} mt-0`} aria-label="曲名" />
@@ -500,7 +503,7 @@ export function TracksSection({ d, update }: SectionProps) {
               カバー曲（他の人が作った曲）
             </label>
             {t.isCover && (
-              <label className="animate-rise flex items-start gap-2 rounded bg-amber-50 p-2 text-xs text-amber-900">
+              <label className="animate-rise flex items-start gap-2 bg-amber-50 p-2 text-xs text-amber-900">
                 <input type="checkbox" checked={t.licensed} onChange={(e) => setTrack(t.id, { licensed: e.target.checked })} className="mt-0.5 accent-brand" />
                 著作権者（JASRAC・NexTone などの管理団体や権利者）から、配信・販売の許諾を得ています。審査で許諾の証明をお願いすることがあります。
               </label>
@@ -518,7 +521,7 @@ export function MoneySection({ d, update }: SectionProps) {
   const set = setter(update);
   const total = budgetTotal(d);
   // 経費を手数料込みでまかなうのに必要な目標金額（千円単位で切り上げ）
-  const suggestedGoal = total > 0 ? Math.ceil(total / (1 - PLATFORM_FEE_RATE) / 1000) * 1000 : 0;
+  const suggestedGoal = total > 0 ? Math.ceil(grossFor(total) / 1000) * 1000 : 0;
   const goal = toNumber(d.goal);
 
   return (
@@ -565,7 +568,7 @@ export function MoneySection({ d, update }: SectionProps) {
             <p className="mt-1 font-en text-xl font-black">{formatYen(total)}</p>
           </div>
           <div className="bg-brand-soft p-4">
-            <p className="text-xs text-brand">手数料{PLATFORM_FEE_RATE * 100}%込みで必要な目標</p>
+            <p className="text-xs text-brand">手数料（{FEE_LABEL}・決済手数料込み）を見込んだ目標</p>
             <p className="mt-1 font-en text-xl font-black text-brand">{formatYen(suggestedGoal)}</p>
             {d.goalType === "amount" && goal !== suggestedGoal && (
               <button type="button" onClick={() => set("goal", String(suggestedGoal))} className="mt-1 text-xs font-bold text-brand underline">
@@ -624,7 +627,7 @@ export function MoneySection({ d, update }: SectionProps) {
 
 const KIND_HINTS: Record<RewardKind, string> = {
   free: "支援者の母数を増やし、シェアのきっかけに。お礼のメッセージなど。",
-  digital: "音源の先行配信・壁紙など。配信日（お届け予定の月に実行者が決めます）に、ダウンロードリンクを自動でメールでお送りします。",
+  digital: "音源の先行配信・壁紙・動画など。配信日（お届け予定の月に実行者が決めます）に、ダウンロードリンクを自動でメールでお送りします。1人ずつ用意するもの（動画メッセージなど）は、お届けの方法を説明に書いてください。",
   physical: "CD・レコード・グッズ。お届け先の住所を支援者に入力してもらいます。",
   ticket: "ライブチケット。公演の2週間前にQRチケットを自動発行します。",
   experience: "レコーディング見学など。日時・場所・人数を具体的に。",
@@ -638,6 +641,40 @@ export function RewardsSection({ d, update }: SectionProps) {
     update((prev) => ({ ...prev, rewards: prev.rewards.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
   const prices = d.rewards.map((r) => toNumber(r.price)).filter((p) => p > 0);
   const hasMain = prices.some((p) => p >= 1500 && p <= 3000);
+  // 事例は、リターンが少ない最初のうちだけ開いておく
+  const [ideasOpen, setIdeasOpen] = useState(d.rewards.length <= 2);
+  // 事例を追加したら、そのリターンを見える位置に出し、見出しにフォーカスを移す
+  const focusRewardId = useRef<string | null>(null);
+  useEffect(() => {
+    const id = focusRewardId.current;
+    if (!id) return;
+    focusRewardId.current = null;
+    const el = document.querySelector<HTMLElement>(`[data-reward-toggle="${id}"]`);
+    el?.focus();
+    el?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, [openId]);
+
+  function addIdea(idea: RewardIdea) {
+    const r: DraftReward = {
+      ...emptyReward(idea.kind),
+      title: idea.title,
+      description: idea.description,
+      price: String(idea.price),
+      limit: idea.limit !== undefined ? String(idea.limit) : "",
+      requiresShipping: idea.requiresShipping,
+      note: idea.note ?? "",
+    };
+    const last = d.rewards.at(-1);
+    // 最後のリターンが手つかず（初めから入っている空の項目など）なら、追加ではなく置き換える
+    const blank = emptyReward(last?.kind);
+    const untouched =
+      last !== undefined && last.kind !== "free" && !last.title.trim() && !last.description.trim() && last.price === blank.price && !last.limit && !last.deliveryMonth && !last.validUntil && !last.note && !last.image;
+    const duplicate = d.rewards.some((x) => x.title === idea.title);
+    set("rewards", untouched ? [...d.rewards.slice(0, -1), r] : [...d.rewards, r]);
+    focusRewardId.current = r.id;
+    setOpenId(r.id);
+    toast(duplicate ? `「${idea.title}」をもう1つ追加しました（同じ名前のリターンがあります）` : `「${idea.title}」をリストの最後に追加しました`);
+  }
 
   return (
     <>
@@ -650,9 +687,9 @@ export function RewardsSection({ d, update }: SectionProps) {
           const open = openId === r.id;
           const problems = rewardProblems(r);
           return (
-            <li key={r.id} className={`overflow-hidden rounded-lg border transition ${open ? "border-brand shadow-md" : "border-stone-200"}`}>
+            <li key={r.id} className={`overflow-hidden border transition ${open ? "border-brand shadow-md" : "border-stone-200"}`}>
               <div className="flex items-center gap-2 p-3">
-                <button type="button" onClick={() => setOpenId(open ? null : r.id)} aria-expanded={open} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-left">
+                <button type="button" data-reward-toggle={r.id} onClick={() => setOpenId(open ? null : r.id)} aria-expanded={open} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-left">
                   <span className={`text-stone-500 transition ${open ? "rotate-90" : ""}`} aria-hidden>
                     ▶
                   </span>
@@ -665,7 +702,7 @@ export function RewardsSection({ d, update }: SectionProps) {
                   </span>
                 </button>
                 {problems.length > 0 ? (
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">未入力 {problems.length}</span>
+                  <span className={tagClass("warning")}>未入力 {problems.length}</span>
                 ) : (
                   <span className="shrink-0 text-emerald-700">
                     <span aria-hidden>✓</span>
@@ -758,6 +795,26 @@ export function RewardsSection({ d, update }: SectionProps) {
           );
         })}
       </ol>
+      <details open={ideasOpen} onToggle={(e) => setIdeasOpen(e.currentTarget.open)} className="border border-stone-200 bg-stone-50">
+        <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-bold">事例から選ぶ（{REWARD_IDEAS.length}）</summary>
+        <div className="border-t border-stone-200 p-4">
+          <p className="text-xs text-stone-500">説明と注意事項のたたき台が入ります。金額や数量は、自分に合わせて直してください。</p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {REWARD_IDEAS.map((idea) => (
+              <li key={idea.id}>
+                <button
+                  type="button"
+                  onClick={() => addIdea(idea)}
+                  className="flex min-h-11 w-full items-center justify-between gap-2 border border-stone-500 bg-white px-3 py-2 text-left text-sm hover:border-brand hover:text-brand"
+                >
+                  <span>＋ {idea.title}</span>
+                  <span className="shrink-0 font-en text-xs text-stone-500">{formatYen(idea.price)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </details>
       <AddButton
         onClick={() => {
           const r = emptyReward("physical");
@@ -831,7 +888,7 @@ export function RisksSection({ d, update }: SectionProps) {
         <p className="mt-1 text-xs text-stone-500">支援者から届きそうな質問に先に答えておくと、問い合わせが減り、迷っている人の後押しになります。</p>
         <ol className="mt-3 space-y-3">
           {d.faqs.map((f, i) => (
-            <li key={f.id} className="animate-rise space-y-2 rounded-lg border border-stone-200 p-3">
+            <li key={f.id} className="animate-rise space-y-2 border border-stone-200 p-3">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-brand">Q</span>
                 <input value={f.q} onChange={(e) => set("faqs", d.faqs.map((x) => (x.id === f.id ? { ...x, q: e.target.value } : x)))} className={`${inputClass} mt-0`} placeholder="質問" aria-label="質問" />
@@ -866,7 +923,7 @@ export function IdentitySection({ d, update }: SectionProps) {
       <Tip>本人確認と振込先の登録は、決済サービス Stripe の画面で行います。OTOFUNDに身分証や口座の情報は保存されません。</Tip>
       <ol className="space-y-3">
         {steps.map((s, i) => (
-          <li key={s.key} className="flex flex-col gap-3 rounded-lg border border-stone-200 p-4 sm:flex-row sm:items-center">
+          <li key={s.key} className="flex flex-col gap-3 border border-stone-200 p-4 sm:flex-row sm:items-center">
             <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-bold transition ${d[s.key] ? "bg-emerald-500 text-white" : "bg-stone-100 text-stone-500"}`}>
               {d[s.key] ? "✓" : i + 1}
             </span>

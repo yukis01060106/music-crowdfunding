@@ -6,7 +6,7 @@ export function ProgressBar({ project }: { project: Project }) {
   return (
     <div className="h-1.5 w-full overflow-hidden bg-stone-200" aria-hidden>
       <div
-        className={`h-full ${percent >= 100 ? "bg-pop-teal" : "bg-brand"}`}
+        className={`h-full ${percent >= 100 ? "bg-emerald-600" : "bg-brand"}`}
         style={{ width: `${Math.min(percent, 100)}%` }}
       />
     </div>

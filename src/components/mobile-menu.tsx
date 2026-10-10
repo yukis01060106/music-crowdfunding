@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { normPath, samePath } from "@/lib/path";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
@@ -104,7 +105,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
             <nav className="flex-1 overflow-y-auto px-6 pb-10 pt-4" aria-label="メインメニュー">
               <ul className="space-y-1">
                 {items.map((item, i) => {
-                  const current = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const current = samePath(pathname, item.href) || normPath(pathname).startsWith(`${normPath(item.href)}/`);
                   return (
                     <li
                       key={item.href}
@@ -197,7 +198,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
 
 /** ☰ と × を切り替えるアイコン */
 function BurgerIcon({ open }: { open: boolean }) {
-  const bar = "absolute left-0 h-0.5 w-5 rounded bg-current transition duration-300";
+  const bar = "absolute left-0 h-0.5 w-5 bg-current transition duration-300";
   return (
     <span className="relative block h-3.5 w-5" aria-hidden>
       <span className={`${bar} ${open ? "top-1.5 rotate-45" : "top-0"}`} />

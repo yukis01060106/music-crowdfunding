@@ -24,7 +24,7 @@ export default async function SupportPage({ params }: PageProps<"/projects/[slug
       <Link href={`/projects/${project.slug}`} className="text-sm text-stone-500 hover:text-brand">
         ← プロジェクトに戻る
       </Link>
-      <h1 className="mt-2 text-xl font-bold leading-snug">{project.title}</h1>
+      <h1 className="mt-2 text-xl font-black leading-snug tracking-[0.08em] sm:text-2xl">{project.title}</h1>
       <Suspense>
         <SupportFlow
           project={{ slug: project.slug, status: project.status, endAt: project.endAt }}

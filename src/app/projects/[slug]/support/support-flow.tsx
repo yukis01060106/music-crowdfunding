@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FundingModel, Project, Reward } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
-import { formatDate, formatPrice, formatYen } from "@/lib/format";
+import { formatDate, formatDateTime, formatPrice, formatYen } from "@/lib/format";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { addBacking, useDemo } from "@/lib/demo-store";
+import { TIP_OPTIONS as SHARED_TIP_OPTIONS } from "@/lib/support-options";
+import { confirmCheckout, safeVoucherUrl, startCheckout, STRIPE_ENABLED, STRIPE_TEST, type SupportResult } from "@/lib/payments";
 import { ShareButtons } from "@/components/project/share-buttons";
 import { useOpenForSupport } from "@/components/project/support-cta";
 import { buttonClass } from "@/components/ui/button";
@@ -25,7 +27,7 @@ const STEP_LABELS: Record<FormStep, string> = {
 };
 
 /** 上乗せ支援の候補。リターンとは別に、気持ちを上乗せできる */
-const TIP_OPTIONS = [0, 500, 1000, 3000];
+const TIP_OPTIONS = SHARED_TIP_OPTIONS;
 
 const PAYMENT_METHODS = ["クレジットカード", "Apple Pay / Google Pay", "PayPay", "コンビニ払い"] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -67,6 +69,7 @@ interface SupportDraft {
 
 const draftKey = (slug: string) => `otofund:support:${slug}`;
 
+// 確認の手順は保存しない（キャンセルで戻ったときだけ、お支払いの手順から確認へ進める）
 const STEPS_TO_RESTORE: readonly FormStep[] = ["reward", "shipping", "payment"];
 
 /** 保存された入力を検証して、形の正しい項目だけ返す（書き換えられた値で金額や手順がおかしくならないように） */
@@ -114,7 +117,10 @@ export function SupportFlow({
   rewards: Reward[];
 }) {
   const pathname = usePathname();
-  const initialRewardId = useSearchParams().get("reward");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialRewardId = searchParams.get("reward");
+  const returnedSessionId = searchParams.get("session_id");
   const available = rewards.filter((r) => r.limit === undefined || r.backers < r.limit);
   // URL で指定されたリターンが受付を終えていたら、黙って別のものを選ばず、自分で選んでもらう
   const requestedUnavailable = Boolean(initialRewardId) && !available.some((r) => r.id === initialRewardId);
@@ -128,6 +134,14 @@ export function SupportFlow({
   const [comment, setComment] = useState("");
   const [showErrors, setShowErrors] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  // Stripe の決済画面への移動中・戻ってきたときの確認
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [result, setResult] = useState<SupportResult | null>(null);
+  const [confirming, setConfirming] = useState(Boolean(returnedSessionId) && STRIPE_ENABLED);
+  const [confirmFailed, setConfirmFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const wasCanceled = searchParams.get("canceled") === "1";
   const { user, settings } = useDemo();
   const open = useOpenForSupport(project);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -138,6 +152,67 @@ export function SupportFlow({
   const stepChanged = useRef(false);
   // ログイン中は、アカウントのメールアドレスに確認メールを送る
   const contactEmail = user?.email ?? email;
+
+  // Stripe の決済画面から戻ってきたら、サーバーで完了を確かめてから記録する
+  useEffect(() => {
+    if (!returnedSessionId || !STRIPE_ENABLED) return;
+    let cancelled = false;
+    confirmCheckout(returnedSessionId)
+      .then((r) => {
+        if (cancelled || r.kind !== "support" || r.projectSlug !== projectSlug) throw new Error("決済の情報が、このプロジェクトのものではありません。");
+        const comment = loadSupportDraft(projectSlug)?.comment || undefined;
+        addBacking({
+          projectSlug: r.projectSlug,
+          rewardId: r.rewardId,
+          quantity: r.quantity,
+          tip: r.tip,
+          amount: r.amount,
+          paymentMethod: r.paymentMethod,
+          comment,
+          stripeSessionId: r.sessionId,
+          charged: r.charged,
+          awaitingPayment: r.awaitingPayment,
+          voucherUrl: r.voucherUrl ?? undefined,
+          voucherExpiresAt: r.voucherExpiresAt ?? undefined,
+        });
+        try {
+          sessionStorage.removeItem(draftKey(projectSlug));
+        } catch {
+          // 消せなくても支障はない
+        }
+        setResult(r);
+        setStep("done");
+        setConfirmFailed(false);
+        // URL から session_id を消す（記録は済んだので、確かめ直す必要はない）
+        router.replace(pathname);
+      })
+      .catch((e: Error) => {
+        if (cancelled) return;
+        // 確かめられなかったときは session_id を残し、もう一度確かめられるようにする（払い直しを防ぐ）
+        setPayError(e.message);
+        setConfirmFailed(true);
+      })
+      .finally(() => !cancelled && setConfirming(false));
+    return () => {
+      cancelled = true;
+    };
+    // 戻ってきたときと、「もう一度確かめる」を押したときだけ確かめる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retry]);
+
+  // 決済ページからブラウザの「戻る」で戻ったとき、移動中のまま固まらないようにする
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => e.persisted && setPaying(false);
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
+  // 詳細ページから選んで来たときは、そのリターンを画面に入れる（下の方のリターンでも、選べたことがわかるように）
+  useEffect(() => {
+    if (!initialRewardId) return;
+    document.querySelector(`[data-reward-option="${CSS.escape(initialRewardId)}"]`)?.scrollIntoView({ block: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 前回の入力途中の内容を戻す（sessionStorage はブラウザでしか読めないので、描画後に）
   useEffect(() => {
@@ -150,7 +225,10 @@ export function SupportFlow({
       setRewardId(saved.rewardId);
       const restoredReward = available.find((r) => r.id === saved.rewardId);
       const shippingOk = saved.shipping !== undefined && (Object.keys(SHIPPING_ERRORS) as (keyof Shipping)[]).every((k) => SHIPPING_ERRORS[k](saved.shipping![k]) === null);
-      if (saved.step) setStep(saved.step === "payment" && restoredReward?.requiresShipping && !shippingOk ? "shipping" : saved.step);
+      const restoredStep = saved.step === "payment" && restoredReward?.requiresShipping && !shippingOk ? "shipping" : saved.step;
+      // 決済ページでキャンセルして戻ったときは、確認の手順から（入力し直さなくてよいように）
+      if (wasCanceled && restoredStep === "payment") setStep("confirm");
+      else if (restoredStep) setStep(restoredStep);
       if (saved.quantity) setQuantity(saved.quantity);
       if (saved.tip !== undefined) setTip(saved.tip);
     }
@@ -165,7 +243,8 @@ export function SupportFlow({
 
   useEffect(() => {
     if (!restored || step === "done") return;
-    const draft: SupportDraft = { step, rewardId, quantity, tip, shipping, email, paymentMethod, comment };
+    // 確認の手順は戻さないので、再読み込みでは「お支払い」の手順から再開する
+    const draft: SupportDraft = { step: step === "confirm" ? "payment" : step, rewardId, quantity, tip, shipping, email, paymentMethod, comment };
     try {
       sessionStorage.setItem(draftKey(projectSlug), JSON.stringify(draft));
     } catch {
@@ -187,7 +266,40 @@ export function SupportFlow({
     first?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }, [attempt]);
 
-  if (!open) {
+  if (confirming) {
+    return (
+      <p role="status" className="mt-8 border border-stone-200 bg-white p-8 text-center text-sm">
+        お支払いを確認しています…
+      </p>
+    );
+  }
+
+  if (confirmFailed) {
+    return (
+      <div role="alert" className="mx-auto mt-8 max-w-xl space-y-3 border-l-4 border-rose-600 bg-rose-50 p-6 text-sm text-rose-900">
+        <p className="font-bold">お支払いの確認ができませんでした</p>
+        <p>{payError}</p>
+        <p>お支払いが済んでいる場合は、もう一度支払わずに、確認し直すかお問い合わせください。</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setConfirming(true);
+              setRetry((n) => n + 1);
+            }}
+            className={buttonClass("primary")}
+          >
+            もう一度確かめる
+          </button>
+          <Link href="/contact" className={buttonClass("secondary")}>
+            お問い合わせ
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!open && step !== "done") {
     return (
       <div className="mt-8 border border-stone-200 bg-white p-8 text-center">
         <p className="text-lg font-bold">このプロジェクトの募集は終了しました</p>
@@ -250,8 +362,25 @@ export function SupportFlow({
       setAttempt((a) => a + 1);
       return;
     }
+    if (step === "confirm" && reward && STRIPE_ENABLED && !isFree) {
+      // 決済ページへ行く前に「お支払い」の手順として残す（キャンセルで戻ったら確認の手順から）
+      try {
+        const draft: SupportDraft = { step: "payment", rewardId, quantity, tip, shipping, email, paymentMethod, comment };
+        sessionStorage.setItem(draftKey(projectSlug), JSON.stringify(draft));
+      } catch {
+        // 保存できなくても決済はできる
+      }
+      // 金額はサーバーがリターンの価格から計算し直す。ここでは何を選んだかだけを送る
+      setPaying(true);
+      setPayError(null);
+      startCheckout("/api/checkout/support/", { projectSlug, rewardId: reward.id, quantity: qty, tip, email: contactEmail || undefined }).catch((e: Error) => {
+        setPayError(e.message);
+        setPaying(false);
+      });
+      return;
+    }
     if (step === "confirm" && reward) {
-      // TODO: Stripe の決済（または SetupIntent）が成功してから記録する
+      // デモ（決済しない）。0円のプランも決済なしで記録する
       // TODO: 本番では金額をサーバーでリターンの価格から計算し直す（ブラウザの値は信用しない）
       addBacking({ projectSlug, rewardId: reward.id, quantity: qty, tip: isFree ? 0 : tip, amount: total, paymentMethod: isFree ? "0円" : method, comment: comment.trim() || undefined });
       try {
@@ -274,12 +403,30 @@ export function SupportFlow({
             ご支援ありがとうございます！
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            {/* TODO: メールを送れるようになったら「確認メールをお送りしました」に戻す */}
-            （デモ版）本番では {contactEmail} に確認メールが届きます。
-            <br />
-            {reward && paymentTiming(fundingModel, project.endAt, isFree)}
+            {result ? (
+              <>
+                {STRIPE_TEST && "（テストモードのため、実際のお金は動いていません）"}
+                {result.awaitingPayment
+                  ? `コンビニでのお支払いをお待ちしています${result.voucherExpiresAt ? `（${formatDateTime(result.voucherExpiresAt)}まで）` : ""}。期限内にお支払いがないと、この支援は無効になります。`
+                  : result.charged
+                    ? `${formatYen(result.amount)}の決済が完了しました。`
+                    : `カードを登録しました。目標を達成した場合だけ、募集終了後（${formatDate(project.endAt)}以降）に${formatYen(result.amount)}を請求します。届かなければ請求はありません。`}
+              </>
+            ) : (
+              <>
+                {/* TODO: メールを送れるようになったら「確認メールをお送りしました」に戻す */}
+                （デモ版）本番では {contactEmail} に確認メールが届きます。
+                <br />
+                {reward && paymentTiming(fundingModel, project.endAt, isFree)}
+              </>
+            )}
           </p>
         </div>
+        {result?.awaitingPayment && safeVoucherUrl(result.voucherUrl) && (
+          <a href={safeVoucherUrl(result.voucherUrl)!} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg", "w-full")}>
+            払込票（支払番号）を開く
+          </a>
+        )}
         <div className="bg-white p-4 text-left">
           <ShareButtons title={projectTitle} path={`/projects/${projectSlug}/`} />
           <p className="mt-2 text-xs text-stone-500">あなたのシェアが、次の支援者につながります。</p>
@@ -340,6 +487,11 @@ export function SupportFlow({
           ))}
         </ol>
 
+        {wasCanceled && step === "confirm" && (
+          <p role="status" className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            お支払いはキャンセルされました（請求はありません）。内容を確かめて、もう一度お進みください。
+          </p>
+        )}
         {step === "reward" && (
           <>
             {!user && (
@@ -359,7 +511,7 @@ export function SupportFlow({
             <fieldset className="space-y-3">
               <legend className="mb-2">{heading("リターンを選んでください")}</legend>
               {available.map((r) => (
-                <label key={r.id} className={`flex cursor-pointer gap-3 border-2 bg-white p-4 transition ${r.id === rewardId ? "border-brand" : "border-stone-200 hover:border-stone-400"}`}>
+                <label key={r.id} data-reward-option={r.id} className={`flex cursor-pointer gap-3 border-2 p-4 transition ${r.id === rewardId ? "border-brand bg-brand-soft/40" : "border-stone-200 bg-white hover:border-stone-400"}`}>
                   <input
                     type="radio"
                     name="reward"
@@ -370,7 +522,7 @@ export function SupportFlow({
                     }}
                     aria-invalid={showErrors && !reward ? true : undefined}
                     aria-describedby={showErrors && !reward ? rewardErrorId : undefined}
-                    className="mt-1 accent-brand"
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
                   />
                   <span className="flex-1">
                     <span className="flex justify-between gap-2 font-bold">
@@ -473,7 +625,25 @@ export function SupportFlow({
               )}
             </section>
 
-            {!isFree && (
+            {!isFree && STRIPE_ENABLED && (
+              <section className="space-y-3 border border-stone-200 bg-white p-5">
+                <h3 className="font-bold">お支払い方法</h3>
+                <p className="text-sm leading-relaxed">
+                  確認のあと、Stripe の安全な決済ページでお支払い方法を選びます。カード番号などは OTOFUND には届きません。
+                </p>
+                <p className="text-xs leading-relaxed text-stone-600">
+                  {fundingModel === "all_or_nothing"
+                    ? "All-or-Nothing のため、カード（Apple Pay / Google Pay を含む）を登録するだけで、この時点では請求されません。"
+                    : "使える方法：クレジットカード、Apple Pay / Google Pay、PayPay、コンビニ払い"}
+                </p>
+                {STRIPE_TEST && (
+                  <p className="bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
+                    テストモードです。カード番号 4242 4242 4242 4242、有効期限は未来の日付、セキュリティコードは任意の3桁で試せます。実際のお金は動きません。
+                  </p>
+                )}
+              </section>
+            )}
+            {!isFree && !STRIPE_ENABLED && (
               <section className="space-y-4 border border-stone-200 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -518,8 +688,8 @@ export function SupportFlow({
                 {contactEmail}
               </ConfirmRow>
               {!isFree && (
-                <ConfirmRow label="お支払い" onEdit={() => goTo("payment")}>
-                  {method}
+                <ConfirmRow label="お支払い" onEdit={STRIPE_ENABLED ? undefined : () => goTo("payment")}>
+                  {STRIPE_ENABLED ? "次の画面（Stripe）で選びます" : method}
                 </ConfirmRow>
               )}
               <ConfirmRow label="金額">
@@ -551,23 +721,42 @@ export function SupportFlow({
           </div>
         )}
 
-        {/* スマホでは合計欄が下に回るので、ボタンの直前に合計を出す */}
-        {reward && (
-          <p className="flex items-baseline justify-between bg-white px-4 py-3 text-sm lg:hidden">
-            <span className="text-stone-600">合計（税込・送料込み）</span>
-            <span className="text-xl font-bold">{formatPrice(total)}</span>
+        {payError && (
+          <p role="alert" className="border-l-4 border-rose-600 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {payError}
           </p>
         )}
-
+        {/* スマホでは画面の下に固定し、合計と「次へ」をいつでも押せるようにする */}
+        <div data-support-bar className="sticky bottom-0 z-20 -mx-4 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+        {reward && (
+          <p className="mb-2 flex items-baseline justify-between gap-3 text-sm lg:hidden">
+            <span className="min-w-0 truncate text-stone-600">{reward.title}</span>
+            <span className="shrink-0 font-bold" aria-live="polite">
+              合計 {formatPrice(total)}
+              <span className="ml-1 text-[11px] font-normal text-stone-500">税込・送料込み</span>
+            </span>
+          </p>
+        )}
         <div className="flex gap-3">
           {step !== "reward" && (
             <button type="button" onClick={() => goTo(steps[current - 1] ?? "reward")} className={buttonClass("secondary")}>
               戻る
             </button>
           )}
-          <button type="button" onClick={next} className={buttonClass("primary", "lg", "flex-1")}>
-            {step === "confirm" ? (isFree ? "0円で参加する" : `${formatYen(total)}で支援する`) : "次へ"}
+          <button type="button" onClick={next} disabled={paying} className={buttonClass("primary", "lg", "flex-1")}>
+            {paying
+              ? "決済ページへ移動しています…"
+              : step === "confirm"
+                ? isFree
+                  ? "0円で参加する"
+                  : STRIPE_ENABLED
+                    ? fundingModel === "all_or_nothing"
+                      ? "カードを登録して支援する"
+                      : `${formatYen(total)}のお支払いへ進む`
+                    : `${formatYen(total)}で支援する`
+                : "次へ"}
           </button>
+        </div>
         </div>
       </div>
 

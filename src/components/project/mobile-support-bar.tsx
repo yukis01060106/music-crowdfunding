@@ -12,7 +12,7 @@ export function MobileSupportBar({ project }: { project: Project }) {
   const open = useOpenForSupport(project);
   if (!open) return null;
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+    <div data-mobile-support-bar className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         <div className="text-xs leading-tight text-stone-600">
           <p>

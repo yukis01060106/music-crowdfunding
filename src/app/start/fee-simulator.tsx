@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
+import { FEE_LABEL, FES_FUND_MESSAGE, feeAmount, payoutAmount } from "@/lib/fees";
 import { formatYen } from "@/lib/format";
 
 /** 「結局いくら手元に残るのか」をその場で確かめられるように */
@@ -27,11 +27,11 @@ export function FeeSimulator() {
         <span className="w-32 text-right text-lg font-bold">{formatYen(raised)}</span>
       </div>
       <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
-        <div className="rounded-lg bg-stone-50 p-4">
-          <dt className="text-stone-500">手数料（{PLATFORM_FEE_RATE * 100}%・決済手数料込み）</dt>
-          <dd className="mt-1 text-lg font-bold">−{formatYen(raised - payoutAmount(raised))}</dd>
+        <div className="bg-stone-50 p-4">
+          <dt className="text-stone-500">手数料（{FEE_LABEL}・決済手数料込み）</dt>
+          <dd className="mt-1 text-lg font-bold">−{formatYen(feeAmount(raised))}</dd>
         </div>
-        <div className="rounded-lg bg-brand-soft p-4">
+        <div className="bg-brand-soft p-4">
           <dt className="text-brand">受け取れる金額</dt>
           <dd className="mt-1 text-2xl font-bold text-brand">{formatYen(payoutAmount(raised))}</dd>
         </div>

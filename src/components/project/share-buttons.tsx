@@ -44,7 +44,7 @@ export function ShareButtons({ title, path }: { title: string; path?: string }) 
     }
   }
 
-  const button = "flex min-h-11 flex-1 items-center justify-center border border-stone-500 text-xs font-bold text-stone-700 transition hover:bg-stone-50";
+  const button = "flex min-h-11 flex-1 items-center justify-center border-2 border-ink bg-white text-xs font-bold text-ink transition hover:bg-ink hover:text-white";
   return (
     <div>
       <p className="mb-2 text-xs text-stone-500">シェアして応援する</p>

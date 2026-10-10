@@ -8,7 +8,7 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm px-4 py-16">
       <p className="text-center font-en text-xs tracking-wide text-stone-500">Login</p>
-      <h1 className="mt-1 text-center text-2xl font-bold tracking-wider">ログイン・会員登録</h1>
+      <h1 className="mt-1 text-center text-2xl font-black tracking-[0.12em] sm:text-3xl">ログイン・会員登録</h1>
       <Suspense>
         <LoginForm />
       </Suspense>

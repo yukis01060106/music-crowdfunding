@@ -3,8 +3,12 @@
 import Link from "next/link";
 import type { Project } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
-import { formatDate, formatPrice, formatYen } from "@/lib/format";
-import { useDemo, type Backing } from "@/lib/demo-store";
+import { formatDate, formatDateTime, formatPrice, formatYen } from "@/lib/format";
+import { markCharged, useDemo, type Backing } from "@/lib/demo-store";
+import { chargeBacking, safeVoucherUrl, STRIPE_TEST } from "@/lib/payments";
+import { toast } from "@/components/ui/toast";
+import { useState } from "react";
+import { useNow } from "@/lib/use-now";
 import { Photo } from "@/components/ui/photo";
 import { Avatar } from "@/components/account-button";
 import { buttonClass } from "@/components/ui/button";
@@ -30,9 +34,19 @@ dl{display:grid;grid-template-columns:8em 1fr;gap:8px;font-size:14px}.issuer{mar
   w.document.close();
 }
 
-function paymentStatus(project: Project, amount: number): { label: string; className: string } {
+/** コンビニ払いで、支払期限を過ぎたもの（Webhook がないので、画面で期限から判断する） */
+const voucherExpired = (b: Backing, now: number | null) => Boolean(b.awaitingPayment && b.voucherExpiresAt && now !== null && now > Date.parse(b.voucherExpiresAt));
+
+function paymentStatus(project: Project, b: Backing, now: number | null): { label: string; className: string } {
   // 0円の参加は請求がないので、決済の状況は出さない
-  if (amount === 0) return { label: "参加済み（0円）", className: "bg-brand-soft text-brand" };
+  if (b.amount === 0) return { label: "参加済み（0円）", className: "bg-brand-soft text-brand" };
+  // 目標に届かなかったプロジェクトは、Stripe で登録したカードにも請求しない
+  if (project.status === "failed" && project.fundingModel === "all_or_nothing") return { label: "決済なし（目標未達）", className: "bg-stone-100 text-stone-600" };
+  // Stripe で決済したものは、実際の状態を出す
+  if (voucherExpired(b, now)) return { label: "お支払い期限切れ（無効）", className: "bg-stone-100 text-stone-600" };
+  if (b.awaitingPayment) return { label: "お支払い待ち（コンビニ）", className: "bg-amber-100 text-amber-800" };
+  if (b.stripeSessionId && b.charged === true) return { label: "決済済み", className: "bg-emerald-100 text-emerald-700" };
+  if (b.stripeSessionId && b.charged === false) return { label: "決済予定（目標達成後）", className: "bg-amber-100 text-amber-800" };
   if (project.fundingModel === "all_in") return { label: "決済済み", className: "bg-emerald-100 text-emerald-700" };
   if (project.status === "succeeded") return { label: "決済済み（目標達成）", className: "bg-emerald-100 text-emerald-700" };
   if (project.status === "failed") return { label: "決済なし（目標未達）", className: "bg-stone-100 text-stone-600" };
@@ -41,12 +55,14 @@ function paymentStatus(project: Project, amount: number): { label: string; class
 
 export function Backings({ projects }: { projects: Project[] }) {
   const { user, backings, memberships, favorites } = useDemo();
+  const now = useNow();
   const rows = backings.flatMap((b: Backing) => {
     const project = projects.find((p) => p.slug === b.projectSlug);
     const reward = project?.rewards.find((r) => r.id === b.rewardId);
     return project && reward ? [{ ...b, project, reward }] : [];
   });
-  const total = rows.reduce((sum, r) => sum + r.amount, 0);
+  // 期限切れで無効になったコンビニ払いは、合計に入れない
+  const total = rows.reduce((sum, r) => sum + (voucherExpired(r, now) ? 0 : r.amount), 0);
 
   return (
     <>
@@ -54,7 +70,7 @@ export function Backings({ projects }: { projects: Project[] }) {
         {user && <Avatar name={user.name} size={56} />}
         <div>
           <p className="text-xs text-stone-500">おかえりなさい</p>
-          <h1 className="text-2xl font-bold">{user?.name}さん</h1>
+          <h1 className="text-2xl font-black tracking-[0.12em]">{user?.name}さん</h1>
         </div>
       </div>
 
@@ -76,7 +92,7 @@ export function Backings({ projects }: { projects: Project[] }) {
       ) : (
         <ul className="space-y-3">
           {rows.map((r) => {
-            const status = paymentStatus(r.project, r.amount);
+            const status = paymentStatus(r.project, r, now);
             return (
               <li key={r.id} className="animate-rise flex flex-col gap-4 border border-stone-200 bg-white p-4 sm:flex-row">
                 <Link href={`/projects/${r.project.slug}`} className="relative aspect-[4/3] w-full shrink-0 overflow-hidden sm:h-24 sm:w-32">
@@ -98,6 +114,7 @@ export function Backings({ projects }: { projects: Project[] }) {
                     {formatPrice(r.amount)}
                     {r.tip > 0 && `（上乗せ ${formatYen(r.tip)} を含む）`}
                     {r.amount > 0 && `・${r.paymentMethod}`}・お届け予定 {r.reward.deliveryEstimate}
+                    {r.awaitingPayment && r.voucherExpiresAt && !voucherExpired(r, now) && `・${formatDateTime(r.voucherExpiresAt)}までにお支払いください`}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2 self-start text-xs sm:flex-col">
@@ -107,6 +124,13 @@ export function Backings({ projects }: { projects: Project[] }) {
                   <Link href={`/mypage/messages?to=${r.project.slug}`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
                     質問する
                   </Link>
+                  {r.awaitingPayment && !voucherExpired(r, now) && safeVoucherUrl(r.voucherUrl) && (
+                    <a href={safeVoucherUrl(r.voucherUrl)!} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center border border-amber-500 bg-amber-50 px-3 text-amber-900 hover:bg-amber-100">
+                      払込票を開く
+                    </a>
+                  )}
+                  {/* テストモードだけ。募集中か目標を達成したプロジェクトの、まだ請求していない支援に出す */}
+                  {STRIPE_TEST && r.stripeSessionId && r.charged === false && r.project.status !== "failed" && <ChargeButton sessionId={r.stripeSessionId} />}
                   {r.amount > 0 && status.label.startsWith("決済済み") && (
                     <button type="button" onClick={() => openReceipt({ ...r, rewardTitle: r.reward.title, rewardPrice: r.reward.price }, user?.name ?? "")} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 hover:bg-stone-100">
                       領収書
@@ -135,5 +159,34 @@ function Kpi({ label, value, href }: { label: string; value: string; href?: stri
     </Link>
   ) : (
     <div className="bg-stone-50 p-4">{body}</div>
+  );
+}
+
+/**
+ * テストモードだけ：All-or-Nothing の支援を「目標を達成した」として、登録済みのカードに請求する。
+ * 本番では募集終了時にサーバーがまとめて請求する。
+ */
+function ChargeButton({ sessionId }: { sessionId: string }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => {
+        setBusy(true);
+        chargeBacking(sessionId)
+          .then((r) => {
+            if (r.charged) {
+              markCharged(sessionId);
+              toast("（テスト）目標達成として請求しました");
+            } else toast(r.status === "requires_action" ? "カードの本人認証が必要なため、請求を完了できませんでした" : "請求を処理しています。しばらくしてから確認してください");
+          })
+          .catch((e: Error) => toast(e.message))
+          .finally(() => setBusy(false));
+      }}
+      className="inline-flex min-h-11 items-center justify-center border border-amber-500 bg-amber-50 px-3 text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+    >
+      {busy ? "請求しています…" : "（テスト）目標達成として請求"}
+    </button>
   );
 }

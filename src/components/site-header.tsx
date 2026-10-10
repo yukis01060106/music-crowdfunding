@@ -13,7 +13,7 @@ const NAV = [
 export function SiteHeader() {
   return (
     <header className="header-scroll sticky top-0 z-40 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8">
         <Link href="/" className="flex items-center gap-1.5" aria-label="OTOFUND トップへ">
           <span className="font-en text-2xl font-black tracking-tight text-ink">OTOFUND</span>
           <span

@@ -50,7 +50,7 @@ export default async function AdminPage() {
       <div data-stagger className="mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi label="掲載中のプロジェクト" value={`${projects.filter((p) => p.status === "live").length}件`} />
         <Kpi label="累計の支援総額" value={formatYen(gmv)} />
-        <Kpi label="手数料収入の見込み" value={formatYen(Math.floor(gmv * PLATFORM_FEE_RATE))} />
+        <Kpi label="手数料収入の見込み（税別）" value={formatYen(Math.floor(gmv * PLATFORM_FEE_RATE))} />
         <Kpi label="メンバーシップ" value={`${formatNumber(members)}人・${formatYen(membershipMonthly)}/月`} />
       </div>
       <ReviewQueue items={QUEUE} />

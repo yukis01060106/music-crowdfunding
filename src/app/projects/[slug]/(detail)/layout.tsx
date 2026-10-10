@@ -130,18 +130,19 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           <div className="relative">
             <ProjectMedia title={project.title} images={[project.cover, ...(project.gallery ?? [])]} videoUrl={project.videoUrl} color={project.color} />
             <Sticker shape="circle" color="yellow" size={56} className="-right-3 -top-4" float />
-            <Sticker shape="triangle" color="purple" size={40} className="-bottom-4 left-6" />
+            {/* サムネイルや送りボタンにかからないよう、写真の左上の角に置く */}
+            <Sticker shape="triangle" color="purple" size={40} className="-left-3 -top-3" />
           </div>
 
           {/* スマホでは右カラムが本文の後ろに回るので、支援状況を先に見せる */}
           <div className="space-y-3 border border-stone-200 bg-white p-4 lg:hidden">
             <div className="flex items-end justify-between gap-2">
-              <p className="text-2xl font-bold tracking-tight">
+              <p className="font-en text-2xl font-black tracking-tight">
                 {project.goalType === "participants"
                   ? `${formatNumber(project.backers)}人`
                   : formatYen(project.raised)}
               </p>
-              <p className="text-lg font-bold text-brand">{progressPercent(project)}%</p>
+              <p className={`font-en text-lg font-black ${progressPercent(project) >= 100 ? "text-emerald-700" : "text-brand"}`}>{progressPercent(project)}%</p>
             </div>
             <ProgressBar project={project} />
             <p className="text-xs text-stone-500">
@@ -151,6 +152,13 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               リターンを見る（{project.rewards.length}種類）
             </a>
             <TrustLines project={project} />
+            <div className="flex flex-col gap-3 border-t border-stone-100 pt-3">
+              <FavoriteButton slug={project.slug} />
+              <ShareButtons title={project.title} />
+              <Link href={`/mypage/messages?to=${project.slug}`} className="flex min-h-11 items-center justify-center text-sm text-stone-600 underline hover:text-brand">
+                実行者に質問する
+              </Link>
+            </div>
           </div>
 
           <TrackList tracks={project.tracks} />
@@ -158,13 +166,14 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
           {children}
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="space-y-4 border border-stone-200 bg-white p-5">
+        <aside className="space-y-4">
+          {/* スマホでは上の要約の箱と同じ内容になるので、PC だけで出す */}
+          <div className="hidden space-y-4 border-[3px] border-brand bg-white p-5 lg:block">
             <div>
               <p className="text-xs text-stone-500">
                 {project.goalType === "participants" ? "参加人数" : "現在の支援総額"}
               </p>
-              <p className="text-3xl font-bold tracking-tight">
+              <p className="font-en text-3xl font-black tracking-tight">
                 {project.goalType === "participants"
                   ? `${formatNumber(project.backers)}人`
                   : formatYen(project.raised)}
@@ -177,7 +186,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               <Stat label="支援者" value={`${formatNumber(project.backers)}人`} />
               <Stat label="残り" value={<DaysLeft endAt={project.endAt} />} />
             </dl>
-            <p className="rounded-lg bg-stone-50 p-3 text-xs leading-relaxed text-stone-600">
+            <p className="bg-stone-50 p-3 text-xs leading-relaxed text-stone-600">
               {FUNDING_MODEL_LABELS[project.fundingModel]}
               <br />
               {formatDate(project.endAt)}まで募集

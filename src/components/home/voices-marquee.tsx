@@ -15,7 +15,7 @@ export function VoicesMarquee({ projects }: { projects: Project[] }) {
             <Link
               href={`/projects/${v.project.slug}/comments`}
               tabIndex={i >= voices.length ? -1 : undefined}
-              className="flex w-[380px] items-center gap-4 rounded-full bg-stone-100 py-3 pl-3 pr-8 hover:bg-brand-soft"
+              className="flex w-[380px] items-center gap-4 bg-stone-100 py-3 pl-3 pr-8 hover:bg-brand-soft"
             >
               <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
                 <Photo src={v.project.cover} alt="" sizes="64px" />

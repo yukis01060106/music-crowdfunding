@@ -10,6 +10,7 @@ import { useNow } from "@/lib/use-now";
 import { Photo } from "@/components/ui/photo";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
+import { STRIPE_ENABLED, updateMembership } from "@/lib/payments";
 import { buttonClass } from "@/components/ui/button";
 
 /** メンバー歴（か月）。日本時間の年月で数える */
@@ -24,6 +25,8 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
   const { memberships } = useDemo();
   const now = useNow();
   const [canceling, setCanceling] = useState<string | null>(null);
+  // Stripe と通信している行（二重に押せないようにする）
+  const [busy, setBusy] = useState<string | null>(null);
 
   const rows = memberships.flatMap((m) => {
     const artist = artists.find((a) => a.id === m.artistId);
@@ -98,10 +101,20 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
                   <button
                     type="button"
                     onClick={() => {
-                      resumeMembership(r.artistId);
-                      toast("メンバーシップを再開しました");
+                      // Stripe で加入したものは、Stripe の契約も再開する
+                      const done = () => {
+                        resumeMembership(r.artistId);
+                        toast("メンバーシップを再開しました");
+                      };
+                      if (!r.stripeSessionId || !STRIPE_ENABLED) return done();
+                      setBusy(r.artistId);
+                      updateMembership(r.stripeSessionId, "resume")
+                        .then(done)
+                        .catch((e: Error) => toast(e.message))
+                        .finally(() => setBusy(null));
                     }}
-                    className="min-h-11 bg-brand px-3 font-bold text-white hover:bg-brand-dark"
+                    disabled={busy === r.artistId}
+                    className="min-h-11 bg-brand px-3 font-bold text-white hover:bg-brand-dark disabled:bg-stone-300"
                   >
                     再開する
                   </button>
@@ -110,7 +123,7 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
                     <Link href={`/artists/${r.artist.id}/join?plan=${r.plan.id}`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
                       プラン変更
                     </Link>
-                    <button type="button" onClick={() => setCanceling(r.artistId)} className="min-h-11 border border-stone-500 px-3 text-stone-600 hover:border-rose-300 hover:text-rose-700">
+                    <button type="button" disabled={busy === r.artistId} onClick={() => setCanceling(r.artistId)} className="disabled:opacity-50 min-h-11 border border-stone-500 px-3 text-stone-600 hover:border-rose-300 hover:text-rose-700">
                       解約
                     </button>
                   </>
@@ -130,8 +143,18 @@ export function Subscriptions({ artists }: { artists: Artist[] }) {
         onClose={() => setCanceling(null)}
         onConfirm={() => {
           if (!target) return;
-          cancelMembership(target.artistId);
-          toast("解約を受け付けました");
+          const done = () => {
+            cancelMembership(target.artistId);
+            toast("解約を受け付けました");
+          };
+          // Stripe で加入したものは、期間の終わりで止まるよう Stripe の契約も解約する
+          if (!target.stripeSessionId || !STRIPE_ENABLED) return done();
+          const artistId = target.artistId;
+          setBusy(artistId);
+          updateMembership(target.stripeSessionId, "cancel")
+            .then(done)
+            .catch((e: Error) => toast(`解約できませんでした：${e.message}`))
+            .finally(() => setBusy(null));
         }}
         title={`${target?.artist.name}のメンバーシップを解約しますか？`}
         body={

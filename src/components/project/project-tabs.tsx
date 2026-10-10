@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { samePath } from "@/lib/path";
 import { usePathname } from "next/navigation";
 
 export function ProjectTabs({
@@ -21,9 +22,9 @@ export function ProjectTabs({
   ];
 
   return (
-    <nav aria-label="プロジェクトの情報" className="flex gap-1 overflow-x-auto border-b border-stone-200">
+    <nav aria-label="プロジェクトの情報" className="flex gap-1 overflow-x-auto border-b border-stone-200 pt-1">
       {tabs.map((tab) => {
-        const active = pathname === tab.href;
+        const active = samePath(pathname, tab.href);
         return (
           <Link
             key={tab.href}

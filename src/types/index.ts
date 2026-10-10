@@ -186,7 +186,7 @@ export const MINOR_ARTIST_TYPES: readonly ArtistType[] = ["high_school"];
 
 export const REWARD_KIND_LABELS: Record<RewardKind, string> = {
   free: "0円プラン",
-  digital: "デジタル音源",
+  digital: "デジタル（音源・動画）",
   physical: "CD・グッズ",
   ticket: "ライブチケット",
   experience: "体験",

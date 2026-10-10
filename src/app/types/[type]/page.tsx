@@ -37,7 +37,7 @@ export default async function ArtistTypePage({ params }: PageProps<"/types/[type
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="font-en text-xs font-medium tracking-wide text-stone-500">Projects</p>
-      <h1 className="mt-1 text-3xl font-black tracking-[0.12em]">{ARTIST_TYPE_LABELS[type]}のプロジェクト</h1>
+      <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">{ARTIST_TYPE_LABELS[type]}のプロジェクト</h1>
       <BrowseNav current={{ kind: "type", value: type }} />
       <ProjectGrid projects={projects} artists={artists} />
     </div>

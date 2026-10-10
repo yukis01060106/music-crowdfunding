@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { tagClass } from "@/components/ui/tag";
 import { FeeSimulator } from "./fee-simulator";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
 import { buttonClass } from "@/components/ui/button";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { REWARD_IDEAS } from "@/lib/reward-ideas";
+import { formatYen } from "@/lib/format";
+import { REWARD_KIND_LABELS } from "@/types";
 
 export const metadata: Metadata = { title: "プロジェクトをはじめる", description: "アルバム・ライブ・MVを、ファンの支援で。掲載は無料。AI校正やプレビューで、はじめてでも安心してプロジェクトをつくれます。", alternates: { canonical: "/start/" } };
 
@@ -69,73 +74,113 @@ export default function StartPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-4xl space-y-16 px-4 py-14">
+      <div className="mx-auto max-w-6xl space-y-24 px-4 py-20">
         <section>
-          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">音楽のための機能</h2>
-          <ul data-stagger className="grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <li key={f.title} className="border border-stone-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand hover:shadow-lg">
-                <p className="font-bold">{f.title}</p>
-                <p className="mt-1 text-sm text-stone-600">{f.body}</p>
-              </li>
-            ))}
-          </ul>
+          <SectionHeading en="Features" ja="音楽のための機能" />
+          <div className="mt-8">
+            <ul data-stagger className="grid gap-4 sm:grid-cols-2">
+              {FEATURES.map((f) => (
+                <li key={f.title} className="border-t-[3px] border-brand bg-stone-50 p-5">
+                  <p className="font-bold">{f.title}</p>
+                  <p className="mt-1 text-sm text-stone-600">{f.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section>
-          <h2 data-reveal="up" className="mb-2 text-2xl font-bold tracking-[0.1em]">手数料と受け取れる金額</h2>
-          <p className="mb-6 text-sm text-stone-500">金額を動かして、手元に残る額を確かめてください。</p>
-          <FeeSimulator />
+          <SectionHeading en="Fees" ja="手数料と受け取れる金額" lead="金額を動かして、手元に残る額を確かめてください。" />
+          <div className="mt-8">
+            <FeeSimulator />
+            <div className="mt-6">
+              <Link href="/creator/projects/new" className={buttonClass("primary", "lg")}>
+                無料でプロジェクトをつくる
+              </Link>
+            </div>
+          </div>
         </section>
 
         <section>
-          <h2 data-reveal="up" className="mb-2 text-2xl font-bold tracking-[0.1em]">リターン設計のコツ</h2>
-          <p className="mb-6 text-sm text-stone-500">
-            1回の支援は数千円が中心になりやすいので、リターンは3〜5種類にしぼり、価格帯をばらけさせましょう。
-          </p>
-          <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
-            {REWARD_TIPS.map((t) => (
-              <li key={t.price} className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-6">
-                <span className="w-36 shrink-0 font-bold text-brand">{t.price}</span>
-                <span className="text-sm text-stone-600">{t.body}</span>
-              </li>
-            ))}
-          </ul>
+          <SectionHeading en="Rewards" ja="リターン設計のコツ" lead="1回の支援は数千円が中心になりやすいので、リターンは3〜5種類にしぼり、価格帯をばらけさせましょう。" />
+          <div className="mt-8">
+            <ul className="divide-y divide-stone-200 border border-stone-200 bg-white">
+              {REWARD_TIPS.map((t) => (
+                <li key={t.price} className="flex flex-col gap-1 p-4 sm:flex-row sm:gap-6">
+                  <span className="w-36 shrink-0 font-bold text-brand">{t.price}</span>
+                  <span className="text-sm text-stone-600">{t.body}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section>
-          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">こんな企画に</h2>
-          <ul data-stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {IDEAS.map((idea) => (
-              <li key={idea} className="border border-stone-200 bg-white p-4 text-center text-sm font-medium">
-                {idea}
-              </li>
-            ))}
-          </ul>
+          <SectionHeading en="Examples" ja="リターンの事例" lead="音楽ならではのリターンの例です。金額は目安なので、活動の規模に合わせて決めてください。プロジェクトの作成画面から、そのまま下書きに入れられます。" />
+          <div className="mt-8">
+            <ul data-stagger className="grid gap-3 sm:grid-cols-2">
+              {REWARD_IDEAS.map((idea) => (
+                <li key={idea.id} className="flex flex-col gap-2 border-[3px] border-stone-200 bg-white p-5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h3 className="font-bold">{idea.title}</h3>
+                    <span className="shrink-0 text-sm text-stone-500">
+                      目安 <span className="font-en font-bold text-brand">{formatYen(idea.price)}</span>
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-stone-600">{idea.pitch}</p>
+                  <p className="mt-auto flex flex-wrap gap-1.5">
+                    <span className={tagClass()}>{REWARD_KIND_LABELS[idea.kind]}</span>
+                    {idea.limit !== undefined && <span className={tagClass("brand")}>{idea.limit === 1 ? "1点もの" : `${idea.limit}${idea.unit ?? ""}限定がおすすめ`}</span>}
+                    {!idea.requiresShipping && <span className={tagClass()}>配送なし</span>}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <Link href="/creator/projects/new" className={buttonClass("primary", "lg")}>
+                事例を使ってつくってみる <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
         </section>
 
         <section>
-          <h2 data-reveal="up" className="mb-6 text-2xl font-bold tracking-[0.1em]">公開までの流れ</h2>
-          <ol data-stagger className="space-y-3">
-            {STEPS.map((s, i) => (
-              <li key={s.title} className="flex gap-4 border border-stone-200 bg-white p-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-                  {i + 1}
-                </span>
-                <div>
-                  <p className="font-bold">{s.title}</p>
-                  <p className="text-sm text-stone-600">{s.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-8 text-center text-sm text-stone-600">
-            手数料や審査について詳しくは <Link href="/help#artist" className="text-brand underline">よくある質問</Link> へ。
-          </p>
-          <div className="mt-6 text-center">
-            <Link href="/creator/projects/new" className={buttonClass("primary", "lg")}>
-              無料でプロジェクトをつくる
-            </Link>
+          <SectionHeading en="Ideas" ja="こんな企画に" />
+          <div className="mt-8">
+            <ul data-stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {IDEAS.map((idea) => (
+                <li key={idea} className="bg-brand-soft p-4 text-center text-sm font-bold tracking-wider text-brand-dark">
+                  {idea}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <SectionHeading en="Flow" ja="公開までの流れ" />
+          <div className="mt-8">
+            <ol data-stagger className="space-y-3">
+              {STEPS.map((s, i) => (
+                <li key={s.title} className="flex gap-5 bg-stone-50 p-5">
+                  <span className="w-12 shrink-0 font-en text-4xl font-black leading-none text-brand/30" aria-hidden>
+                    0{i + 1}
+                  </span>
+                  <div>
+                    <p className="font-bold">{s.title}</p>
+                    <p className="text-sm text-stone-600">{s.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-8 text-center text-sm text-stone-600">
+              手数料や審査について詳しくは <Link href="/help#artist" className="text-brand underline">よくある質問</Link> へ。
+            </p>
+            <div className="mt-6 text-center">
+              <Link href="/creator/projects/new" className={buttonClass("primary", "lg")}>
+                無料でプロジェクトをつくる
+              </Link>
+            </div>
           </div>
         </section>
       </div>

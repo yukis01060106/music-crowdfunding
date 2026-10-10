@@ -1,6 +1,6 @@
 import { getArtist } from "@/lib/data";
 import { formatNumber, formatYen } from "@/lib/format";
-import { PLATFORM_FEE_RATE } from "@/lib/fees";
+import { payoutAmount } from "@/lib/fees";
 import { totalMembers } from "@/lib/membership";
 import { PageTitle } from "@/components/side-nav";
 import { MembershipEditor } from "./membership-editor";
@@ -21,7 +21,7 @@ export default async function CreatorMembershipPage() {
         <div data-stagger className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Kpi label="メンバー" value={`${formatNumber(totalMembers(membership))}人`} />
           <Kpi label="今月の売上" value={formatYen(monthly)} />
-          <Kpi label="受け取り（手数料引き後）" value={formatYen(Math.floor(monthly * (1 - PLATFORM_FEE_RATE)))} />
+          <Kpi label="受け取り（手数料引き後）" value={formatYen(payoutAmount(monthly))} />
         </div>
       )}
       <MembershipEditor artistId={artist.id} artistName={artist.name} initial={membership} />

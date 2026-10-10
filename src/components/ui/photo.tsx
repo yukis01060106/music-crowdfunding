@@ -27,7 +27,8 @@ export function Photo({
       // 最初の画面に見える写真だけを先に読む（Next 16 では priority は非推奨）
       loading={priority ? "eager" : undefined}
       fetchPriority={priority ? "high" : undefined}
-      className={`object-cover ${className}`}
+      // 読み込み中も空の白い箱に見えないよう、薄い色を敷く
+      className={`bg-brand-soft object-cover ${className}`}
     />
   );
 }

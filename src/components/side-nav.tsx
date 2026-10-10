@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { samePath } from "@/lib/path";
 import { usePathname } from "next/navigation";
 
 export interface NavItem {
@@ -15,13 +16,13 @@ export function SideNav({ title, items }: { title: string; items: NavItem[] }) {
     <nav aria-label={title} className="-mx-4 flex gap-1 overflow-x-auto border-b border-stone-200 px-4 pb-2 md:mx-0 md:block md:space-y-1 md:border-0 md:p-0">
       <p className="mb-3 hidden px-3 text-xs font-bold uppercase tracking-wide text-stone-500 md:block">{title}</p>
       {items.map((item) => {
-        const active = pathname === item.href;
+        const active = samePath(pathname, item.href);
         return (
           <Link
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`block shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
+            className={`block shrink-0 whitespace-nowrap px-3 py-2 text-sm transition ${
               active ? "bg-brand-soft font-medium text-brand" : "text-stone-600 hover:bg-stone-100"
             }`}
           >
@@ -55,7 +56,7 @@ export function DashboardShell({
 }
 
 export function PageTitle({ children }: { children: React.ReactNode }) {
-  return <h1 className="mb-6 text-2xl font-bold">{children}</h1>;
+  return <h1 className="mb-6 text-2xl font-black tracking-[0.12em]">{children}</h1>;
 }
 
 export function Placeholder({ children }: { children: React.ReactNode }) {

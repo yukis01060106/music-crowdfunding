@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Artist, Project } from "@/types";
+import { tagClass } from "@/components/ui/tag";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
 import { formatNumber, formatYen, progressPercent } from "@/lib/format";
 import { Photo } from "@/components/ui/photo";
@@ -34,7 +35,7 @@ export function ProjectCard({ project, artist, index = 0 }: { project: Project; 
           <span className="font-bold text-ink">{artist?.name}</span>
           {artist && <VerifiedBadge verified={artist.verified} />}
           {artist?.types.map((t) => (
-            <span key={t} className="border border-stone-300 px-1.5 py-px text-[11px]">
+            <span key={t} className={tagClass()}>
               {ARTIST_TYPE_LABELS[t]}
             </span>
           ))}
@@ -48,7 +49,7 @@ export function ProjectCard({ project, artist, index = 0 }: { project: Project; 
                 ? `${formatNumber(project.backers)}人`
                 : formatYen(project.raised)}
             </span>
-            <span className="font-en text-lg font-black text-brand">{progressPercent(project)}%</span>
+            <span className={`font-en text-lg font-black ${progressPercent(project) >= 100 ? "text-emerald-700" : "text-brand"}`}>{progressPercent(project)}%</span>
           </div>
           <p className="text-xs text-stone-500">
             残り <DaysLeft endAt={project.endAt} />・{formatNumber(project.backers)}人が支援

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Membership, MembershipPlan } from "@/types";
 import { formatYen } from "@/lib/format";
-import { PLATFORM_FEE_RATE } from "@/lib/fees";
+import { FEE_LABEL, payoutAmount } from "@/lib/fees";
 import { MEMBER_COMMON_PERKS, MEMBERSHIP_MAX_PRICE, MEMBERSHIP_MIN_PRICE } from "@/lib/membership";
 import { PlanCard, mostPopularPlanId } from "@/components/membership/plan-card";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
@@ -60,7 +60,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
   const preview = plans.map(toPlan);
   const popularId = mostPopularPlanId(preview);
   const cheapest = Math.min(...preview.map((p) => p.price).filter((n) => n > 0));
-  const monthly = Number.isFinite(cheapest) ? Math.floor(cheapest * simMembers * (1 - PLATFORM_FEE_RATE)) : 0;
+  const monthly = Number.isFinite(cheapest) ? payoutAmount(cheapest * simMembers) : 0;
 
   const fields = [
     { id: "message", label: "メンバーへのひとこと", text: message },
@@ -163,7 +163,7 @@ export function MembershipEditor({ artistId, artistName, initial }: { artistId: 
               <input type="range" min={10} max={3000} step={10} value={simMembers} onChange={(e) => setSimMembers(Number(e.target.value))} className="mt-2 w-full accent-brand" />
             </label>
             <p className="mt-2 font-en text-3xl font-black text-brand">{formatYen(monthly)}</p>
-            <p className="text-xs text-stone-500">/ 月（手数料{PLATFORM_FEE_RATE * 100}%を引いた額）</p>
+            <p className="text-xs text-stone-500">/ 月（手数料（{FEE_LABEL}・決済手数料込み）を引いた額）</p>
           </div>
         )}
         {enabled && (

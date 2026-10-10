@@ -1,6 +1,6 @@
 import { getArtist, getCreatorProjects } from "@/lib/data";
 import { formatDate, formatYen, progressPercent } from "@/lib/format";
-import { FES_FUND_MESSAGE, PLATFORM_FEE_RATE, payoutAmount } from "@/lib/fees";
+import { FEE_LABEL, FES_FUND_MESSAGE, feeAmount, payoutAmount } from "@/lib/fees";
 import { PageTitle } from "@/components/side-nav";
 
 // TODO: Stripe Connect の Express アカウントで本人確認と振込先登録を行い、状態は Stripe から取得する
@@ -30,7 +30,7 @@ export default async function PayoutPage() {
             <tr>
               <th className="p-3">プロジェクト</th>
               <th className="p-3 text-right">支援総額</th>
-              <th className="p-3 text-right">手数料（{PLATFORM_FEE_RATE * 100}%）</th>
+              <th className="p-3 text-right">手数料（{FEE_LABEL}・決済手数料込み）</th>
               <th className="p-3 text-right">振込額</th>
               <th className="p-3">振込予定</th>
             </tr>
@@ -43,7 +43,7 @@ export default async function PayoutPage() {
                 <tr key={p.slug}>
                   <td className="p-3 font-medium">{p.title}</td>
                   <td className="p-3 text-right">{formatYen(p.raised)}</td>
-                  <td className="p-3 text-right text-stone-500">−{formatYen(p.raised - payoutAmount(p.raised))}</td>
+                  <td className="p-3 text-right text-stone-500">−{formatYen(feeAmount(p.raised))}</td>
                   <td className="p-3 text-right font-bold">{formatYen(payoutAmount(p.raised))}</td>
                   <td className="p-3 text-xs text-stone-500">{achieved ? `${formatDate(payDate)}ごろ` : "目標達成時のみ"}</td>
                 </tr>
@@ -61,7 +61,7 @@ export default async function PayoutPage() {
           <h2 className="mb-3 mt-10 font-bold">メンバーシップの入金</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             <Box label="今月の売上" value={formatYen(membershipMonthly)} />
-            <Box label="手数料" value={`−${formatYen(membershipMonthly - payoutAmount(membershipMonthly))}`} />
+            <Box label="手数料" value={`−${formatYen(feeAmount(membershipMonthly))}`} />
             <Box label="翌月15日に振込" value={formatYen(payoutAmount(membershipMonthly))} strong />
           </div>
         </>

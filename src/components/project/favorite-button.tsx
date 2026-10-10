@@ -1,5 +1,6 @@
 "use client";
 
+import { buttonClass } from "@/components/ui/button";
 import { toggleFavorite, useDemo } from "@/lib/demo-store";
 import { toast } from "@/components/ui/toast";
 
@@ -15,9 +16,7 @@ export function FavoriteButton({ slug }: { slug: string }) {
         toast(on ? "お気に入りから外しました" : "お気に入りに追加しました");
       }}
       aria-pressed={on}
-      className={`group w-full rounded-lg border py-2 text-sm font-medium transition ${
-        on ? "border-rose-300 bg-rose-50 text-rose-600" : "border-stone-300 text-stone-700 hover:bg-stone-50"
-      }`}
+      className={buttonClass(on ? "dark" : "secondary", "md", "group w-full")}
     >
       <span className={`inline-block transition-transform ${on ? "scale-125" : "group-active:scale-90"}`} aria-hidden>
         {on ? "♥" : "♡"}

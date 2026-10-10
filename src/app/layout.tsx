@@ -40,9 +40,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a href="#main" className="sr-only z-[100] bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-2 focus:top-2">
           本文へスキップ
         </a>
-        {IS_DEMO && (
+        {IS_DEMO && process.env.NEXT_PUBLIC_STRIPE_MODE !== "live" && (
           <div role="region" aria-label="デモ版のお知らせ" className="bg-pop-yellow px-4 py-1.5 text-center text-xs font-bold text-ink">
-            これはデモ版です。実際の決済やメールの送信は行われません。入力した内容は、このブラウザの中にだけ保存されます。
+            {process.env.NEXT_PUBLIC_STRIPE_MODE === "test"
+              ? "Stripe のテストモードで動いています。実際のお金は動きません（テスト用カード 4242 4242 4242 4242）。メールの送信は行われず、記録はこのブラウザの中にだけ保存されます。"
+              : "これはデモ版です。実際の決済やメールの送信は行われません。入力した内容は、このブラウザの中にだけ保存されます。"}
           </div>
         )}
         <MotionRoot />

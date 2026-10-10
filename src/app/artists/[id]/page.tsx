@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { tagClass } from "@/components/ui/tag";
 import { notFound } from "next/navigation";
 import { getArtist, getArtists, getProjectsByArtist } from "@/lib/data";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
@@ -66,10 +67,10 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
       <JsonLd data={structured} />
       <section className="mx-auto max-w-6xl px-4 pt-6">
         <div className="relative h-[420px] overflow-hidden sm:h-[520px]">
-          <Photo src={artist.photo} alt={artist.name} sizes="(min-width: 1152px) 1152px, 100vw" priority className="animate-[kenburns_14s_ease-out_forwards]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/40 to-transparent" aria-hidden />
+          <Photo src={artist.photo} alt={artist.name} sizes="(min-width: 1152px) 1152px, 100vw" priority className="animate-[kenburns_14s_ease-out_forwards] object-[center_20%]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/20 to-transparent" aria-hidden />
           {/* 右下の名前が明るい写真でも読めるよう、下からも暗くする */}
-          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/90 via-ink/60 to-transparent" aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/80 via-ink/40 to-transparent" aria-hidden />
           <p
             className="absolute left-6 top-8 max-h-[80%] animate-rise text-lg font-bold [animation-delay:300ms] leading-[2] tracking-[0.2em] text-white sm:left-12 sm:text-2xl"
             style={{ writingMode: "vertical-rl" }}
@@ -80,8 +81,9 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
             <p className="font-en text-xs font-bold tracking-wide text-white">Artist</p>
             <h1 className="mt-1 text-3xl font-black tracking-[0.12em] sm:text-5xl">{artist.name}</h1>
           </div>
-          <Sticker shape="circle" color="yellow" size={64} className="right-8 top-8" float />
-          <Sticker shape="triangle" color="purple" size={40} className="right-28 top-24" />
+          {/* 顔にかからないよう、スマホでは図形を出さない */}
+          <Sticker shape="circle" color="yellow" size={64} className="right-8 top-8 hidden sm:block" float />
+          <Sticker shape="triangle" color="purple" size={40} className="right-28 top-24 hidden sm:block" />
         </div>
       </section>
 
@@ -89,7 +91,7 @@ export default async function ArtistPage({ params }: PageProps<"/artists/[id]">)
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <VerifiedBadge verified={artist.verified} />
           {artist.types.map((t) => (
-            <Link key={t} href={`/types/${t}`} className="bg-ink px-2.5 py-1 text-xs font-bold tracking-wider text-white hover:bg-brand">
+            <Link key={t} href={`/types/${t}`} className={tagClass("neutral", "min-h-8 px-2.5 hover:bg-brand hover:text-white")}>
               {ARTIST_TYPE_LABELS[t]}
             </Link>
           ))}

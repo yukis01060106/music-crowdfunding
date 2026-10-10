@@ -8,7 +8,7 @@ export default function ContactPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <p className="font-en text-xs tracking-wide text-stone-500">Contact</p>
-      <h1 className="mt-1 text-2xl font-bold tracking-wider">お問い合わせ</h1>
+      <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">お問い合わせ</h1>
       <p className="mt-3 text-sm leading-relaxed text-stone-600">
         送信の前に、<Link href="/help" className="text-brand underline">よくある質問</Link>もご覧ください。支援したプロジェクトのリターンについては、マイページのメッセージから実行者に直接お問い合わせいただくと早く解決します。
       </p>

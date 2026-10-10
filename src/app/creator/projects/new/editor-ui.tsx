@@ -76,7 +76,7 @@ export function AddButton({ onClick, children, disabled = false }: { onClick: ()
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full rounded-lg border-2 border-dashed border-stone-300 py-2.5 text-sm text-stone-600 transition hover:border-brand hover:text-brand disabled:opacity-40"
+      className="w-full border-2 border-dashed border-stone-300 py-2.5 text-sm text-stone-600 transition hover:border-brand hover:text-brand disabled:opacity-40"
     >
       {children}
     </button>

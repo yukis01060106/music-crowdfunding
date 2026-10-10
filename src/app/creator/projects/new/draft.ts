@@ -194,6 +194,8 @@ export function rewardProblems(r: DraftReward): string[] {
   if (r.kind !== "free") {
     if (!(toNumber(r.price) > 0)) problems.push("金額");
     if (!r.description.trim()) problems.push("内容の説明");
+    // 事例から入れた説明の「全◯曲」などを書き換え忘れたまま出さない
+    else if (/[◯○]/.test(r.description)) problems.push("説明の「◯」");
     if (!r.deliveryMonth) problems.push("お届け予定");
   }
   if ((r.kind === "ticket" || r.kind === "experience") && !r.validUntil) problems.push("開催日・有効期限");

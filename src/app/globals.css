@@ -196,6 +196,16 @@ label:has(> input[type="file"]:focus-visible) {
   outline-offset: 2px;
 }
 
+/* 黒い背景の上では、紫の枠が見えにくいので黄色にする */
+footer :focus-visible,
+.bg-ink :focus-visible {
+  outline-color: var(--color-pop-yellow);
+}
+/* 黒い背景の中にある白い区画（フェスのページなど）では、紫に戻す */
+.bg-ink .bg-white :focus-visible {
+  outline-color: var(--color-brand);
+}
+
 details > summary::-webkit-details-marker {
   display: none;
 }
@@ -209,5 +219,19 @@ details > summary::-webkit-details-marker {
   *::after {
     animation: none !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* スマホの固定の支援バーが、フッターの最後の行を隠さないようにする */
+@media (width < 64rem) {
+  body:has([data-mobile-support-bar]) footer {
+    padding-bottom: 5rem;
+  }
+  /* フォーカスした要素が、画面の下に固定したバーの裏に隠れないようにする */
+  html:has([data-mobile-support-bar]) {
+    scroll-padding-bottom: 6rem;
+  }
+  html:has([data-support-bar]) {
+    scroll-padding-bottom: 8rem;
   }
 }

@@ -1,11 +1,27 @@
 /**
- * 手数料（仮）。決済手数料込み。正式な料率は事業計画で決める。
+ * 手数料（仮）。税別・決済手数料込み。正式な料率は事業計画で決める。
  * 実行者への表示と計算はすべてここを参照する。
  */
-export const PLATFORM_FEE_RATE = 0.1;
+export const PLATFORM_FEE_RATE = 0.16;
+
+/** 手数料にかかる消費税 */
+export const FEE_TAX_RATE = 0.1;
+
+/** 画面に出す手数料の書き方（例：16%＋税） */
+export const FEE_LABEL = `${Math.round(PLATFORM_FEE_RATE * 100)}%＋税`;
+
+/** 差し引く手数料（消費税込み）。端数は実行者に有利になるよう切り捨てる */
+export function feeAmount(raised: number): number {
+  return Math.floor(raised * PLATFORM_FEE_RATE * (1 + FEE_TAX_RATE));
+}
 
 export function payoutAmount(raised: number): number {
-  return Math.floor(raised * (1 - PLATFORM_FEE_RATE));
+  return raised - feeAmount(raised);
+}
+
+/** 経費をまかなうのに必要な、手数料（消費税込み）を見込んだ目標金額 */
+export function grossFor(net: number): number {
+  return net / (1 - PLATFORM_FEE_RATE * (1 + FEE_TAX_RATE));
 }
 
 /**

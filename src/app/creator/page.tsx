@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getArtist, getCreatorProjects } from "@/lib/data";
+import { TAG_BASE } from "@/components/ui/tag";
 import { formatDate, formatNumber, formatYen, jstDateKey, progressPercent } from "@/lib/format";
 import { payoutAmount } from "@/lib/fees";
 import { totalMembers } from "@/lib/membership";
@@ -72,7 +73,7 @@ export default async function CreatorDashboardPage() {
         return (
           <section key={p.slug} className="space-y-5 border border-stone-200 bg-white p-5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`rounded-full px-2 py-0.5 text-xs ${status.className}`}>{status.label}</span>
+              <span className={`${TAG_BASE} ${status.className}`}>{status.label}</span>
               <Link href={`/projects/${p.slug}`} className="font-bold hover:text-brand">
                 {p.title}
               </Link>

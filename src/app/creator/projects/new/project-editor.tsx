@@ -183,7 +183,41 @@ export function ProjectEditor() {
         </div>
       </div>
 
-      <aside className="space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+      <aside className="space-y-3 lg:self-start">
+        {/* いちばん大事な操作（プレビュー・提出）は、欄の先頭に置いていつでも見えるようにする */}
+        <div className="space-y-2 border-b border-stone-200 pb-3">
+        <button type="button" onClick={() => setPreviewing(true)} className="min-h-11 w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
+            プレビュー
+          </button>
+          <button
+            ref={submitRef}
+            type="button"
+            disabled={!ready}
+            onClick={() => {
+              // TODO: Supabase に保存し、status を in_review にする
+              submitProject({
+                title: d.title,
+                artist: "星空ラジオ",
+                goal: d.goalType === "amount" ? formatYen(toNumber(d.goal)) : `参加 ${d.goal}人`,
+                story: storyText(d).slice(0, 400),
+                rewards: d.rewards.map((r) => `${formatPrice(r.kind === "free" ? 0 : toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
+                flags: { identity: d.identityVerified, cover: d.tracks.some((t) => t.isCover), minor: d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t)) },
+              });
+              clearDraft();
+              setSubmitted(true);
+              window.scrollTo({ top: 0, behavior: scrollBehavior() });
+            }}
+            className="min-h-11 w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
+          >
+            審査に提出する
+          </button>
+          <p className="text-center text-xs text-stone-500">
+            {ready ? "提出後は審査が終わるまで編集できません" : `必須の項目があと${required.length - doneCount}つあります`}
+          </p>
+          <p className="text-center text-[11px] text-stone-500" aria-live="polite">
+            {savedAt ? `下書きを自動保存しました（${savedAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}）` : "入力内容は自動で下書き保存されます"}
+          </p>
+        </div>
         <div className="border border-stone-200 bg-white p-4 text-sm">
           <div className="flex items-baseline justify-between">
             <p className="font-bold">公開までのチェック</p>
@@ -205,37 +239,6 @@ export function ProjectEditor() {
           onJump={(fieldId) => go(tabOfField(fieldId))}
         />
 
-        <button type="button" onClick={() => setPreviewing(true)} className="min-h-11 w-full border-2 border-ink bg-white py-2.5 text-sm font-bold transition hover:bg-ink hover:text-white">
-          プレビュー
-        </button>
-        <button
-          ref={submitRef}
-          type="button"
-          disabled={!ready}
-          onClick={() => {
-            // TODO: Supabase に保存し、status を in_review にする
-            submitProject({
-              title: d.title,
-              artist: "星空ラジオ",
-              goal: d.goalType === "amount" ? formatYen(toNumber(d.goal)) : `参加 ${d.goal}人`,
-              story: storyText(d).slice(0, 400),
-              rewards: d.rewards.map((r) => `${formatPrice(r.kind === "free" ? 0 : toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
-              flags: { identity: d.identityVerified, cover: d.tracks.some((t) => t.isCover), minor: d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t)) },
-            });
-            clearDraft();
-            setSubmitted(true);
-            window.scrollTo({ top: 0, behavior: scrollBehavior() });
-          }}
-          className="w-full bg-brand py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:bg-stone-300"
-        >
-          審査に提出する
-        </button>
-        <p className="text-center text-xs text-stone-500">
-          {ready ? "提出後は審査が終わるまで編集できません" : `必須の項目があと${required.length - doneCount}つあります`}
-        </p>
-        <p className="text-center text-[11px] text-stone-500" aria-live="polite">
-          {savedAt ? `下書きを自動保存しました（${savedAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}）` : "入力内容は自動で下書き保存されます"}
-        </p>
       </aside>
 
       {previewing && <Preview d={d} onClose={() => setPreviewing(false)} />}

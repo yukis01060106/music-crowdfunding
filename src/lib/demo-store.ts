@@ -25,6 +25,15 @@ export interface Backing {
   backedAt: string;
   paymentMethod: string;
   comment?: string;
+  /** Stripe で決済したときの Checkout Session の ID（テストモード・本番） */
+  stripeSessionId?: string;
+  /** All-or-Nothing で、登録したカードにまだ請求していないとき false */
+  charged?: boolean;
+  /** コンビニ払いで、お店での支払いを待っているとき true */
+  awaitingPayment?: boolean;
+  /** コンビニ払いの払込票のページと支払期限 */
+  voucherUrl?: string;
+  voucherExpiresAt?: string;
 }
 
 export interface MembershipSub {
@@ -35,6 +44,8 @@ export interface MembershipSub {
   canceledAt?: string;
   /** 下位プランへの変更を申し込んだとき、次の更新日から切り替わるプラン */
   pendingPlanId?: string;
+  /** Stripe で加入したときの Checkout Session の ID。解約・変更のときに本人の確認に使う */
+  stripeSessionId?: string;
 }
 
 export interface ThreadMessage {
@@ -232,17 +243,27 @@ export function toggleFavorite(slug: string) {
 }
 
 export function addBacking(b: Omit<Backing, "id" | "backedAt">) {
-  update((s) => ({ ...s, backings: [{ ...b, id: newId(), backedAt: new Date().toISOString() }, ...s.backings] }));
+  update((s) => {
+    // 決済画面から戻ってページを開き直しても、同じ支援を二重に記録しない
+    if (b.stripeSessionId && s.backings.some((x) => x.stripeSessionId === b.stripeSessionId)) return s;
+    return { ...s, backings: [{ ...b, id: newId(), backedAt: new Date().toISOString() }, ...s.backings] };
+  });
+}
+
+export function markCharged(stripeSessionId: string) {
+  update((s) => ({ ...s, backings: s.backings.map((b) => (b.stripeSessionId === stripeSessionId ? { ...b, charged: true } : b)) }));
 }
 
 /**
  * 加入、またはプランの変更。上位への変更はすぐ切り替え、下位への変更は次の更新日から（pendingPlanId に入れておく）。
  * 加入日（＝毎月の更新日）は変えない。
  */
-export function joinMembership(artistId: string, planId: string, change: "new" | "upgrade" | "downgrade" = "new") {
+export function joinMembership(artistId: string, planId: string, change: "new" | "upgrade" | "downgrade" = "new", stripeSessionId?: string) {
   update((s) => {
     const existing = s.memberships.find((m) => m.artistId === artistId);
-    const fresh: MembershipSub = { artistId, planId, joinedAt: new Date().toISOString() };
+    // 同じ決済から戻ってきたときは、記録し直さない
+    if (stripeSessionId && existing?.stripeSessionId === stripeSessionId) return s;
+    const fresh: MembershipSub = { artistId, planId, joinedAt: new Date().toISOString(), stripeSessionId };
     if (!existing) return { ...s, memberships: [...s.memberships, fresh] };
     // 終了したメンバーシップに入り直すときは、今日を新しい加入日（＝更新日）にする
     if (change === "new") return { ...s, memberships: s.memberships.map((m) => (m.artistId === artistId ? fresh : m)) };

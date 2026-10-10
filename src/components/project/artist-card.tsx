@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Artist } from "@/types";
+import { tagClass } from "@/components/ui/tag";
 import { ARTIST_TYPE_LABELS } from "@/types";
 import { Photo } from "@/components/ui/photo";
 import { VerifiedBadge } from "./verified-badge";
@@ -20,7 +21,7 @@ export function ArtistCard({ artist }: { artist: Artist }) {
           </p>
           <p className="mt-1 flex flex-wrap gap-1">
             {artist.types.map((t) => (
-              <span key={t} className="rounded bg-stone-100 px-1.5 py-0.5 text-xs text-stone-600">
+              <span key={t} className={tagClass()}>
                 {ARTIST_TYPE_LABELS[t]}
               </span>
             ))}

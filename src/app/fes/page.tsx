@@ -41,8 +41,9 @@ const WAYS = [
 ];
 
 export default function FesPage() {
+  // 黒いページの終わりとフッターの間に白い帯が出ないよう、フッターの上の余白（mt-16）を打ち消す
   return (
-    <div className="overflow-x-clip bg-ink text-white">
+    <div className="-mb-16 overflow-x-clip bg-ink text-white">
       <section className="relative">
         <div className="relative h-[70vh] min-h-[460px] w-full">
           <Photo src="/images/one-note-fes.jpg" alt="ONE NOTE FES by otofund" sizes="100vw" priority className="animate-fade" />

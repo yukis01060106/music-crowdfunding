@@ -1,6 +1,7 @@
 // AI校正の API。Gemini の generateContent を REST で呼ぶ（SDK は入れない）。
 // GitHub Pages の静的書き出しでは使えないので、拡張子 .server.ts にして
 // next.config の pageExtensions でサーバー版のときだけルートとして読み込む。
+import { clientKey, createRateLimiter } from "@/lib/rate-limit";
 import { PROOFREAD_INSTRUCTION, type ProofreadField, type ProofreadIssue, type Severity } from "@/lib/proofread";
 
 /** 無料枠で使えるモデル。変わりやすいので環境変数で差し替えられるようにする */
@@ -17,39 +18,10 @@ const MAX_LABEL = 100;
 const MAX_BODY_BYTES = 100_000;
 
 /**
- * 1つの送り元から呼べる回数（1分あたり）。無料枠を使い切られないための簡易な制限。
- * サーバーのインスタンスごとのメモリで数えるので、複数台で動かす本番では Vercel KV / Upstash などに置き換える。
+ * 1つの送り元から呼べる回数（1分あたり 5回、全体で 60回）。無料枠を使い切られないための簡易な制限。
  * TODO: Supabase Auth を入れたら、ログイン中の実行者だけが呼べるようにする（セッションを検証する）
  */
-const RATE_LIMIT = 5;
-/** 送り元を偽ってすり抜けられても、全体ではこれ以上呼ばせない */
-const GLOBAL_LIMIT = 60;
-const RATE_WINDOW_MS = 60_000;
-const hits = new Map<string, number[]>();
-let globalHits: number[] = [];
-
-function rateLimited(key: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(key) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  recent.push(now);
-  hits.set(key, recent);
-  // 記録が増えすぎたら、全部ではなく期限切れのものだけ消す（本物の利用者の数を消さない）
-  if (hits.size > 10_000) for (const [k, ts] of hits) if (now - ts[ts.length - 1] >= RATE_WINDOW_MS) hits.delete(k);
-  if (recent.length > RATE_LIMIT) return true;
-  // 1人が送りすぎても全員が止まらないよう、送り元ごとの上限を通った呼び出しだけを全体の数に入れる
-  globalHits = globalHits.filter((t) => now - t < RATE_WINDOW_MS);
-  if (globalHits.length >= GLOBAL_LIMIT) return true;
-  globalHits.push(now);
-  return false;
-}
-
-/**
- * 送り元。ホストが付ける値を優先する（x-forwarded-for の先頭は利用者が自由に送れる環境がある）。
- * TODO: Vercel に載せたら @vercel/functions の ipAddress(request) を使う
- */
-function clientKey(request: Request): string {
-  return request.headers.get("x-real-ip")?.trim() || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
-}
+const rateLimited = createRateLimiter({ perKey: 5, global: 60 });
 
 const SEVERITIES: Severity[] = ["error", "warning", "info"];
 const isText = (v: unknown, max: number): v is string => typeof v === "string" && v.length <= max;

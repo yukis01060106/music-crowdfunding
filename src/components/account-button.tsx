@@ -36,7 +36,7 @@ export function AccountButton() {
 
   if (!user) {
     return (
-      <Link href={pathname === "/login" ? "/login" : `/login?next=${encodeURIComponent(pathname + search)}`} className={buttonClass("dark", "md")}>
+      <Link href={pathname === "/login" ? "/login" : `/login?next=${encodeURIComponent(pathname + search)}`} className={buttonClass("dark", "md", "whitespace-nowrap px-3 sm:px-5")}>
         ログイン
       </Link>
     );

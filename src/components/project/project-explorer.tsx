@@ -57,7 +57,7 @@ export function ProjectExplorer({ projects, artists }: { projects: Project[]; ar
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="rounded-full border border-stone-500 bg-white px-4 py-2.5"
+            className="min-h-11 border border-stone-500 bg-white px-4 py-2.5"
           >
             {(Object.keys(SORTS) as SortKey[]).map((k) => (
               <option key={k} value={k}>

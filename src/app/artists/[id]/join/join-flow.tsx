@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { MembershipPlan } from "@/types";
 import { formatDate, formatYen } from "@/lib/format";
-import { PLATFORM_FEE_RATE } from "@/lib/fees";
+import { payoutAmount } from "@/lib/fees";
 import { isPlanFull, lastBenefitDay, MEMBER_COMMON_PERKS, nextBillingDate, PLAN_CHANGE_RULE } from "@/lib/membership";
 import { joinMembership, login, resumeMembership, useDemo } from "@/lib/demo-store";
+import { confirmCheckout, startCheckout, STRIPE_ENABLED, STRIPE_TEST, updateMembership } from "@/lib/payments";
 import { toast } from "@/components/ui/toast";
 import { useNow } from "@/lib/use-now";
 import { buttonClass } from "@/components/ui/button";
@@ -18,22 +19,28 @@ type FormStep = Exclude<Step, "done">;
 
 const STEP_LABELS: Record<FormStep, string> = { plan: "プラン", payment: "お支払い", confirm: "確認" };
 
-// 毎月の自動引き落としに使えるものだけ（コンビニ払いは継続課金に向かない）
-const PAYMENT_METHODS = ["クレジットカード", "Apple Pay / Google Pay", "PayPay"] as const;
+// 毎月の自動引き落としに使えるものだけ（PayPay・コンビニ払いは継続課金に使えない）
+const PAYMENT_METHODS = ["クレジットカード", "Apple Pay / Google Pay"] as const;
 
 /** 加入日の日にち（日本時間）。毎月の更新日になる */
 const billingDay = (joinedAt: string) => new Date(new Date(joinedAt).getTime() + 9 * 60 * 60 * 1000).getUTCDate();
+
+const JOIN_EMAIL_KEY = "otofund:join-email";
 
 const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 export function JoinFlow({ artistId, artistName, plans }: { artistId: string; artistName: string; plans: MembershipPlan[] }) {
   const pathname = usePathname();
-  const initialPlanId = useSearchParams().get("plan");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPlanId = searchParams.get("plan");
+  const returnedSessionId = searchParams.get("session_id");
   const { user, memberships } = useDemo();
   const now = useNow();
-  const membership = memberships.find((m) => m.artistId === artistId && !m.canceledAt);
+  // ログインしていないときは、加入中として扱わない（デモの初期データの加入を、知らない人に見せない）
+  const membership = user ? memberships.find((m) => m.artistId === artistId && !m.canceledAt) : undefined;
   // 解約済みでも、特典を使える期間のうちは「再開」で戻れる（追加のお支払いなし・更新日はそのまま）
-  const canceled = memberships.find((m) => m.artistId === artistId && m.canceledAt);
+  const canceled = user ? memberships.find((m) => m.artistId === artistId && m.canceledAt) : undefined;
   const canceledLastDay = canceled?.canceledAt ? lastBenefitDay(canceled.joinedAt, new Date(canceled.canceledAt).getTime()) : null;
   const canResume = canceled !== undefined && canceledLastDay !== null && now !== null && now < canceledLastDay.getTime() + 24 * 60 * 60 * 1000;
   const currentPlan = plans.find((p) => p.id === membership?.planId);
@@ -48,6 +55,78 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   const [done, setDone] = useState<"new" | "upgrade" | "downgrade" | null>(null);
   // 完了後は加入状況が更新されて change が変わるので、申し込んだ時点の内容を覚えておく
   const [doneText, setDoneText] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(Boolean(returnedSessionId) && STRIPE_ENABLED);
+
+  const [confirmFailed, setConfirmFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const wasCanceled = searchParams.get("canceled") === "1";
+
+  // Stripe の決済画面から戻ってきたら、サーバーで加入の完了を確かめてから記録する
+  useEffect(() => {
+    if (!returnedSessionId || !STRIPE_ENABLED) return;
+    let cancelled = false;
+    confirmCheckout(returnedSessionId)
+      .then((r) => {
+        if (cancelled || r.kind !== "membership" || r.artistId !== artistId) throw new Error("決済の情報が、このアーティストのものではありません。");
+        // すでに別の決済で加入中なら、上書きしない（古い完了ページを開き直したときなど）
+        const existing = memberships.find((m) => m.artistId === artistId);
+        if (existing?.stripeSessionId && existing.stripeSessionId !== r.sessionId && !existing.canceledAt) throw new Error(`すでにこのアーティストのメンバーです。二重に請求されている場合は、お問い合わせください（決済の番号：${r.sessionId}）。`);
+        // メールアドレスは、決済の前にこの画面で入力されたものを使う（サーバーからは受け取らない）
+        let savedEmail = "";
+        try {
+          savedEmail = sessionStorage.getItem(JOIN_EMAIL_KEY) ?? "";
+          sessionStorage.removeItem(JOIN_EMAIL_KEY);
+        } catch {
+          // 読めなくても加入の記録はできる
+        }
+        if (!user && savedEmail) login({ name: savedEmail.split("@")[0], email: savedEmail, provider: "email" });
+        joinMembership(r.artistId, r.planId, "new", r.sessionId);
+        setDone("new");
+        setDoneText("毎月同じ日（その日がない月は月末）に自動で更新されます。特典は今日から使えます。");
+        setStep("done");
+        setConfirmFailed(false);
+        router.replace(pathname);
+      })
+      .catch((e: Error) => {
+        if (cancelled) return;
+        // 確かめられなかったときは session_id を残し、もう一度確かめられるようにする（払い直しを防ぐ）
+        setPayError(e.message);
+        setConfirmFailed(true);
+      })
+      .finally(() => !cancelled && setConfirming(false));
+    return () => {
+      cancelled = true;
+    };
+    // 戻ってきたときと、「もう一度確かめる」を押したときだけ確かめる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retry]);
+
+  // 決済ページでキャンセルして戻ったときは、入力し直さなくてよいよう、確認の手順から再開する
+  useEffect(() => {
+    if (!wasCanceled || !initialPlanId) return;
+    let saved = "";
+    try {
+      saved = sessionStorage.getItem(JOIN_EMAIL_KEY) ?? "";
+    } catch {
+      // 読めないときは、メールアドレスから入力し直してもらう
+    }
+    /* eslint-disable react-hooks/set-state-in-effect -- 保存された入力はブラウザでしか読めない */
+    if (saved) setEmail(saved);
+    if (user || isEmail(saved)) setStep("confirm");
+    else setStep("payment");
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // 戻ってきた最初の1回だけ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 決済ページからブラウザの「戻る」で戻ったとき、移動中のまま固まらないようにする
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => e.persisted && setPaying(false);
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
   const stepChanged = useRef(false);
@@ -65,9 +144,47 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
     first?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }, [attempt]);
 
-  // 初めの描画では加入状況がまだ読めていないので、読めたら「いまのプラン」を選択から外す
-  const selectedId = currentPlan && planId === currentPlan.id && step === "plan" ? null : planId;
+  // Stripe で加入した人は、下位への変更を選べない（次の更新日に切り替える仕組み＝Subscription Schedule がそろうまで）
+  const stripeMember = STRIPE_ENABLED && Boolean(membership?.stripeSessionId);
+  const lowerBlocked = (p: MembershipPlan) => stripeMember && currentPlan !== undefined && p.price < currentPlan.price;
+  // 加入中の人が選べるプラン：いまのプラン・満員・止めている下位のプランを除く
+  const selectable = (p: MembershipPlan) => p.id !== currentPlan?.id && !isPlanFull(p) && !lowerBlocked(p);
+  const hasChoice = available.some(selectable);
+  // 初めの描画では加入状況がまだ読めていないので、読めたら選べないプラン（いまのプラン・止めている下位）を選択から外す
+  const planForId = plans.find((p) => p.id === planId);
+  const selectedId = step !== "done" && currentPlan && planForId && !selectable(planForId) ? null : planId;
   const plan = available.find((p) => p.id === selectedId);
+  if (confirming) {
+    return (
+      <p role="status" className="mt-8 border border-stone-200 bg-white p-8 text-center text-sm">
+        お支払いを確認しています…
+      </p>
+    );
+  }
+  if (confirmFailed) {
+    return (
+      <div role="alert" className="mx-auto mt-8 max-w-xl space-y-3 border-l-4 border-rose-600 bg-rose-50 p-6 text-sm text-rose-900">
+        <p className="font-bold">お支払いの確認ができませんでした</p>
+        <p>{payError}</p>
+        <p>お支払いが済んでいる場合は、もう一度支払わずに、確認し直すかお問い合わせください。</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setConfirming(true);
+              setRetry((n) => n + 1);
+            }}
+            className={buttonClass("primary")}
+          >
+            もう一度確かめる
+          </button>
+          <Link href="/contact" className={buttonClass("secondary")}>
+            お問い合わせ
+          </Link>
+        </div>
+      </div>
+    );
+  }
   if (available.length === 0) return <p className="mt-8 text-stone-600">現在加入できるプランがありません。</p>;
   // 解約済みの人は、特典期間中かどうかが決まるまで何も出さない（新規加入の画面が一瞬見えないように）
   if (canceled && !membership && now === null) return <div className="mt-8 h-64 animate-pulse bg-stone-100" aria-label="読み込み中" />;
@@ -76,7 +193,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   const change: "new" | "upgrade" | "downgrade" = !isMember || !plan ? "new" : plan.price > currentPlan.price ? "upgrade" : "downgrade";
   const steps: FormStep[] = isMember ? ["plan", "confirm"] : ["plan", "payment", "confirm"];
   const current = steps.indexOf(step as FormStep);
-  const toArtist = plan ? Math.floor(plan.price * (1 - PLATFORM_FEE_RATE)) : 0;
+  const toArtist = plan ? payoutAmount(plan.price) : 0;
   const renewal = membership && now !== null ? formatDate(nextBillingDate(membership.joinedAt, now).toISOString()) : null;
   const timingFor = (kind: "new" | "upgrade" | "downgrade", price?: number, fromName?: string) =>
     kind === "new"
@@ -99,7 +216,46 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
       setAttempt((a) => a + 1);
       return;
     }
+    // 念のため：Stripe の契約と食い違う変更（下位への変更）は記録しない
+    if (plan && lowerBlocked(plan)) {
+      setPayError("下位プランへの変更は準備中です。");
+      return;
+    }
+    if (step === "confirm" && plan && STRIPE_ENABLED && change === "new") {
+      // 新規加入：Stripe の決済ページで月額の契約を作る。金額はサーバーがプランから決める
+      setPaying(true);
+      setPayError(null);
+      try {
+        if (contactEmail) sessionStorage.setItem(JOIN_EMAIL_KEY, contactEmail);
+      } catch {
+        // 保存できなくても決済はできる
+      }
+      startCheckout("/api/checkout/membership/", { artistId, planId: plan.id, email: contactEmail || undefined }).catch((e: Error) => {
+        setPayError(e.message);
+        setPaying(false);
+      });
+      return;
+    }
+    if (step === "confirm" && plan && STRIPE_ENABLED && change === "upgrade" && membership?.stripeSessionId) {
+      // 上位プランへの変更：Stripe の契約のプランを書き換える（月額は次の更新日から）
+      setPaying(true);
+      setPayError(null);
+      const kind = change;
+      const text = timing;
+      updateMembership(membership.stripeSessionId, "upgrade", plan.id)
+        .then(() => {
+          joinMembership(artistId, plan.id, kind);
+          setDone(kind);
+          setDoneText(text);
+          goTo("done");
+        })
+        .catch((e: Error) => setPayError(e.message))
+        .finally(() => setPaying(false));
+      return;
+    }
     if (step === "confirm" && plan) {
+      // デモ、または下位プランへの変更（次の更新日からの切り替え予約）
+      // TODO: Stripe では下位への変更を Subscription Schedule で次の更新日に予約する
       // 継続課金は解約の手続きが必要なので、メールアドレスでアカウントを作ってから加入する
       // TODO: 本番では Supabase Auth のマジックリンクでメールアドレスを確認してから Subscription を作る（他人のアドレスで加入させない）
       // TODO: Stripe Billing の Subscription を作成・変更してから記録する
@@ -122,8 +278,14 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
             {done === "new" ? `${artistName}のメンバーになりました！` : "プランの変更を受け付けました"}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            {/* TODO: メールを送れるようになったら「確認メールをお送りしました」に戻す */}
-            （デモ版）本番では {contactEmail} に確認メールが届きます。
+            {STRIPE_ENABLED ? (
+              <>{STRIPE_TEST ? "（テストモードのため、実際のお金は動いていません）" : "Stripe から領収のメールが届きます。"}</>
+            ) : (
+              <>
+                {/* TODO: メールを送れるようになったら「確認メールをお送りしました」に戻す */}
+                （デモ版）本番では {contactEmail} に確認メールが届きます。
+              </>
+            )}
             <br />
             {doneText}
           </p>
@@ -153,13 +315,22 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
+            disabled={paying}
             onClick={() => {
-              resumeMembership(artistId);
-              toast("メンバーシップを再開しました");
+              const done = () => {
+                resumeMembership(artistId);
+                toast("メンバーシップを再開しました");
+              };
+              if (!canceled?.stripeSessionId || !STRIPE_ENABLED) return done();
+              setPaying(true);
+              updateMembership(canceled.stripeSessionId, "resume")
+                .then(done)
+                .catch((e: Error) => toast(e.message))
+                .finally(() => setPaying(false));
             }}
             className={buttonClass("primary")}
           >
-            メンバーシップを再開する
+            {paying ? "処理しています…" : "メンバーシップを再開する"}
           </button>
           <Link href="/mypage/membership" className={buttonClass("secondary")}>
             マイページへ戻る
@@ -178,9 +349,16 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   return (
     <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
       <div ref={formRef} className="min-w-0 space-y-6">
-        {isMember && !available.some((p) => p.id !== currentPlan.id) && (
+        {wasCanceled && step !== "plan" && (
+          <p role="status" className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            お支払いはキャンセルされました（請求はありません）。内容を確かめて、もう一度お進みください。
+          </p>
+        )}
+        {isMember && !hasChoice && (
           <p className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            いま変更できるプランはありません（ほかのプランは満員です）。
+            {stripeMember && plans.some(lowerBlocked)
+              ? "いま変更できる上位のプランはありません。下位に変えたいときは、いったん解約し、特典の期間が終わってからもう一度加入してください。"
+              : "いま変更できるプランはありません（ほかのプランは満員です）。"}
             <Link href="/mypage/membership" className="ml-1 font-bold underline">
               マイページへ戻る
             </Link>
@@ -188,7 +366,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
         )}
         {isMember && (
           <p className="bg-brand-soft px-4 py-3 text-sm text-brand">
-            いま<span className="font-bold">{currentPlan.name}</span>プラン（{formatYen(currentPlan.price)} / 月）に加入中です。変更したいプランを選んでください。
+            いま<span className="font-bold">{currentPlan.name}</span>プラン（{formatYen(currentPlan.price)} / 月）に加入中です。{hasChoice && "変更したいプランを選んでください。"}
           </p>
         )}
         <ol className="flex gap-2 text-xs" aria-label={isMember ? "プラン変更の手順" : "加入の手順"}>
@@ -215,9 +393,10 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
           <fieldset className="space-y-3">
             <legend className="mb-2">{heading(isMember ? "新しいプランを選んでください" : "プランを選んでください")}</legend>
             {available.map((p) => {
-              const isCurrent = p.id === currentPlan?.id;
+              const blocked = lowerBlocked(p);
+              const isCurrent = p.id === currentPlan?.id || blocked;
               return (
-                <label key={p.id} className={`flex gap-3 border-2 bg-white p-4 transition ${isCurrent ? "cursor-not-allowed opacity-70" : "cursor-pointer"} ${p.id === selectedId ? "border-brand" : "border-stone-200"}`}>
+                <label key={p.id} className={`flex gap-3 border-2 p-4 transition ${isCurrent ? "cursor-not-allowed opacity-70" : "cursor-pointer"} ${p.id === selectedId ? "border-brand bg-brand-soft/40" : "border-stone-200 bg-white"}`}>
                   <input
                     type="radio"
                     name="plan"
@@ -226,13 +405,14 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                     onChange={() => setPlanId(p.id)}
                     aria-invalid={showErrors && !plan && !isCurrent ? true : undefined}
                     aria-describedby={showErrors && !plan && !isCurrent ? errorId : undefined}
-                    className="mt-1 accent-brand"
+                    className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
                   />
                   <span className="flex-1">
                     <span className="flex justify-between gap-2 font-bold">
                       <span>
                         {p.name}
-                        {isCurrent && <span className="ml-2 bg-brand-soft px-1.5 py-0.5 text-[11px] text-brand">いまのプラン</span>}
+                        {p.id === currentPlan?.id && <span className="ml-2 bg-brand-soft px-1.5 py-0.5 text-[11px] text-brand">いまのプラン</span>}
+                        {blocked && <span className="ml-2 bg-stone-100 px-1.5 py-0.5 text-[11px] text-stone-600">下位への変更は準備中</span>}
                       </span>
                       <span className="shrink-0">{formatYen(p.price)} / 月</span>
                     </span>
@@ -248,6 +428,9 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
             )}
             <p className="text-xs text-stone-500">どのプランにも、{MEMBER_COMMON_PERKS.map((perk) => perk.title).join("・")}が付きます。</p>
             {isMember && <p className="text-xs text-stone-500">{PLAN_CHANGE_RULE}</p>}
+            {isMember && stripeMember && hasChoice && plans.some(lowerBlocked) && (
+              <p className="text-xs text-stone-500">下位プランに変えたいときは、いったん解約し、特典の期間が終わってからもう一度加入してください。</p>
+            )}
           </fieldset>
         )}
 
@@ -289,6 +472,17 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                 </>
               )}
             </section>
+            {STRIPE_ENABLED ? (
+              <section className="space-y-3 border border-stone-200 bg-white p-5">
+                <h3 className="font-bold">お支払い方法</h3>
+                <p className="text-sm leading-relaxed">確認のあと、Stripe の安全な決済ページで、毎月のお支払いに使う方法を登録します。カード番号などは OTOFUND には届きません。</p>
+                {STRIPE_TEST && (
+                  <p className="bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">
+                    テストモードです。カード番号 4242 4242 4242 4242、有効期限は未来の日付、セキュリティコードは任意の3桁で試せます。実際のお金は動きません。
+                  </p>
+                )}
+              </section>
+            ) : (
             <section className="space-y-4 border border-stone-200 bg-white p-5">
               <h3 className="font-bold">お支払い方法</h3>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -306,6 +500,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                 通信は暗号化され、カード情報は当サイトに保存されません。
               </p>
             </section>
+            )}
           </div>
         )}
 
@@ -335,7 +530,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
               {!isMember && (
                 <>
                   <dt className="text-stone-500">お支払い</dt>
-                  <dd>{paymentMethod}</dd>
+                  <dd>{STRIPE_ENABLED ? "次の画面（Stripe）で登録します" : paymentMethod}</dd>
                 </>
               )}
             </dl>
@@ -346,14 +541,27 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
           </div>
         )}
 
+        {payError && (
+          <p role="alert" className="border-l-4 border-rose-600 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            {payError}
+          </p>
+        )}
         <div className="flex gap-3">
           {step !== "plan" && (
             <button type="button" onClick={() => goTo(steps[current - 1] ?? "plan")} className={buttonClass("secondary")}>
               戻る
             </button>
           )}
-          <button type="button" onClick={next} disabled={isMember && !available.some((p) => p.id !== currentPlan.id)} className={buttonClass("primary", "lg", "flex-1")}>
-            {step === "confirm" && plan ? (isMember ? `${plan.name}プランに変更する` : `月額${formatYen(plan.price)}でメンバーになる`) : "次へ"}
+          <button type="button" onClick={next} disabled={paying || (isMember && !hasChoice)} className={buttonClass("primary", "lg", "flex-1")}>
+            {paying
+              ? "処理しています…"
+              : step === "confirm" && plan
+                ? isMember
+                  ? `${plan.name}プランに変更する`
+                  : STRIPE_ENABLED
+                    ? `月額${formatYen(plan.price)}のお支払いへ進む`
+                    : `月額${formatYen(plan.price)}でメンバーになる`
+                : "次へ"}
           </button>
         </div>
       </div>

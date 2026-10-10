@@ -38,7 +38,12 @@ export default async function HomePage() {
   const members = withMembership(artists);
 
   const popular = [...live].sort((a, b) => b.backers - a.backers);
-  const endingSoon = [...live].sort((a, b) => a.endAt.localeCompare(b.endAt)).slice(0, 3);
+  // まもなく終了は、注目のプロジェクト（上位6件）と重ならないものを優先する
+  const pickup = new Set(popular.slice(0, 6).map((p) => p.slug));
+  const byEnd = [...live].sort((a, b) => a.endAt.localeCompare(b.endAt));
+  // 注目以外が足りないときは、重複で埋めず、件数を減らして出す（1件もなければ注目と同じものから出す）
+  const notPicked = byEnd.filter((p) => !pickup.has(p.slug));
+  const endingSoon = (notPicked.length > 0 ? notPicked : byEnd).slice(0, 3);
   const smallRewards = live
     .flatMap((p) =>
       p.rewards
@@ -73,7 +78,7 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:750ms]">
             <Link href="/projects" className={buttonClass("primary", "lg", "group relative overflow-hidden")}>
-              <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 animate-shine bg-white/20" aria-hidden />
+              <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] animate-shine bg-white/10 motion-reduce:hidden" aria-hidden />
               プロジェクトをさがす <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
             </Link>
             <Link href="/start" className={buttonClass("secondary", "lg")}>
@@ -92,7 +97,10 @@ export default async function HomePage() {
           <SectionHeading en="Pickup" ja="注目のプロジェクト" />
           <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {popular.slice(0, 6).map((p, i) => (
-              <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i} />
+              // スマホでは3件にしぼり、縦に長くなりすぎないようにする
+              <div key={p.slug} className={i >= 3 ? "hidden sm:block" : undefined}>
+                <ProjectCard project={p} artist={artistOf(p.artistId)} index={i} />
+              </div>
             ))}
           </div>
           <div className="flex justify-end">
@@ -101,7 +109,90 @@ export default async function HomePage() {
         </section>
       </div>
 
-      <div className="mt-16 -rotate-1">
+      {/* 支援の入口を先に：気軽な価格帯 → はじめての方へ → まもなく終了 → メンバーシップ。FES はその後に伝える */}
+      <div className="mx-auto max-w-6xl space-y-28 px-4 py-24">
+        <section className="space-y-10">
+          <SectionHeading en="Small start" ja={`${formatYen(SMALL_BUDGET)}以下で応援できる`} lead="はじめての支援にも。" />
+          <ul data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {smallRewards.map(({ project, reward }) => (
+              <li key={`${project.slug}-${reward.id}`}>
+                <Link
+                  href={`/projects/${project.slug}/support?reward=${reward.id}`}
+                  className="group flex h-full gap-4 bg-stone-100 p-3 transition hover:-translate-y-1 hover:bg-brand-soft hover:shadow-lg"
+                >
+                  <span className="relative h-24 w-20 shrink-0 overflow-hidden">
+                    <Photo src={project.cover} alt="" sizes="80px" className="transition-transform duration-500 group-hover:scale-110" />
+                  </span>
+                  <span className="min-w-0 py-1">
+                    <span className="font-en text-2xl font-black">{formatYen(reward.price)}</span>
+                    <span className="mt-1 block text-[11px] font-bold text-brand">{REWARD_KIND_LABELS[reward.kind]}</span>
+                    <span className="mt-1 block truncate text-sm font-bold">{reward.title}</span>
+                    <span className="block truncate text-xs text-stone-500">{artistOf(project.artistId)?.name}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="relative border-[3px] border-pop-teal p-8 sm:p-12">
+          <Sticker shape="triangle" color="purple" size={56} className="-right-5 -top-7" float />
+          <SectionHeading en="How it works" ja="はじめての方へ" />
+          <ol data-stagger className="mt-10 grid gap-10 sm:grid-cols-3">
+            {HOW_IT_WORKS.map((s, i) => (
+              <li key={s.title}>
+                <p className="font-en text-5xl font-black text-pop-teal/25">0{i + 1}</p>
+                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-teal-700">{s.en}</p>
+                <p className="mt-2 font-bold tracking-wider">{s.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-10 bg-stone-100 p-4 text-sm font-medium tracking-wide">
+            ✓ All-or-Nothing のプロジェクトは、目標に届かなければお支払いなし。方式は各プロジェクトに表示しています。表示価格はすべて税込・送料込みです。
+            <Link href="/help" className="ml-2 text-teal-700 underline">
+              よくある質問
+            </Link>
+          </p>
+        </section>
+
+        <section className="space-y-10">
+          <SectionHeading en="Ending soon" ja="まもなく終了" lead="募集の終了が近いプロジェクトです。" />
+          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {endingSoon.map((p, i) => (
+              <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i + 1} />
+            ))}
+          </div>
+        </section>
+
+        {/* メンバーシップ：クラファンの合間も、毎月の応援でつながる */}
+        <section data-reveal="zoom" className="relative bg-brand-soft p-8 sm:p-12">
+          <Sticker shape="circle" color="yellow" size={52} className="-left-4 -top-5" float />
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:items-center">
+            <div>
+              <SectionHeading en="Membership" ja="毎月、推しのとなりに。" />
+              <p className="mt-5 text-sm leading-loose tracking-wider text-stone-700">
+                月額{formatYen(MEMBERSHIP_MIN_PRICE)}から、好きなアーティストのメンバーに。メンバーは新しいプロジェクトを公開前から支援でき、
+                限定リターンも先に選べます。
+              </p>
+              <div className="mt-6">
+                <Link href="/membership" className={buttonClass("primary", "lg")}>
+                  メンバーシップについて <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </div>
+            <ul data-stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {members.slice(0, 6).map((a) => (
+                <li key={a.id}>
+                  <MembershipArtistCard artist={a} membership={a.membership} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <div className="-rotate-1">
         <TextMarquee words={["MUSIC", "WITH", "FANS", "OTOFUND", "ONE NOTE FES"]} tone="yellow" />
       </div>
 
@@ -140,88 +231,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl space-y-28 px-4 py-24">
-
-        {/* メンバーシップ：クラファンの合間も、毎月の応援でつながる */}
-        <section data-reveal="zoom" className="relative bg-brand-soft p-8 sm:p-12">
-          <Sticker shape="circle" color="yellow" size={52} className="-left-4 -top-5" float />
-          <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:items-center">
-            <div>
-              <SectionHeading en="Membership" ja="毎月、推しのとなりに。" />
-              <p className="mt-5 text-sm leading-loose tracking-wider text-stone-700">
-                月額{formatYen(MEMBERSHIP_MIN_PRICE)}から、好きなアーティストのメンバーに。メンバーは新しいプロジェクトを公開前から支援でき、
-                限定リターンも先に選べます。
-              </p>
-              <div className="mt-6">
-                <CircleLink href="/membership" color="purple">
-                  メンバーシップについて
-                </CircleLink>
-              </div>
-            </div>
-            <ul data-stagger className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {members.slice(0, 6).map((a) => (
-                <li key={a.id}>
-                  <MembershipArtistCard artist={a} membership={a.membership} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section className="relative border-[3px] border-pop-teal p-8 sm:p-12">
-          <Sticker shape="triangle" color="purple" size={56} className="-right-5 -top-7" float />
-          <SectionHeading en="How it works" ja="はじめての方へ" />
-          <ol data-stagger className="mt-10 grid gap-10 sm:grid-cols-3">
-            {HOW_IT_WORKS.map((s, i) => (
-              <li key={s.title}>
-                <p className="font-en text-5xl font-black text-pop-teal/25">0{i + 1}</p>
-                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-teal-700">{s.en}</p>
-                <p className="mt-2 font-bold tracking-wider">{s.title}</p>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-10 bg-stone-100 p-4 text-sm font-medium tracking-wide">
-            ✓ All-or-Nothing のプロジェクトは、目標に届かなければお支払いなし。方式は各プロジェクトに表示しています。表示価格はすべて税込・送料込みです。
-            <Link href="/help" className="ml-2 text-teal-700 underline">
-              よくある質問
-            </Link>
-          </p>
-        </section>
-
-        <section className="space-y-10">
-          <SectionHeading en="Ending soon" ja="まもなく終了" lead="募集の終了が近いプロジェクトです。" />
-          <div data-stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {endingSoon.map((p, i) => (
-              <ProjectCard key={p.slug} project={p} artist={artistOf(p.artistId)} index={i + 1} />
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-10">
-          <SectionHeading en="Small start" ja={`${formatYen(SMALL_BUDGET)}以下で応援できる`} lead="はじめての支援にも。" />
-          <ul data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {smallRewards.map(({ project, reward }) => (
-              <li key={`${project.slug}-${reward.id}`}>
-                <Link
-                  href={`/projects/${project.slug}/support?reward=${reward.id}`}
-                  className="group flex h-full gap-4 bg-stone-100 p-3 transition hover:-translate-y-1 hover:bg-brand-soft hover:shadow-lg"
-                >
-                  <span className="relative h-24 w-20 shrink-0 overflow-hidden">
-                    <Photo src={project.cover} alt="" sizes="80px" className="transition-transform duration-500 group-hover:scale-110" />
-                  </span>
-                  <span className="min-w-0 py-1">
-                    <span className="font-en text-2xl font-black">{formatYen(reward.price)}</span>
-                    <span className="mt-1 block text-[11px] font-bold text-brand">{REWARD_KIND_LABELS[reward.kind]}</span>
-                    <span className="mt-1 block truncate text-sm font-bold">{reward.title}</span>
-                    <span className="block truncate text-xs text-stone-500">{artistOf(project.artistId)?.name}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
+      <div className="mx-auto max-w-6xl px-4 py-24">
         <section className="space-y-10">
           <SectionHeading en="Data" ja="数字で見るOTOFUND" />
           <dl data-stagger className="grid gap-4 sm:grid-cols-3">
@@ -300,9 +310,9 @@ export default async function HomePage() {
             高校生バンドから歌い手、インディーズ、メジャーまで。掲載は無料です。
           </p>
           <div className="mt-8">
-            <CircleLink href="/start" color="purple">
-              プロジェクトをはじめる
-            </CircleLink>
+            <Link href="/start" className={buttonClass("primary", "lg")}>
+              プロジェクトをはじめる <span aria-hidden>→</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -314,7 +324,7 @@ function Stat({ label, value, unit }: { label: string; value: React.ReactNode; u
   return (
     <div className="bg-stone-100 px-6 py-8 text-center transition hover:-translate-y-1 hover:bg-brand-soft">
       <dt className="text-sm font-bold tracking-wider">{label}</dt>
-      <dd className="mt-3 font-en text-4xl font-black text-pop-blue sm:text-5xl">
+      <dd className="mt-3 font-en text-4xl font-black text-brand sm:text-5xl">
         {value}
         {unit && <span className="ml-1 text-base">{unit}</span>}
       </dd>

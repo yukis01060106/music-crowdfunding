@@ -32,7 +32,7 @@ export default async function ProjectUpdatesPage({ params }: PageProps<"/project
         <li key={u.id} className="animate-rise border border-stone-200 bg-white p-5">
           <p className="text-xs text-stone-500">
             {formatDate(u.publishedAt)}
-            {u.backersOnly && <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">支援者限定</span>}
+            {u.backersOnly && <span className="ml-2 bg-amber-100 px-1.5 py-0.5 text-amber-700">支援者限定</span>}
           </p>
           <h2 className="mt-1 font-bold">{u.title}</h2>
           {u.backersOnly ? <BackersOnly project={project} body={u.body} /> : <p className="mt-2 whitespace-pre-wrap text-stone-700">{u.body}</p>}

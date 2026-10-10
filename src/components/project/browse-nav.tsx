@@ -4,8 +4,6 @@ import { chipClass } from "@/components/ui/chip";
 
 type Current = { kind: "type"; value: ArtistType } | { kind: "genre"; value: Genre } | undefined;
 
-
-
 /** 「アーティストタイプ」と「音楽ジャンル」の2軸で探すナビ */
 export function BrowseNav({ current }: { current?: Current }) {
   return (
@@ -45,7 +43,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline">
       <p className="w-16 shrink-0 text-xs font-bold text-stone-500">{label}</p>
-      <nav className="flex flex-wrap gap-2">{children}</nav>
+      {/* スマホでは1行の横スクロールにして、最初の画面にプロジェクトが見えるようにする */}
+      <div className="relative min-w-0">
+        <nav aria-label={`${label}で探す`} className="-mx-4 flex scroll-px-10 gap-2 overflow-x-auto px-4 py-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:py-0 [&>*]:shrink-0">
+          {children}
+        </nav>
+        <span className="pointer-events-none absolute inset-y-0 -right-4 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" aria-hidden />
+      </div>
     </div>
   );
 }

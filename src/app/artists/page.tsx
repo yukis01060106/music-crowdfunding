@@ -13,7 +13,7 @@ export default async function ArtistsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="font-en text-xs font-medium tracking-wide text-stone-500">Artists</p>
-      <h1 className="mt-1 text-3xl font-black tracking-[0.12em]">アーティスト</h1>
+      <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">アーティスト</h1>
       <p className="mt-3 text-sm text-stone-600">高校生バンドから歌い手、インディーズ、メジャーまで。気になるアーティストを見つけて、プロジェクトやメンバーシップで応援しましょう。</p>
       <ArtistDirectory artists={artists} projectCounts={projectCounts} />
     </div>

@@ -22,8 +22,9 @@ export function HeroPhotoColumns() {
           </div>
         ))}
       </div>
-      <Sticker shape="circle" color="yellow" size={64} float className="right-4 top-10" />
-      <Sticker shape="square" color="blue" size={28} rotate={20} float className="right-16 top-24" />
+      {/* スマホでは写真の人物の顔にかかるので、右上の図形は出さない */}
+      <Sticker shape="circle" color="yellow" size={64} float className="right-4 top-10 hidden sm:block" />
+      <Sticker shape="square" color="blue" size={28} rotate={20} float className="right-16 top-24 hidden sm:block" />
       <Sticker shape="triangle" color="purple" size={54} float className="left-[46%] top-1/2" />
       <Sticker shape="square" color="teal" size={46} rotate={-15} float className="bottom-16 left-3" />
       <Sticker shape="dot" color="pink" size={30} className="bottom-8 left-16" />

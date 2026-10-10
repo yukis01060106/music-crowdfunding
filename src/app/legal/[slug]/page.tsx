@@ -37,7 +37,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[slug]">) 
           </Link>
         ))}
       </nav>
-      <h1 className="mt-8 text-2xl font-bold tracking-wider">{doc.title}</h1>
+      <h1 className="mt-8 text-2xl font-black tracking-[0.12em] sm:text-3xl">{doc.title}</h1>
       <p className="mt-2 text-xs text-stone-500">最終更新日：{formatDate(doc.updatedAt)}</p>
       <p className="mt-6 border-l-4 border-amber-400 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
         この内容は公開前のたたき台です。サービス開始前に、弁護士など専門家の確認を受けた正式な本文に差し替えます。〔 〕の箇所は、運営会社の情報が決まりしだい記載します。
