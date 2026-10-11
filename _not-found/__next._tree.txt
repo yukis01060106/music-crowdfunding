@@ -1,0 +1,3 @@
+:HL["/music-crowdfunding/_next/static/chunks/01zk83xpt6ydc.css","style"]
+:HL["/music-crowdfunding/_next/static/chunks/42s_qulofz_tp.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":4112,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":4160,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}},"staleTime":300,"buildId":"x58YK3jrPdueQ8jgH6SLG"}

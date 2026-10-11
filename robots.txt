@@ -1,0 +1,5 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://yukis01060106.github.io/music-crowdfunding/sitemap.xml
