@@ -155,8 +155,10 @@ export interface Project {
   cover: string;
   /** 表紙に続けて見せる写真。表紙を含めて最大5枚 */
   gallery?: string[];
-  /** 紹介動画（YouTube / Vimeo の URL） */
+  /** 紹介動画（YouTube / Vimeo の URL）。写真と並べて一番上に出す */
   videoUrl?: string;
+  /** このプロジェクトに込めた想い。メッセージ動画（YouTube / Vimeo の URL）とひとこと */
+  message?: { videoUrl?: string; text?: string };
 }
 
 export const GENRE_LABELS: Record<Genre, string> = {

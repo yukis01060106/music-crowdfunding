@@ -228,6 +228,12 @@ footer :focus-visible,
   outline-color: var(--color-brand);
 }
 
+/* 枠いっぱいに広がるボタン（動画の再生など）は、外側の枠が切れるので内側に黄色で出す */
+[data-inset-focus]:focus-visible {
+  outline-color: var(--color-pop-yellow);
+  outline-offset: -6px;
+}
+
 details > summary::-webkit-details-marker {
   display: none;
 }

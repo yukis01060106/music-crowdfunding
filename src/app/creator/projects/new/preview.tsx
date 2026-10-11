@@ -9,6 +9,7 @@ import { FUNDING_MODEL_LABELS, GENRE_LABELS, REWARD_KIND_LABELS } from "@/types"
 import { formatDuration, formatYen } from "@/lib/format";
 import { budgetTotal, toEmbedUrl, toNumber, type Draft } from "./draft";
 import { buttonClass } from "@/components/ui/button";
+import { MessageVideo } from "@/components/project/message-video";
 
 const monthLabel = (m: string) => (m ? `${m.slice(0, 4)}年${Number(m.slice(5, 7))}月` : "未定");
 
@@ -94,6 +95,19 @@ export function Preview({ d, onClose }: { d: Draft; onClose: () => void }) {
                         </li>
                       ))}
                     </ul>
+                  </section>
+                )}
+                {(toEmbedUrl(d.messageVideoUrl) || d.messageText.trim()) && (
+                  <section className="space-y-4">
+                    <h2 className="text-lg font-bold tracking-[0.1em]">このプロジェクトに込めた想い</h2>
+                    {toEmbedUrl(d.messageVideoUrl) && <MessageVideo videoUrl={d.messageVideoUrl} label="メッセージ動画" poster={image && <img src={image.url} alt="" className="h-full w-full object-cover" />} />}
+                    {d.messageText.trim() && (
+                      <figure className="border-l-4 border-brand bg-brand-soft/40 p-4">
+                        <blockquote className="whitespace-pre-line leading-loose text-stone-800">{d.messageText}</blockquote>
+                        {/* TODO: Supabase をつないだら、ログイン中の実行者のアーティスト名を出す（提出時の artist も同じ） */}
+                        <figcaption className="mt-2 text-sm font-bold">— 星空ラジオ</figcaption>
+                      </figure>
+                    )}
                   </section>
                 )}
                 <PreviewSection title="ストーリー">

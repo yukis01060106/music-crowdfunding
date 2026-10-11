@@ -10,7 +10,7 @@ import { submitProject } from "@/lib/demo-store";
 import { IS_DEMO } from "@/lib/site";
 import { formatPrice, formatYen } from "@/lib/format";
 import { MINOR_ARTIST_TYPES, REWARD_KIND_LABELS } from "@/types";
-import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, revokeFiles, saveDraft, storyText, TABS, toNumber, type Draft, type Tab } from "./draft";
+import { applyFix, checklist, clearDraft, initialDraft, loadDraft, proofreadFields, revokeFiles, saveDraft, storyText, TABS, toEmbedUrl, toNumber, type Draft, type Tab } from "./draft";
 import { Preview } from "./preview";
 import { BasicsSection, IdentitySection, MediaSection, MoneySection, RewardsSection, RisksSection, StorySection, TracksSection, type Update } from "./sections";
 
@@ -24,7 +24,7 @@ const AUTOSAVE_MS = 1500;
 function tabOfField(fieldId: string): Tab {
   const kind = fieldId.split(":")[0];
   if (kind === "title" || kind === "catchcopy") return "基本情報";
-  if (kind === "summary" || kind === "story") return "ストーリー";
+  if (kind === "message" || kind === "summary" || kind === "story") return "ストーリー";
   if (kind === "budget" || kind === "schedule") return "資金・スケジュール";
   if (kind === "reward") return "リターン";
   return "リスク・FAQ";
@@ -227,6 +227,8 @@ export function ProjectEditor() {
                 artist: "星空ラジオ",
                 goal: d.goalType === "amount" ? formatYen(toNumber(d.goal)) : `参加 ${d.goal}人`,
                 story: storyText(d).slice(0, 400),
+                messageVideoUrl: toEmbedUrl(d.messageVideoUrl) ? d.messageVideoUrl.trim() : undefined,
+                messageText: d.messageText.trim() || undefined,
                 rewards: d.rewards.map((r) => `${formatPrice(r.kind === "free" ? 0 : toNumber(r.price))} ${r.title}（${REWARD_KIND_LABELS[r.kind]}）`),
                 flags: { identity: d.identityVerified, cover: d.tracks.some((t) => t.isCover), minor: d.artistTypes.some((t) => MINOR_ARTIST_TYPES.includes(t)) },
               });

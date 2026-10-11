@@ -11,6 +11,7 @@ import { buttonClass } from "@/components/ui/button";
 import { tagClass } from "@/components/ui/tag";
 import { inputClass } from "@/components/ui/input";
 import { DANGER_BUTTON } from "./admin-ui";
+import { MessageVideo } from "@/components/project/message-video";
 
 export interface QueueItem {
   id: string;
@@ -21,6 +22,8 @@ export interface QueueItem {
   story: string;
   rewards: string[];
   flags: { identity: boolean; cover: boolean; minor: boolean };
+  messageVideoUrl?: string;
+  messageText?: string;
 }
 
 type Decision = "approved" | "rejected";
@@ -54,7 +57,7 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
   const open = items.find((i) => i.id === openId);
   const pending = items.filter((i) => !decisions[i.id]);
   const done = items.filter((i) => decisions[i.id]);
-  const issues = open ? ruleCheck([{ id: "story", label: "ストーリー", text: `${open.title}\n${open.story}` }]) : [];
+  const issues = open ? ruleCheck([{ id: "story", label: "ストーリー", text: `${open.title}\n${open.messageText ?? ""}\n${open.story}` }]) : [];
   const allChecked = CHECKS.every((c) => checked[c.key]);
 
   function start(id: string) {
@@ -129,6 +132,13 @@ export function ReviewQueue({ items: fixed }: { items: QueueItem[] }) {
             <p className="text-stone-500">
               {open.artist}・目標 {open.goal}・{formatDate(open.submittedAt)} 提出
             </p>
+            {(open.messageVideoUrl || open.messageText) && (
+              <div className="space-y-3">
+                <p className="font-bold">メッセージ動画・ひとこと</p>
+                {open.messageVideoUrl && <MessageVideo videoUrl={open.messageVideoUrl} label={`${open.title}のメッセージ動画`} />}
+                {open.messageText && <p className="whitespace-pre-line border-l-4 border-brand bg-brand-soft/40 p-3 leading-relaxed">{open.messageText}</p>}
+              </div>
+            )}
             <div className="bg-stone-50 p-4 leading-relaxed text-stone-700">{open.story}</div>
             <div>
               <p className="font-bold">リターン</p>

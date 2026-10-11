@@ -5,6 +5,10 @@ import { TrustBox } from "@/components/project/trust-box";
 import { ArtistCard } from "@/components/project/artist-card";
 import { SellerInfo } from "@/components/project/seller-info";
 import { chipClass } from "@/components/ui/chip";
+import { Eyebrow } from "@/components/ui/section-heading";
+import { Photo } from "@/components/ui/photo";
+import { MessageVideo } from "@/components/project/message-video";
+import { toEmbedUrl } from "@/lib/video";
 
 const SECTIONS = [
   { id: "story", label: "ストーリー" },
@@ -20,6 +24,8 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
   if (!project) notFound();
   const artist = await getArtist(project.artistId);
   const budgetTotal = project.budget.reduce((sum, b) => sum + b.amount, 0);
+  const messageVideo = project.message?.videoUrl && toEmbedUrl(project.message.videoUrl) ? project.message.videoUrl : null;
+  const messageText = project.message?.text?.trim();
 
   return (
     <div className="space-y-10">
@@ -36,6 +42,28 @@ export default async function ProjectStoryPage({ params }: PageProps<"/projects/
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {(messageVideo || messageText) && (
+        <section id="message" className="scroll-mt-20">
+          <Eyebrow>Message</Eyebrow>
+          <h2 className="mt-2 text-xl font-bold tracking-[0.1em]">このプロジェクトに込めた想い</h2>
+          {messageVideo && (
+            <div className="mt-4">
+              <MessageVideo
+                videoUrl={messageVideo}
+                label={`${artist?.name ?? "アーティスト"}からのメッセージ動画`}
+                poster={<Photo src={project.cover} alt="" sizes="(min-width: 1024px) 760px, 100vw" />}
+              />
+            </div>
+          )}
+          {messageText && (
+            <figure className="mt-5 border-l-4 border-brand bg-brand-soft/40 p-5">
+              <blockquote className="whitespace-pre-line leading-loose text-stone-800">{messageText}</blockquote>
+              {artist && <figcaption className="mt-3 text-sm font-bold">— {artist.name}</figcaption>}
+            </figure>
+          )}
         </section>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { jstDateKey } from "./format";
+import { toEmbedUrl } from "./video";
 
 // デモ用の保存領域。ログイン・お気に入り・支援・メンバーシップ・メッセージ・設定を
 // ブラウザ（localStorage）に保存して、サイト全体でつながって見えるようにする。
@@ -91,6 +92,9 @@ export interface Submission {
   story: string;
   rewards: string[];
   flags: { identity: boolean; cover: boolean; minor: boolean };
+  /** メッセージ動画の URL（審査で中身を確かめる） */
+  messageVideoUrl?: string;
+  messageText?: string;
 }
 
 /** 実行者が投稿した活動報告（プロジェクトの活動報告のページに出る） */
@@ -232,7 +236,11 @@ function sanitize(raw: unknown): DemoState {
     memberships: arr(r.memberships, INITIAL_STATE.memberships, isMembership),
     threads: arr<Thread>(r.threads, INITIAL_STATE.threads, isThread).map((t) => ({ ...t, messages: arr<ThreadMessage>(t.messages, [], (m) => isStr(m.body) && isDate(m.at) && (m.from === "me" || m.from === "artist")).slice(-200).map((m) => ({ ...m, body: clip(m.body, 2000) })) })),
     settings,
-    submissions: arr(r.submissions, [], isSubmission),
+    submissions: arr<Submission>(r.submissions, [], isSubmission).map((s) => ({
+      ...s,
+      messageVideoUrl: typeof s.messageVideoUrl === "string" && toEmbedUrl(clip(s.messageVideoUrl, 300)) ? clip(s.messageVideoUrl, 300) : undefined,
+      messageText: typeof s.messageText === "string" ? clip(s.messageText, 200) : undefined,
+    })),
     postedUpdates: arr<PostedUpdate>(r.postedUpdates, [], isPostedUpdate).slice(0, 200).map((u) => ({ ...u, title: clip(u.title, 200), body: clip(u.body, 5000) })),
     shipped:
       r.shipped && typeof r.shipped === "object" && !Array.isArray(r.shipped)

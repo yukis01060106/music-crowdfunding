@@ -32,6 +32,7 @@ import {
   IMAGE_MAX_MB,
   IMAGE_MIN_WIDTH,
   IMAGE_RATIO,
+  MESSAGE_MAX,
   newId,
   REWARD_RECOMMENDED,
   rewardProblems,
@@ -51,6 +52,7 @@ import {
   type StoryBlock,
   type StoryBlockType,
 } from "./draft";
+import { MessageVideo } from "@/components/project/message-video";
 import { AddButton, Field, inputClass, move, readAudio, readImage, RowActions, Tip, toMb } from "./editor-ui";
 
 export type Update = (fn: (d: Draft) => Draft) => void;
@@ -289,7 +291,7 @@ export function MediaSection({ d, update }: SectionProps) {
       <Field
         label="紹介動画（YouTube / Vimeo のURL）"
         optional
-        hint="ライブ映像やメンバーからのメッセージ動画があると、支援の決め手になりやすいです。1〜3分がおすすめ。"
+        hint="ライブ映像や MV など。写真と並べてページの一番上に出ます。想いを語る動画は「ストーリー」のメッセージ動画へ。"
         error={d.videoUrl.trim() && !embed ? "YouTube か Vimeo の動画のURLを入力してください" : null}
       >
         <input value={d.videoUrl} onChange={(e) => set("videoUrl", e.target.value)} className={inputClass} placeholder="https://www.youtube.com/watch?v=..." inputMode="url" />
@@ -315,8 +317,48 @@ export function StorySection({ d, update }: SectionProps) {
     update((prev) => ({ ...prev, story: prev.story.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
   const addBlock = (type: StoryBlockType) => set("story", [...d.story, { id: newId(), type, text: "" }]);
 
+  const messageEmbed = toEmbedUrl(d.messageVideoUrl);
+
   return (
     <>
+      <div className="space-y-4 border-[3px] border-brand/30 bg-brand-soft/30 p-4">
+        <div>
+          <p className="font-bold">このプロジェクトに込めた想い</p>
+          <p className="mt-1 text-xs leading-relaxed text-stone-600">ストーリーのいちばん上に出ます。顔と声で想いを伝えると、文章だけより支援につながりやすくなります。</p>
+        </div>
+        <Field
+          label="メッセージ動画（YouTube / Vimeo のURL）"
+          optional
+          hint="スマホで撮ったものでも大丈夫です。なぜ今このプロジェクトをやるのか、支援がどう形になるのかを1〜2分で。YouTube なら「限定公開」でも埋め込めます。"
+          error={d.messageVideoUrl.trim() && !messageEmbed ? "YouTube か Vimeo の動画のURLを入力してください" : null}
+        >
+          <input value={d.messageVideoUrl} onChange={(e) => set("messageVideoUrl", e.target.value)} className={inputClass} placeholder="https://www.youtube.com/watch?v=..." inputMode="url" />
+        </Field>
+        {messageEmbed && (
+          <div className="animate-rise">
+            <MessageVideo
+              videoUrl={d.messageVideoUrl}
+              label="メッセージ動画のプレビュー"
+              poster={d.images[0] && <img src={d.images[0].url} alt="" className="h-full w-full object-cover" />}
+            />
+          </div>
+        )}
+        <Field
+          label="メッセージ（ひとこと）"
+          optional
+          hint={`${d.messageText.length} / ${MESSAGE_MAX}文字。動画の下に、あなたの名前と一緒に出ます。`}
+        >
+          <textarea
+            value={d.messageText}
+            onChange={(e) => set("messageText", e.target.value)}
+            rows={3}
+            maxLength={MESSAGE_MAX}
+            className={inputClass}
+            placeholder="例：7年間ライブハウスで育ててきた曲たちを、ちゃんと形にして残したい。そのために力を貸してください。"
+          />
+        </Field>
+      </div>
+
       <Field label="このプロジェクトで実現すること（3つまで）" hint="スマホでは、ページの冒頭しか読まれないことが多いです。ここだけで伝わるように、1行ずつ短く。">
         <div className="mt-1 space-y-2">
           {d.summary.map((s, i) => (

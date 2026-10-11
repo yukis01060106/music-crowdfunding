@@ -11,6 +11,7 @@ export { toEmbedUrl };
 export const TITLE_MAX = 40;
 export const CATCHCOPY_MAX = 60;
 export const STORY_MIN = 400;
+export const MESSAGE_MAX = 200;
 export const DAYS_MIN = 7;
 export const DAYS_MAX = 80;
 
@@ -89,6 +90,9 @@ export interface Draft {
   guardianConsent: boolean;
   images: DraftImage[];
   videoUrl: string;
+  /** このプロジェクトに込めた想い（メッセージ動画とひとこと） */
+  messageVideoUrl: string;
+  messageText: string;
   summary: string[];
   story: StoryBlock[];
   tracks: DraftTrack[];
@@ -148,6 +152,8 @@ export const initialDraft: Draft = {
   guardianConsent: false,
   images: [],
   videoUrl: "",
+  messageVideoUrl: "",
+  messageText: "",
   summary: [""],
   story: STORY_TEMPLATE,
   tracks: [],
@@ -217,6 +223,7 @@ export function checklist(d: Draft): CheckItem[] {
     { label: "メイン画像（1枚以上）", done: d.images.length > 0, tab: "写真・動画", required: true },
     { label: "メイン画像を3枚以上", done: d.images.length >= 3, tab: "写真・動画", required: false },
     { label: "紹介動画", done: toEmbedUrl(d.videoUrl) !== null, tab: "写真・動画", required: false },
+    { label: "メッセージ動画", done: toEmbedUrl(d.messageVideoUrl) !== null, tab: "ストーリー", required: false },
     { label: "実現すること（要約）", done: d.summary.some((s) => s.trim()), tab: "ストーリー", required: true },
     { label: `ストーリー（${STORY_MIN}文字以上）`, done: storyText(d).length >= STORY_MIN, tab: "ストーリー", required: true },
     { label: "試聴音源", done: d.tracks.length > 0, tab: "試聴音源", required: false },
@@ -244,6 +251,7 @@ export function proofreadFields(d: Draft): ProofreadField[] {
   return [
     { id: "title", label: "タイトル", text: d.title },
     { id: "catchcopy", label: "キャッチコピー", text: d.catchcopy },
+    { id: "message", label: "メッセージ（ひとこと）", text: d.messageText },
     ...d.summary.map((s, i) => ({ id: `summary:${i}`, label: `実現すること ${i + 1}`, text: s })),
     ...d.story
       .filter((b) => b.type !== "video")
@@ -274,6 +282,8 @@ export function applyFix(d: Draft, fieldId: string, excerpt: string, replacement
       return { ...d, catchcopy: fix(d.catchcopy) };
     case "risks":
       return { ...d, risks: fix(d.risks) };
+    case "message":
+      return { ...d, messageText: fix(d.messageText) };
     case "summary":
       return { ...d, summary: d.summary.map((s, i) => (String(i) === id ? fix(s) : s)) };
     case "story":
@@ -350,6 +360,8 @@ export function loadDraft(): Draft | null {
       days: text("days"),
       risks: text("risks"),
       videoUrl: text("videoUrl"),
+      messageVideoUrl: text("messageVideoUrl"),
+      messageText: text("messageText"),
       artistTypes: arr("artistTypes"),
       summary: arr("summary"),
       story: arr("story"),

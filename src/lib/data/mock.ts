@@ -138,6 +138,9 @@ const rawProjects: Project[] = [
     slug: "hoshizora-1st-album",
     cover: "/images/records-wall.jpg",
     gallery: ["/images/hoshizora-radio.jpg", "/images/bass-studio.jpg", "/images/vinyl-purple.jpg"],
+    message: {
+      text: "7年間、ライブハウスで少しずつ育ててきた12曲です。\n見に来てくれた人がいたから、ここまで続けられました。その曲たちを、ちゃんとした音で一枚に残したい。力を貸してください。",
+    },
     title: "星空ラジオ 1stフルアルバムを、ちゃんとしたスタジオで録りたい",
     catchcopy: "結成7年目。ライブで育ててきた12曲を、一枚のアルバムに。",
     artistId: "hoshizora-radio",
