@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Stepper } from "@/components/ui/stepper";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { MembershipPlan } from "@/types";
@@ -156,7 +157,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
   const plan = available.find((p) => p.id === selectedId);
   if (confirming) {
     return (
-      <p role="status" className="mt-8 border border-stone-200 bg-white p-8 text-center text-sm">
+      <p role="status" className="mt-8 border-[3px] border-ink/10 bg-white p-8 text-center text-sm">
         お支払いを確認しています…
       </p>
     );
@@ -369,25 +370,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
             いま<span className="font-bold">{currentPlan.name}</span>プラン（{formatYen(currentPlan.price)} / 月）に加入中です。{hasChoice && "変更したいプランを選んでください。"}
           </p>
         )}
-        <ol className="flex gap-2 text-xs" aria-label={isMember ? "プラン変更の手順" : "加入の手順"}>
-          {steps.map((s, i) => (
-            <li
-              key={s}
-              aria-current={s === step ? "step" : undefined}
-              className={`flex-1 py-1.5 text-center ${i < current ? "bg-brand-soft text-brand" : s === step ? "bg-brand font-bold text-white" : "bg-stone-200 text-stone-700"}`}
-            >
-              {i < current ? (
-                <>
-                  <span aria-hidden>✓ </span>
-                  <span className="sr-only">完了：</span>
-                </>
-              ) : (
-                `${i + 1}. `
-              )}
-              {STEP_LABELS[s]}
-            </li>
-          ))}
-        </ol>
+        <Stepper labels={steps.map((x) => STEP_LABELS[x])} current={current} label={isMember ? "プラン変更の手順" : "加入の手順"} />
 
         {step === "plan" && (
           <fieldset className="space-y-3">
@@ -396,7 +379,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
               const blocked = lowerBlocked(p);
               const isCurrent = p.id === currentPlan?.id || blocked;
               return (
-                <label key={p.id} className={`flex gap-3 border-2 p-4 transition ${isCurrent ? "cursor-not-allowed opacity-70" : "cursor-pointer"} ${p.id === selectedId ? "border-brand bg-brand-soft/40" : "border-stone-200 bg-white"}`}>
+                <label key={p.id} className={`flex gap-3 border-[3px] p-4 transition ${isCurrent ? "cursor-not-allowed opacity-70" : "cursor-pointer"} ${p.id === selectedId ? "border-brand bg-brand-soft/40" : "border-ink/10 bg-white"}`}>
                   <input
                     type="radio"
                     name="plan"
@@ -436,7 +419,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
 
         {step === "payment" && plan && (
           <div className="space-y-5">
-            <section className="border border-stone-200 bg-white p-5">
+            <section className="border-[3px] border-ink/10 bg-white p-5">
               {heading("メールアドレスとお支払い")}
               {user ? (
                 <p className="mt-2 text-sm">
@@ -473,7 +456,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
               )}
             </section>
             {STRIPE_ENABLED ? (
-              <section className="space-y-3 border border-stone-200 bg-white p-5">
+              <section className="space-y-3 border-[3px] border-ink/10 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
                 <p className="text-sm leading-relaxed">確認のあと、Stripe の安全な決済ページで、毎月のお支払いに使う方法を登録します。カード番号などは Oto Fundには届きません。</p>
                 {STRIPE_TEST && (
@@ -483,11 +466,11 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                 )}
               </section>
             ) : (
-            <section className="space-y-4 border border-stone-200 bg-white p-5">
+            <section className="space-y-4 border-[3px] border-ink/10 bg-white p-5">
               <h3 className="font-bold">お支払い方法</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {PAYMENT_METHODS.map((m) => (
-                  <label key={m} className={`flex min-h-11 cursor-pointer items-center gap-2 border-2 p-3 text-sm ${paymentMethod === m ? "border-brand" : "border-stone-200"}`}>
+                  <label key={m} className={`flex min-h-11 cursor-pointer items-center gap-2 border-[3px] p-3 text-sm ${paymentMethod === m ? "border-brand" : "border-ink/10"}`}>
                     <input type="radio" name="payment" checked={paymentMethod === m} onChange={() => setPaymentMethod(m)} className="accent-brand" />
                     {m}
                   </label>
@@ -505,7 +488,7 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
         )}
 
         {step === "confirm" && plan && (
-          <div className="space-y-4 border border-stone-200 bg-white p-5">
+          <div className="space-y-4 border-[3px] border-ink/10 bg-white p-5">
             {heading("内容の確認")}
             <dl className="grid grid-cols-[6rem_1fr] gap-y-3 text-sm">
               <dt className="text-stone-500">プラン</dt>
@@ -533,6 +516,9 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                   <dd>{STRIPE_ENABLED ? "次の画面（Stripe）で登録します" : paymentMethod}</dd>
                 </>
               )}
+              {/* 毎月の課金なので、申し込みの直前に解約の方法を示す */}
+              <dt className="text-stone-500">解約</dt>
+              <dd>マイページの「メンバーシップ」からいつでもできます。解約しても、次の更新日の前日まで特典を使えます。</dd>
             </dl>
             <p className="text-xs text-stone-500">
               {isMember ? "変更する" : "加入する"}ことで<Link href="/legal/terms" className="underline">利用規約</Link>と
@@ -544,6 +530,14 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
         {payError && (
           <p role="alert" className="border-l-4 border-rose-600 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             {payError}
+          </p>
+        )}
+        {/* スマホでは画面の下に固定し、月額と「次へ」をいつでも押せるようにする（支援の流れと同じ） */}
+        <div data-support-bar className="sticky bottom-0 z-20 -mx-4 border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+        {plan && (
+          <p className="mb-2 flex items-baseline justify-between gap-3 text-sm lg:hidden" aria-live="polite">
+            <span className="min-w-0 truncate text-stone-600">{plan.name}プラン</span>
+            <span className="shrink-0 font-bold">月額 {formatYen(plan.price)}</span>
           </p>
         )}
         <div className="flex gap-3">
@@ -561,13 +555,14 @@ export function JoinFlow({ artistId, artistName, plans }: { artistId: string; ar
                   : STRIPE_ENABLED
                     ? `月額${formatYen(plan.price)}のお支払いへ進む`
                     : `月額${formatYen(plan.price)}でメンバーになる`
-                : "次へ"}
+                : steps[current + 1] ? `次へ：${STEP_LABELS[steps[current + 1] as FormStep]}` : "次へ"}
           </button>
+        </div>
         </div>
       </div>
 
       <aside className="lg:sticky lg:top-20 lg:self-start">
-        <div className="space-y-3 border border-stone-200 bg-white p-5 text-sm">
+        <div className="space-y-3 border-[3px] border-ink bg-white p-5 text-sm shadow-sticker-sm">
           <h2 className="font-bold">{isMember ? "変更の内容" : "ご加入内容"}</h2>
           {plan ? (
             <>

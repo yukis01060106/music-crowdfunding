@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getProject, getPublicProjects } from "@/lib/data";
+import { getArtist, getProject, getPublicProjects } from "@/lib/data";
+import { Photo } from "@/components/ui/photo";
 import { SupportFlow } from "./support-flow";
 
 export const metadata: Metadata = { title: "支援する", robots: { index: false } };
@@ -18,16 +19,25 @@ export default async function SupportPage({ params }: PageProps<"/projects/[slug
   const { slug } = await params;
   const project = await getProject(slug);
   if (!project) notFound();
+  const artist = await getArtist(project.artistId);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <Link href={`/projects/${project.slug}`} className="text-sm text-stone-500 hover:text-brand">
         ← プロジェクトに戻る
       </Link>
-      <h1 className="mt-2 text-xl font-black leading-snug tracking-[0.08em] sm:text-2xl">{project.title}</h1>
+      <div className="mt-3 flex items-center gap-3">
+        <span className="relative aspect-[4/3] w-16 shrink-0 overflow-hidden sm:w-20">
+          <Photo src={project.cover} alt="" sizes="80px" />
+        </span>
+        <div className="min-w-0">
+          {artist && <p className="text-xs font-bold text-stone-500">{artist.name}</p>}
+          <h1 className="text-xl font-black leading-snug tracking-[0.08em] sm:text-2xl">{project.title}</h1>
+        </div>
+      </div>
       <Suspense>
         <SupportFlow
-          project={{ slug: project.slug, status: project.status, endAt: project.endAt }}
+          project={project}
           projectSlug={project.slug}
           projectTitle={project.title}
           fundingModel={project.fundingModel}

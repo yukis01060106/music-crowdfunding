@@ -45,6 +45,28 @@ function paymentStatus(project: Project, b: Backing, now: number | null): { labe
   return PAYMENT_LABELS[state];
 }
 
+/** 支援がいまどの段階か。0：支援済み 1：決済済み 2：制作中 3：発送・お届け済み */
+function stageOf(project: Project, b: Backing, now: number | null, shipped: boolean): number {
+  if (shipped) return 3;
+  if (paymentState(project, b, now) !== "charged") return 0;
+  // 決済が済んだら制作に入る（All-or-Nothing は募集が終わってから）
+  return project.status === "live" && project.fundingModel === "all_or_nothing" ? 1 : 2;
+}
+
+function BackingProgress({ stage, delivery }: { stage: number; delivery: string }) {
+  const labels = ["支援", "決済", "制作中", delivery];
+  return (
+    <ol className="mt-3 flex max-w-sm items-center gap-1" aria-label={`いまの段階：${labels[stage]}`}>
+      {labels.map((label, i) => (
+        <li key={label} className="flex flex-1 flex-col gap-1">
+          <span className={`h-1.5 ${i <= stage ? "bg-brand" : "bg-stone-200"}`} aria-hidden />
+          <span className={`text-[11px] ${i === stage ? "font-bold text-brand" : i < stage ? "text-stone-600" : "text-stone-500"}`}>{label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export function Backings({ projects }: { projects: Project[] }) {
   const { user, backings, memberships, favorites, shipped, tracking, postedUpdates } = useDemo();
   // 実行者が7日以内に投稿した活動報告があるか
@@ -91,8 +113,8 @@ export function Backings({ projects }: { projects: Project[] }) {
           {rows.map((r) => {
             const status = paymentStatus(r.project, r, now);
             return (
-              <li key={r.id} className="animate-rise flex flex-col gap-4 border border-stone-200 bg-white p-4 sm:flex-row">
-                <Link href={`/projects/${r.project.slug}`} className="relative aspect-[4/3] w-full shrink-0 overflow-hidden sm:h-24 sm:w-32">
+              <li key={r.id} className="animate-rise flex flex-wrap gap-4 border-[3px] border-ink/10 bg-white p-4 sm:flex-nowrap">
+                <Link href={`/projects/${r.project.slug}`} tabIndex={-1} aria-hidden className="relative size-20 shrink-0 overflow-hidden sm:h-24 sm:w-32">
                   <Photo src={r.project.cover} alt="" sizes="128px" />
                 </Link>
                 <div className="min-w-0 flex-1">
@@ -121,9 +143,11 @@ export function Backings({ projects }: { projects: Project[] }) {
                     {r.amount > 0 && `・${r.paymentMethod}`}・お届け予定 {r.reward.deliveryEstimate}
                     {r.awaitingPayment && r.voucherExpiresAt && !voucherExpired(r, now) && `・${formatDateTime(r.voucherExpiresAt)}までにお支払いください`}
                   </p>
+                  {/* いまどの段階か（支援 → 決済 → 制作中 → お届け） */}
+                  {r.amount > 0 && !refunded.has(r.id) && <BackingProgress stage={stageOf(r.project, r, now, Boolean(own(shipped, r.id)))} delivery={r.reward.requiresShipping ? "発送" : "お届け"} />}
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2 self-start text-xs sm:w-44 sm:flex-col">
-                  <Link href={`/projects/${r.project.slug}/updates`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
+                <div className="grid w-full shrink-0 grid-cols-2 gap-2 self-start text-xs sm:flex sm:w-44 sm:flex-col">
+                  <Link href={`/projects/${r.project.slug}/updates`} className={buttonClass("secondary", "md", "text-xs")}>
                     活動報告
                     {hasNewUpdate(r.project.slug) && (
                       <span className={tagClass("brand", "ml-1")}>
@@ -131,7 +155,7 @@ export function Backings({ projects }: { projects: Project[] }) {
                       </span>
                     )}
                   </Link>
-                  <Link href={`/mypage/messages?to=${r.project.slug}`} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 text-center hover:bg-stone-100">
+                  <Link href={`/mypage/messages?to=${r.project.slug}`} className={buttonClass("secondary", "md", "text-xs")}>
                     質問する
                   </Link>
                   {r.awaitingPayment && !voucherExpired(r, now) && safeVoucherUrl(r.voucherUrl) && (
@@ -144,7 +168,7 @@ export function Backings({ projects }: { projects: Project[] }) {
                   {/* 返金の相談は、決済が済んだ支援だけ（請求前の All-or-Nothing や、支払い前のコンビニ払いは返金の対象にならない） */}
                   {paymentState(r.project, r, now) === "charged" && <RefundRequestButton backingId={r.id} projectSlug={r.project.slug} projectTitle={r.project.title} amount={r.amount} />}
                   {r.amount > 0 && status.label.startsWith("決済済み") && !refunded.has(r.id) && (
-                    <button type="button" onClick={() => openReceipt({ ...r, rewardTitle: r.reward.title, rewardPrice: r.reward.price }, user?.name ?? "")} className="inline-flex min-h-11 items-center justify-center border border-stone-500 px-3 hover:bg-stone-100">
+                    <button type="button" onClick={() => openReceipt({ ...r, rewardTitle: r.reward.title, rewardPrice: r.reward.price }, user?.name ?? "")} className={buttonClass("secondary", "md", "text-xs")}>
                       領収書
                     </button>
                   )}

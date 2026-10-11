@@ -3,6 +3,7 @@ import type { MembershipPlan } from "@/types";
 import { formatNumber, formatYen } from "@/lib/format";
 import { isPlanFull } from "@/lib/membership";
 import { buttonClass } from "@/components/ui/button";
+import { Check, ICON } from "@/components/ui/icon";
 
 /** 月額プラン1つ分。いちばん加入者の多いプランは枠で目立たせる */
 export function PlanCard({
@@ -16,32 +17,30 @@ export function PlanCard({
 }) {
   const full = isPlanFull(plan);
   const remaining = plan.limit === undefined ? undefined : plan.limit - plan.members;
+  // いちばん人気のプランは色を反転させて、主役にする
+  const featured = popular && !full;
 
   return (
     <div
-      className={`relative flex flex-col border-[3px] bg-white p-5 text-ink transition duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
-        popular && !full ? "border-brand" : "border-stone-200"
-      } ${full ? "opacity-60" : ""}`}
+      className={`relative flex flex-col border-[3px] p-5 transition duration-200 ${
+        full ? "border-stone-200 bg-stone-50 text-ink" : featured ? "border-ink bg-ink text-white shadow-sticker-brand" : "border-ink/10 bg-white text-ink hover:border-ink hover:shadow-sticker-sm"
+      }`}
     >
-      {popular && !full && (
-        <span className="absolute -top-3 left-4 bg-brand px-2 py-0.5 text-xs font-bold tracking-wider text-white">いちばん人気</span>
-      )}
+      {featured && <span className="absolute -top-3 left-4 bg-pop-yellow px-2 py-0.5 text-xs font-bold tracking-wider text-ink">いちばん人気</span>}
       <p className="font-bold tracking-wider">{plan.name}</p>
       <p className="mt-2">
-        <span className="font-en text-3xl font-black">{formatYen(plan.price)}</span>
-        <span className="ml-1 text-xs text-stone-500">/ 月（税込）</span>
+        <span className={`font-en text-3xl font-black ${featured ? "text-pop-yellow" : ""}`}>{formatYen(plan.price)}</span>
+        <span className={`ml-1 text-xs ${featured ? "text-white/70" : "text-stone-500"}`}>/ 月（税込）</span>
       </p>
-      <ul className="mt-4 flex-1 space-y-1.5 text-sm text-stone-700">
+      <ul className={`mt-4 flex-1 space-y-1.5 text-sm ${featured ? "text-white/90" : "text-stone-700"}`}>
         {plan.perks.map((perk) => (
           <li key={perk} className="flex gap-2">
-            <span className="text-brand" aria-hidden>
-              ✓
-            </span>
+            <Check {...ICON} className={`mt-0.5 size-4 shrink-0 ${featured ? "text-pop-yellow" : "text-brand"}`} />
             {perk}
           </li>
         ))}
       </ul>
-      <p className="mt-4 text-xs text-stone-500">
+      <p className={`mt-4 text-xs ${featured ? "text-white/70" : "text-stone-500"}`}>
         メンバー {formatNumber(plan.members)}人
         {remaining !== undefined && !full && `・残り${remaining}枠`}
       </p>
@@ -50,9 +49,9 @@ export function PlanCard({
       ) : (
         <Link
           href={`/artists/${artistId}/join?plan=${plan.id}`}
-          className={buttonClass("primary", "md", "mt-3 w-full")}
+          className={buttonClass(featured ? "onDark" : "secondary", "md", "mt-3 w-full")}
         >
-          このプランでメンバーになる
+          メンバーになる
         </Link>
       )}
     </div>

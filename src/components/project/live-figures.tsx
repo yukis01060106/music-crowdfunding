@@ -24,13 +24,13 @@ export function LiveAmount({ project }: { project: Project }) {
 
 export function LivePercent({ project, className = "" }: { project: Project; className?: string }) {
   const percent = progressPercent(useLiveProject(project));
-  return <span className={`${className} ${percent >= 100 ? "text-emerald-700" : "text-brand"}`}>{percent}%</span>;
+  return <span className={`${className} text-brand`}>{percent}%</span>;
 }
 
 export function LiveBackers({ project }: { project: Project }) {
   return <>{formatNumber(useLiveProject(project).backers)}</>;
 }
 
-export function LiveProgressBar({ project }: { project: Project }) {
-  return <ProgressBar project={useLiveProject(project)} />;
+export function LiveProgressBar({ project, size }: { project: Project; size?: "sm" | "md" | "lg" }) {
+  return <ProgressBar project={useLiveProject(project)} size={size} />;
 }

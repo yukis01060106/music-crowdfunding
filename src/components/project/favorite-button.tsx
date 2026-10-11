@@ -1,6 +1,7 @@
 "use client";
 
 import { buttonClass } from "@/components/ui/button";
+import { Heart, ICON } from "@/components/ui/icon";
 import { toggleFavorite, useDemo } from "@/lib/demo-store";
 import { toast } from "@/components/ui/toast";
 
@@ -18,9 +19,8 @@ export function FavoriteButton({ slug }: { slug: string }) {
       aria-pressed={on}
       className={buttonClass(on ? "dark" : "secondary", "md", "group w-full")}
     >
-      <span className={`inline-block transition-transform ${on ? "scale-125" : "group-active:scale-90"}`} aria-hidden>
-        {on ? "♥" : "♡"}
-      </span>{" "}
+      {/* オンにした瞬間だけ、ハートが弾む（動きを減らす設定では弾まない） */}
+      <Heart {...ICON} key={on ? "on" : "off"} className={`size-5 ${on ? "fill-current text-pop-pink motion-safe:animate-[pop_0.4s_cubic-bezier(0.22,1,0.36,1)]" : "group-active:scale-90"}`} />
       {on ? "お気に入り済み" : "お気に入り"}
     </button>
   );

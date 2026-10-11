@@ -5,20 +5,39 @@ import { tagClass } from "@/components/ui/tag";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
 
 import { Photo } from "@/components/ui/photo";
+import { Sticker } from "@/components/ui/shapes";
+import { formatYen } from "@/lib/format";
 import { DaysLeft } from "./days-left";
 import { StatusBadges } from "./status-badges";
 import { VerifiedBadge } from "./verified-badge";
 import { SuspendedCardBadge } from "./support-cta";
 
-/** カードの枠色。並び順で黄→ピンク→青→緑とめぐる */
+/** 黒い背景の上のカードの枠色（ホームのアーティスト）。白い背景の一覧では使わない */
 export const FRAME_COLORS = ["border-pop-yellow", "border-pop-pink", "border-pop-blue", "border-pop-teal"] as const;
 
+/** 写真の角に置く図形。差し色は図形だけに使う（決まり）。並び順でめぐる */
+const ACCENTS = [
+  { shape: "circle", color: "yellow" },
+  { shape: "square", color: "pink" },
+  { shape: "triangle", color: "blue" },
+  { shape: "circle", color: "teal" },
+] as const;
+
+/** いちばん安い有料のリターン（0円のプランがあれば 0） */
+function startingPrice(project: Project): number | null {
+  if (project.rewards.some((r) => r.price === 0)) return 0;
+  const paid = project.rewards.filter((r) => r.price > 0 && (r.limit === undefined || r.backers < r.limit)).map((r) => r.price);
+  return paid.length > 0 ? Math.min(...paid) : null;
+}
+
 export function ProjectCard({ project, artist, index = 0 }: { project: Project; artist?: Artist; index?: number }) {
+  const from = startingPrice(project);
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className={`group flex flex-col border-[3px] bg-white p-3 transition-transform hover:-translate-y-1 ${FRAME_COLORS[index % FRAME_COLORS.length]}`}
+      className="group relative flex flex-col border-[3px] border-ink/10 bg-white p-3 transition duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-ink hover:shadow-sticker"
     >
+      <Sticker shape={ACCENTS[index % ACCENTS.length].shape} color={ACCENTS[index % ACCENTS.length].color} size={26} className="-left-2.5 -top-2.5 z-10 transition-transform duration-300 group-hover:rotate-12" />
       <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${project.color}`}>
         <Photo
           src={project.cover}
@@ -51,8 +70,11 @@ export function ProjectCard({ project, artist, index = 0 }: { project: Project; 
             </span>
             <LivePercent project={project} className="font-en text-lg font-black" />
           </div>
-          <p className="text-xs text-stone-500">
-            残り <DaysLeft endAt={project.endAt} />・<LiveBackers project={project} />人が支援
+          <p className="flex flex-wrap items-center justify-between gap-x-2 text-xs text-stone-500">
+            <span>
+              残り <DaysLeft endAt={project.endAt} />・<LiveBackers project={project} />人が支援
+            </span>
+            {from !== null && <span className="font-bold text-ink">{from === 0 ? "0円から参加できる" : `${formatYen(from)}から支援できる`}</span>}
           </p>
         </div>
       </div>

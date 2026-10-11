@@ -69,7 +69,7 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label="メニューを開く"
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-white transition active:scale-95 lg:hidden"
+        className="flex h-11 w-11 items-center justify-center text-ink transition hover:bg-stone-100 active:scale-95 lg:hidden"
       >
         <BurgerIcon open={false} />
       </button>
@@ -158,11 +158,8 @@ export function MobileMenu({ items }: { items: MenuItem[] }) {
                   </>
                 ) : (
                   <>
-                    <Link href={loginHref} onClick={close} className="bg-white py-3.5 text-center font-bold tracking-wider text-ink">
-                      ログイン
-                    </Link>
-                    <Link href={loginHref} onClick={close} className="border border-white/40 py-3.5 text-center font-bold tracking-wider">
-                      会員登録
+                    <Link href={loginHref} onClick={close} className="col-span-2 bg-white py-3.5 text-center font-bold tracking-wider text-ink">
+                      ログイン・会員登録（メールだけ）
                     </Link>
                   </>
                 )}

@@ -5,13 +5,19 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FundingModel, Project, Reward } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
-import { formatDate, formatDateTime, formatPrice, formatYen } from "@/lib/format";
+import { formatDate, formatDateTime, formatNumber, formatPrice, formatYen } from "@/lib/format";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { addBacking, useDemo } from "@/lib/demo-store";
 import { TIP_OPTIONS as SHARED_TIP_OPTIONS } from "@/lib/support-options";
 import { confirmCheckout, safeVoucherUrl, startCheckout, STRIPE_ENABLED, STRIPE_TEST, type SupportResult } from "@/lib/payments";
 import { ShareButtons } from "@/components/project/share-buttons";
 import { useOpenForSupport, useSuspended } from "@/components/project/support-cta";
+import { mostPopularRewardId } from "@/components/project/reward-card";
+import { Stepper } from "@/components/ui/stepper";
+import { useLiveProject } from "@/components/project/live-figures";
+import { Photo } from "@/components/ui/photo";
+import { Sticker } from "@/components/ui/shapes";
+import { ICON, PartyPopper } from "@/components/ui/icon";
 import { buttonClass } from "@/components/ui/button";
 import { inputClass } from "@/components/ui/input";
 import { chipClass } from "@/components/ui/chip";
@@ -110,7 +116,7 @@ export function SupportFlow({
   fundingModel,
   rewards,
 }: {
-  project: Pick<Project, "slug" | "status" | "endAt">;
+  project: Project;
   projectSlug: string;
   projectTitle: string;
   fundingModel: FundingModel;
@@ -125,6 +131,9 @@ export function SupportFlow({
   // URL で指定されたリターンが受付を終えていたら、黙って別のものを選ばず、自分で選んでもらう
   const requestedUnavailable = Boolean(initialRewardId) && !available.some((r) => r.id === initialRewardId);
   const [step, setStep] = useState<Step>("reward");
+  const popularId = mostPopularRewardId(rewards);
+  // 完了画面の「◯人目」は、このブラウザの支援を足した支援者の数
+  const liveProject = useLiveProject(project);
   const [rewardId, setRewardId] = useState<string | null>(requestedUnavailable ? null : (initialRewardId ?? available[0]?.id ?? null));
   const [quantity, setQuantity] = useState(1);
   const [tip, setTip] = useState(0);
@@ -271,7 +280,7 @@ export function SupportFlow({
 
   if (confirming) {
     return (
-      <p role="status" className="mt-8 border border-stone-200 bg-white p-8 text-center text-sm">
+      <p role="status" className="mt-8 border-[3px] border-ink/10 bg-white p-8 text-center text-sm">
         お支払いを確認しています…
       </p>
     );
@@ -304,7 +313,7 @@ export function SupportFlow({
 
   if (!open && step !== "done") {
     return (
-      <div className="mt-8 border border-stone-200 bg-white p-8 text-center">
+      <div className="mt-8 border-[3px] border-ink/10 bg-white p-8 text-center">
         <p className="text-lg font-bold">{suspended ? "このプロジェクトは支援の受付を停止しています" : "このプロジェクトの募集は終了しました"}</p>
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
           {suspended
@@ -408,15 +417,26 @@ export function SupportFlow({
 
   if (step === "done") {
     return (
-      <div className="mx-auto mt-8 max-w-xl space-y-6 border border-emerald-200 bg-emerald-50 p-8 text-center">
-        <p className="text-4xl" aria-hidden>
-          🎉
-        </p>
-        <div>
-          <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-emerald-800 focus:outline-none">
+      <div className="relative mx-auto mt-8 max-w-xl space-y-6 overflow-hidden border-[3px] border-ink bg-brand p-6 text-center text-white shadow-sticker sm:p-8">
+        {/* お祝いの図形（動きを減らす設定では浮かばない） */}
+        <Sticker shape="circle" color="yellow" size={64} className="-right-5 -top-5" float />
+        <Sticker shape="triangle" color="pink" size={36} className="left-4 top-16" float />
+        <Sticker shape="square" color="teal" size={28} rotate={18} className="bottom-24 right-6" float />
+        <Sticker shape="dot" color="yellow" size={22} className="bottom-10 left-8" />
+        <div className="relative mx-auto aspect-[16/9] w-full overflow-hidden border-[3px] border-white">
+          <Photo src={project.cover} alt="" sizes="(min-width: 640px) 576px, 100vw" />
+        </div>
+        <div className="relative">
+          <PartyPopper {...ICON} className="mx-auto size-8 text-pop-yellow" />
+          <h2 ref={headingRef} tabIndex={-1} className="mt-2 text-2xl font-black tracking-[0.08em] focus:outline-none">
             ご支援ありがとうございます！
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+          <p className="mt-3 text-sm">
+            あなたは
+            <span className="mx-1 font-en text-5xl font-black text-pop-yellow">{formatNumber(liveProject.backers)}</span>
+            人目のサポーターです
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-white/90">
             {result ? (
               <>
                 {STRIPE_TEST && "（テストモードのため、実際のお金は動いていません）"}
@@ -431,21 +451,47 @@ export function SupportFlow({
                 {/* TODO: メールを送れるようになったら「確認メールをお送りしました」に戻す */}
                 （デモ版）本番では {contactEmail} に確認メールが届きます。
                 <br />
-                {reward && paymentTiming(fundingModel, project.endAt, isFree)}
-              </>
+                    </>
             )}
           </p>
         </div>
+        {/* 支援の控え：何を・いくらで・いつ届くか */}
+        {reward && (
+          <dl className="relative grid grid-cols-[6.5rem_1fr] gap-y-2 bg-white p-4 text-left text-sm text-ink">
+            <dt className="text-stone-500">リターン</dt>
+            <dd className="font-bold">
+              {reward.title}
+              {qty > 1 && ` × ${qty}`}
+            </dd>
+            <dt className="text-stone-500">{isFree ? "参加" : "合計"}</dt>
+            <dd>
+              {isFree ? "0円で参加" : <span className="font-en font-bold">{formatYen(result?.amount ?? total)}</span>}
+              {!isFree && <span className="ml-1 text-xs text-stone-500">税込・送料込み</span>}
+            </dd>
+            {!isFree && (
+              <>
+                <dt className="text-stone-500">お支払い</dt>
+                <dd className="text-stone-700">{paymentTiming(fundingModel, project.endAt, isFree)}</dd>
+              </>
+            )}
+            {reward.price > 0 && (
+              <>
+                <dt className="text-stone-500">お届け予定</dt>
+                <dd>{reward.deliveryEstimate}</dd>
+              </>
+            )}
+          </dl>
+        )}
         {result?.awaitingPayment && safeVoucherUrl(result.voucherUrl) && (
-          <a href={safeVoucherUrl(result.voucherUrl)!} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg", "w-full")}>
+          <a href={safeVoucherUrl(result.voucherUrl)!} target="_blank" rel="noopener noreferrer" className={buttonClass("onDark", "lg", "relative w-full")}>
             払込票（支払番号）を開く
           </a>
         )}
-        <div className="bg-white p-4 text-left">
+        <div className="relative bg-white p-4 text-left text-ink">
           <ShareButtons title={projectTitle} path={`/projects/${projectSlug}/`} />
           <p className="mt-2 text-xs text-stone-500">あなたのシェアが、次の支援者につながります。</p>
         </div>
-        <div className="bg-white p-4 text-left text-sm">
+        <div className="relative bg-white p-4 text-left text-sm text-ink">
           {user ? (
             <>
               <p className="font-bold">支援内容はマイページで確認できます</p>
@@ -456,16 +502,16 @@ export function SupportFlow({
             </>
           ) : (
             <>
-              <p className="font-bold">ログインすると、マイページが使えます</p>
-              <p className="mt-1 text-stone-600">支援内容の確認、活動報告の通知、実行者へのメッセージができるようになります。パスワードは不要です。</p>
+              <p className="font-bold">マイページをつくると、支援をあとから確かめられます</p>
+              <p className="mt-1 text-stone-600">決済の状況・お届け予定・活動報告の通知をまとめて見られます。パスワードは不要で、メールアドレスだけです。</p>
               <Link href="/login?next=/mypage" className={buttonClass("primary", "md", "mt-3")}>
-                ログイン・会員登録
+                {contactEmail ? `${contactEmail} でマイページをつくる` : "マイページをつくる"}
               </Link>
             </>
           )}
         </div>
-        <p className="text-xs text-stone-500">{FES_FUND_MESSAGE}</p>
-        <Link href={`/projects/${projectSlug}`} className="inline-block text-sm text-stone-600 underline">
+        <p className="relative text-xs text-white">{FES_FUND_MESSAGE}</p>
+        <Link href={`/projects/${projectSlug}`} className="relative inline-flex min-h-11 items-center text-sm text-white underline underline-offset-4">
           プロジェクトに戻る
         </Link>
       </div>
@@ -481,25 +527,7 @@ export function SupportFlow({
   return (
     <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_320px]">
       <div ref={formRef} className="min-w-0 space-y-6">
-        <ol className="flex gap-2 text-xs" aria-label="支援の手順">
-          {steps.map((s, i) => (
-            <li
-              key={s}
-              aria-current={s === step ? "step" : undefined}
-              className={`flex-1 py-1.5 text-center ${i < current ? "bg-brand-soft text-brand" : s === step ? "bg-brand font-bold text-white" : "bg-stone-200 text-stone-700"}`}
-            >
-              {i < current ? (
-                <>
-                  <span aria-hidden>✓ </span>
-                  <span className="sr-only">完了：</span>
-                </>
-              ) : (
-                `${i + 1}. `
-              )}
-              {STEP_LABELS[s]}
-            </li>
-          ))}
-        </ol>
+        <Stepper labels={steps.map((x) => STEP_LABELS[x])} current={current} label="支援の手順" />
 
         {wasCanceled && step === "confirm" && (
           <p role="status" className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -525,7 +553,7 @@ export function SupportFlow({
             <fieldset className="space-y-3">
               <legend className="mb-2">{heading("リターンを選んでください")}</legend>
               {available.map((r) => (
-                <label key={r.id} data-reward-option={r.id} className={`flex cursor-pointer gap-3 border-2 p-4 transition ${r.id === rewardId ? "border-brand bg-brand-soft/40" : "border-stone-200 bg-white hover:border-stone-400"}`}>
+                <label key={r.id} data-reward-option={r.id} className={`flex cursor-pointer gap-3 border-[3px] p-4 transition ${r.id === rewardId ? "border-brand bg-brand-soft/40" : "border-ink/10 bg-white hover:border-ink/40"}`}>
                   <input
                     type="radio"
                     name="reward"
@@ -539,13 +567,17 @@ export function SupportFlow({
                     className="mt-0.5 h-5 w-5 shrink-0 accent-brand"
                   />
                   <span className="flex-1">
+                    {r.id === popularId && <span className="mb-1 inline-block bg-brand px-2 py-0.5 text-xs font-bold tracking-wider text-white">いちばん人気</span>}
                     <span className="flex justify-between gap-2 font-bold">
                       {r.title}
-                      <span className="shrink-0">{formatPrice(r.price)}</span>
+                      <span className="shrink-0 font-en">{formatPrice(r.price)}</span>
                     </span>
                     <span className="mt-1 block text-sm text-stone-600">{r.description}</span>
-                    <span className="mt-1 block text-xs text-stone-500">
-                      {REWARD_KIND_LABELS[r.kind]}・お届け予定 {r.deliveryEstimate}
+                    <span className="mt-1 flex flex-wrap gap-x-2 text-xs text-stone-500">
+                      <span>{REWARD_KIND_LABELS[r.kind]}</span>
+                      <span>お届け予定 {r.deliveryEstimate}</span>
+                      <span>{formatNumber(r.backers)}人が選択</span>
+                      {r.limit !== undefined && r.limit - r.backers <= 3 && <span className="font-bold text-ink">残り{r.limit - r.backers}個</span>}
                     </span>
                   </span>
                 </label>
@@ -567,7 +599,7 @@ export function SupportFlow({
               </label>
             )}
             {reward && !isFree && (
-              <fieldset className="border border-stone-200 bg-white p-4">
+              <fieldset className="border-[3px] border-ink/10 bg-white p-4">
                 <legend className="px-1 text-sm font-bold">上乗せ支援（任意）</legend>
                 <p className="text-xs text-stone-500">リターンはそのままに、応援の気持ちを上乗せできます。</p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -589,7 +621,7 @@ export function SupportFlow({
         )}
 
         {step === "shipping" && (
-          <fieldset className="space-y-4 border border-stone-200 bg-white p-5">
+          <fieldset className="space-y-4 border-[3px] border-ink/10 bg-white p-5">
             <legend className="px-1">{heading("お届け先")}</legend>
             {settings.addresses.length > 0 && user && (
               <div className="flex flex-wrap gap-2">
@@ -615,7 +647,7 @@ export function SupportFlow({
 
         {step === "payment" && (
           <div className="space-y-5">
-            <section className="border border-stone-200 bg-white p-5">
+            <section className="border-[3px] border-ink/10 bg-white p-5">
               {heading("メールアドレスとお支払い")}
               {user ? (
                 <p className="mt-2 text-sm">
@@ -640,7 +672,7 @@ export function SupportFlow({
             </section>
 
             {!isFree && STRIPE_ENABLED && (
-              <section className="space-y-3 border border-stone-200 bg-white p-5">
+              <section className="space-y-3 border-[3px] border-ink/10 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
                 <p className="text-sm leading-relaxed">
                   確認のあと、Stripe の安全な決済ページでお支払い方法を選びます。カード番号などは Oto Fundには届きません。
@@ -658,11 +690,11 @@ export function SupportFlow({
               </section>
             )}
             {!isFree && !STRIPE_ENABLED && (
-              <section className="space-y-4 border border-stone-200 bg-white p-5">
+              <section className="space-y-4 border-[3px] border-ink/10 bg-white p-5">
                 <h3 className="font-bold">お支払い方法</h3>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {methods.map((m) => (
-                    <label key={m} className={`flex min-h-11 cursor-pointer items-center gap-2 border-2 p-3 text-sm ${method === m ? "border-brand" : "border-stone-200"}`}>
+                    <label key={m} className={`flex min-h-11 cursor-pointer items-center gap-2 border-[3px] p-3 text-sm ${method === m ? "border-brand" : "border-ink/10"}`}>
                       <input type="radio" name="payment" checked={method === m} onChange={() => setPaymentMethod(m)} className="accent-brand" />
                       {m}
                     </label>
@@ -685,7 +717,7 @@ export function SupportFlow({
         )}
 
         {step === "confirm" && reward && (
-          <div className="space-y-4 border border-stone-200 bg-white p-5">
+          <div className="space-y-4 border-[3px] border-ink/10 bg-white p-5">
             {heading("内容の確認")}
             <dl className="divide-y divide-stone-100 text-sm">
               <ConfirmRow label="リターン" onEdit={() => goTo("reward")}>
@@ -741,7 +773,7 @@ export function SupportFlow({
           </p>
         )}
         {/* スマホでは画面の下に固定し、合計と「次へ」をいつでも押せるようにする */}
-        <div data-support-bar className="sticky bottom-0 z-20 -mx-4 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+        <div data-support-bar className="sticky bottom-0 z-20 -mx-4 border-t border-stone-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         {reward && (
           <p className="mb-2 flex items-baseline justify-between gap-3 text-sm lg:hidden">
             <span className="min-w-0 truncate text-stone-600">{reward.title}</span>
@@ -768,14 +800,14 @@ export function SupportFlow({
                       ? "カードを登録して支援する"
                       : `${formatYen(total)}のお支払いへ進む`
                     : `${formatYen(total)}で支援する`
-                : "次へ"}
+                : steps[current + 1] ? `次へ：${STEP_LABELS[steps[current + 1] as FormStep]}` : "次へ"}
           </button>
         </div>
         </div>
       </div>
 
       <aside className="lg:sticky lg:top-20 lg:self-start">
-        <div className="space-y-3 border border-stone-200 bg-white p-5 text-sm">
+        <div className="space-y-3 border-[3px] border-ink bg-white p-5 text-sm shadow-sticker-sm">
           <h2 className="font-bold">ご支援内容</h2>
           {reward ? (
             <>

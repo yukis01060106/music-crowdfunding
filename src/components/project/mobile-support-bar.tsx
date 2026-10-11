@@ -1,7 +1,7 @@
 "use client";
 
 import type { Project } from "@/types";
-import { LiveBackers, LivePercent } from "./live-figures";
+import { LiveBackers, LivePercent, LiveProgressBar } from "./live-figures";
 
 import { DaysLeft } from "./days-left";
 import { SupportCta, useOpenForSupport } from "./support-cta";
@@ -13,11 +13,15 @@ export function MobileSupportBar({ project }: { project: Project }) {
   const open = useOpenForSupport(project);
   if (!open) return null;
   return (
-    <div data-mobile-support-bar className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
+    <div data-mobile-support-bar className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+      {/* バーの上の端に、進み具合を細い線で出す */}
+      <div className="absolute inset-x-0 top-0">
+        <LiveProgressBar project={project} size="sm" />
+      </div>
       <div className="mx-auto flex max-w-2xl items-center gap-3">
         <div className="text-xs leading-tight text-stone-600">
           <p>
-            <LivePercent project={project} className="text-base font-bold" /> 達成
+            <LivePercent project={project} className="font-en text-lg font-black" /> 達成
           </p>
           <p>
             <LiveBackers project={project} />人・残り <DaysLeft endAt={project.endAt} />

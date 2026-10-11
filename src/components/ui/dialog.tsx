@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef } from "react";
+import { ICON, X } from "@/components/ui/icon";
 import { createPortal } from "react-dom";
 import { useHydrated } from "@/lib/demo-store";
 import { useModal } from "@/lib/use-modal";
@@ -44,8 +45,8 @@ export function Dialog({
           <h2 id={titleId} className="text-lg font-bold tracking-wider">
             {title}
           </h2>
-          <button type="button" onClick={onClose} aria-label="閉じる" className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100">
-            ✕
+          <button type="button" onClick={onClose} aria-label="閉じる" className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-stone-500 hover:bg-stone-100 hover:text-ink">
+            <X {...ICON} className="size-5" />
           </button>
         </div>
         {children}

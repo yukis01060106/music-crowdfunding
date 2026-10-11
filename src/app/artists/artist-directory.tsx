@@ -6,7 +6,6 @@ import type { Artist, ArtistType } from "@/types";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS } from "@/types";
 import { formatYen } from "@/lib/format";
 import { lowestPlanPrice } from "@/lib/membership";
-import { FRAME_COLORS } from "@/components/project/project-card";
 import { VerifiedBadge } from "@/components/project/verified-badge";
 import { Photo } from "@/components/ui/photo";
 import { chipClass } from "@/components/ui/chip";
@@ -61,9 +60,9 @@ export function ArtistDirectory({ artists, projectCounts }: { artists: Artist[];
         <p className="border-2 border-dashed border-stone-300 py-16 text-center text-stone-500">条件に合うアーティストはいません。</p>
       ) : (
         <ul key={`${type}-${onlyMembership}-${q}`} data-stagger className="grid grid-cols-2 gap-5 sm:gap-8 lg:grid-cols-4">
-          {shown.map((a, i) => (
+          {shown.map((a) => (
             <li key={a.id}>
-              <Link href={`/artists/${a.id}`} className={`group block h-full border-[3px] bg-white p-3 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${FRAME_COLORS[i % FRAME_COLORS.length]}`}>
+              <Link href={`/artists/${a.id}`} className="group block h-full border-[3px] border-ink/10 bg-white p-3 transition duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:border-ink hover:shadow-sticker">
                 <span className="relative block aspect-square overflow-hidden">
                   <Photo src={a.photo} alt={a.name} sizes="(min-width: 1024px) 260px, 45vw" className="transition-transform duration-500 group-hover:scale-105" />
                   {a.membership && (

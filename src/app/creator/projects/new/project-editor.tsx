@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "@/components/ui/toast";
+import { Check, CircleCheck, ICON } from "@/components/ui/icon";
 import { buttonClass } from "@/components/ui/button";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProofreadPanel } from "@/components/proofread/proofread-panel";
@@ -78,16 +80,28 @@ export function ProjectEditor() {
 
   if (submitted) {
     return (
-      <div className="animate-rise mx-auto max-w-xl space-y-4 border border-emerald-200 bg-emerald-50 p-8 text-center">
-        <p className="text-4xl" aria-hidden>
-          📮
-        </p>
-        <p className="text-2xl font-bold text-emerald-800">審査に提出しました</p>
+      <div className="animate-rise mx-auto max-w-xl space-y-5 border-[3px] border-ink bg-white p-8 text-center shadow-sticker">
+        <CircleCheck {...ICON} className="mx-auto size-10 text-brand" />
+        <p className="text-2xl font-black tracking-[0.08em]">審査に提出しました</p>
         <p className="text-sm leading-relaxed text-stone-600">
           審査の結果は、5営業日ほどを目安にメールでお知らせします。審査中は編集できません。
           <br />
           審査を通過したら、好きなタイミングで公開ボタンを押して募集を始められます。
         </p>
+        <div className="bg-stone-50 p-4 text-left text-sm">
+          <p className="font-bold">審査を待つあいだに</p>
+          <ul className="mt-2 space-y-1.5 text-stone-700">
+            {["試聴の音源を用意する（公開の直後にいちばん聴かれます）", "SNS で「もうすぐ始めます」と予告する", "最初に支援してくれそうな人に、日程を伝えておく"].map((t) => (
+              <li key={t} className="flex gap-2">
+                <Check {...ICON} className="mt-0.5 size-4 shrink-0 text-brand" />
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <Link href="/creator" className={buttonClass("primary", "lg", "w-full")}>
+          ダッシュボードで審査の状況を見る
+        </Link>
         <div className="flex flex-col items-center gap-2">
           {IS_DEMO && (
             <Link href="/admin/review" className="text-sm font-bold text-brand underline">
@@ -196,8 +210,17 @@ export function ProjectEditor() {
           <button
             ref={submitRef}
             type="button"
-            disabled={!ready}
+            aria-describedby="submit-status"
             onClick={() => {
+              // 足りない項目があれば、押せないボタンにはせず、最初の足りない項目のタブへ案内する
+              if (!ready) {
+                const missing = required.find((c) => !c.done);
+                if (missing) {
+                  go(missing.tab);
+                  toast(`「${missing.label}」がまだです。入力すると提出できます`);
+                }
+                return;
+              }
               // TODO: Supabase に保存し、status を in_review にする
               submitProject({
                 title: d.title,
@@ -211,11 +234,11 @@ export function ProjectEditor() {
               setSubmitted(true);
               window.scrollTo({ top: 0, behavior: scrollBehavior() });
             }}
-            className={buttonClass("primary", "lg", "w-full")}
+            className={buttonClass(ready ? "primary" : "secondary", "lg", "w-full")}
           >
-            審査に提出する
+            {ready ? "審査に提出する" : "足りない項目を見る"}
           </button>
-          <p className="text-center text-xs text-stone-500">
+          <p id="submit-status" className="text-center text-xs text-stone-500">
             {ready ? "提出後は審査が終わるまで編集できません" : `必須の項目があと${required.length - doneCount}つあります`}
           </p>
           <p className="text-center text-[11px] text-stone-500" aria-live="polite">

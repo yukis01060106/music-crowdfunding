@@ -3,11 +3,13 @@ import Link from "next/link";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { ARTIST_TYPE_LABELS, GENRE_LABELS, REWARD_KIND_LABELS, type ArtistType, type Genre } from "@/types";
 import { ProjectCard, FRAME_COLORS } from "@/components/project/project-card";
+import { LiveBackers, LivePercent, LiveProgressBar } from "@/components/project/live-figures";
+import { ArrowRight, Check, ICON } from "@/components/ui/icon";
 import { formatYen, progressPercent } from "@/lib/format";
 import { FES_FUND_MESSAGE } from "@/lib/fees";
 import { Photo } from "@/components/ui/photo";
 import { Sticker } from "@/components/ui/shapes";
-import { CircleLink, SectionHeading } from "@/components/ui/section-heading";
+import { CircleLink, Eyebrow, SectionHeading } from "@/components/ui/section-heading";
 import { HeroPhotoColumns } from "@/components/home/hero-photo-columns";
 import { VoicesMarquee } from "@/components/home/voices-marquee";
 import { MembershipArtistCard } from "@/components/membership/membership-artist-card";
@@ -59,11 +61,11 @@ export default async function HomePage() {
 
   return (
     <div className="overflow-x-clip">
-      {/* ヒーロー：スマホでは写真が先、PCではコピーが左 */}
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 pt-4 lg:grid-cols-[1fr_540px] lg:items-center lg:gap-16 lg:pt-8">
-        <div className="order-2 pb-4 lg:order-1">
+      {/* ヒーロー：スマホでもコピーと行動を最初の画面に入れ、写真はその下に低く流す */}
+      <section className="mx-auto grid max-w-6xl gap-8 px-4 pt-6 lg:grid-cols-[1fr_540px] lg:items-center lg:gap-16 lg:pt-8">
+        <div className="order-1 lg:pb-4">
           <p className="animate-rise text-lg font-bold tracking-[0.15em]">“好き”を“次の一歩”に</p>
-          <h1 className="mt-4 text-4xl font-black leading-[1.35] tracking-[0.12em] sm:text-6xl">
+          <h1 className="mt-3 text-[2.5rem] font-black leading-[1.3] tracking-[0.1em] sm:mt-4 sm:text-6xl sm:leading-[1.35]">
             {["音楽は、", "ファンと", "つくる。"].map((line, i) => (
               <span key={line} className="block overflow-hidden">
                 <span className="block animate-line-in" style={{ animationDelay: `${150 + i * 140}ms` }}>
@@ -72,22 +74,49 @@ export default async function HomePage() {
               </span>
             ))}
           </h1>
-          <p className="mt-6 max-w-md animate-rise text-sm font-medium leading-loose tracking-wider text-stone-700 [animation-delay:600ms]">
+          <p className="mt-5 max-w-md animate-rise text-sm font-medium leading-loose tracking-wider text-stone-700 [animation-delay:600ms] sm:mt-6">
             Oto Fundは、アルバム・ライブ・MVなど、アーティストの「これから」を
             ファンが支援する、音楽のためのクラウドファンディングです。
           </p>
-          <div className="mt-8 flex animate-rise flex-wrap gap-3 [animation-delay:750ms]">
+          <div className="mt-6 flex animate-rise flex-wrap gap-3 [animation-delay:750ms] sm:mt-8">
             <Link href="/projects" className={buttonClass("primary", "lg", "group relative overflow-hidden")}>
               <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] animate-shine bg-white/10 motion-reduce:hidden" aria-hidden />
-              プロジェクトをさがす <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
+              プロジェクトをさがす <ArrowRight {...ICON} className="size-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link href="/start" className={buttonClass("secondary", "lg")}>
               アーティストの方へ
             </Link>
           </div>
         </div>
-        <div className="order-1 animate-fade lg:order-2">
+        <div className="relative order-2 animate-fade">
           <HeroPhotoColumns />
+          {/* いま動いているプロジェクトを1件、写真の上に浮かべる（サービスの中身が一目でわかるように） */}
+          {popular[0] && (
+            <Link
+              href={`/projects/${popular[0].slug}`}
+              className="absolute -left-8 bottom-10 z-10 hidden w-64 border-[3px] border-ink bg-white p-3 shadow-sticker transition hover:-translate-y-0.5 motion-safe:animate-float lg:block"
+            >
+              <span className="flex items-center gap-3">
+                <span className="relative size-12 shrink-0 overflow-hidden">
+                  <Photo src={popular[0].cover} alt="" sizes="48px" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-en text-[11px] font-bold uppercase tracking-[0.2em] text-brand">Now funding</span>
+                  <span className="line-clamp-1 text-sm font-bold">{popular[0].title}</span>
+                </span>
+              </span>
+              <span className="mt-3 block">
+                <LiveProgressBar project={popular[0]} />
+              </span>
+              <span className="mt-1.5 flex items-baseline justify-between text-xs text-stone-600">
+                <span>
+                  <LiveBackers project={popular[0]} />
+                  人が支援
+                </span>
+                <LivePercent project={popular[0]} className="font-en text-base font-black" />
+              </span>
+            </Link>
+          )}
         </div>
       </section>
 
@@ -135,24 +164,27 @@ export default async function HomePage() {
           </ul>
         </section>
 
-        <section className="relative border-[3px] border-pop-teal p-8 sm:p-12">
+        <section className="relative border-[3px] border-ink p-8 sm:p-12">
           <Sticker shape="triangle" color="purple" size={56} className="-right-5 -top-7" float />
           <SectionHeading en="How it works" ja="はじめての方へ" />
           <ol data-stagger className="mt-10 grid gap-10 sm:grid-cols-3">
             {HOW_IT_WORKS.map((s, i) => (
               <li key={s.title}>
-                <p className="font-en text-5xl font-black text-pop-teal/25">0{i + 1}</p>
-                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-teal-700">{s.en}</p>
+                <p className="font-en text-5xl font-black text-brand/25">0{i + 1}</p>
+                <p className="-mt-3 font-en text-xs font-bold tracking-wide text-brand">{s.en}</p>
                 <p className="mt-2 font-bold tracking-wider">{s.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-stone-600">{s.body}</p>
               </li>
             ))}
           </ol>
-          <p className="mt-10 bg-stone-100 p-4 text-sm font-medium tracking-wide">
-            ✓ All-or-Nothing のプロジェクトは、目標に届かなければお支払いなし。方式は各プロジェクトに表示しています。表示価格はすべて税込・送料込みです。
-            <Link href="/help" className="ml-2 text-teal-700 underline">
+          <p className="mt-10 flex gap-2 bg-stone-100 p-4 text-sm font-medium tracking-wide">
+            <Check {...ICON} className="mt-0.5 size-4 shrink-0 text-brand" />
+            <span>
+            All-or-Nothing のプロジェクトは、目標に届かなければお支払いなし。方式は各プロジェクトに表示しています。表示価格はすべて税込・送料込みです。
+            <Link href="/help" className="ml-2 text-brand underline">
               よくある質問
             </Link>
+            </span>
           </p>
         </section>
 
@@ -177,7 +209,7 @@ export default async function HomePage() {
               </p>
               <div className="mt-6">
                 <Link href="/membership" className={buttonClass("primary", "lg")}>
-                  メンバーシップについて <span aria-hidden>→</span>
+                  メンバーシップについて <ArrowRight {...ICON} className="size-4" />
                 </Link>
               </div>
             </div>
@@ -209,7 +241,7 @@ export default async function HomePage() {
             <SpinBadge text="ONE NOTE FES ✦ BY OTO FUND ✦ " center={<>COMING<br />SOON</>} size={110} className="absolute -bottom-10 -right-4 sm:-right-8" />
           </div>
           <div data-reveal="up">
-            <p className="font-en text-xs font-medium tracking-wide text-white/70">Festival</p>
+            <Eyebrow dark>Festival</Eyebrow>
             <h2 className="mt-2 font-en text-3xl font-black tracking-wider sm:text-4xl">ONE NOTE FES</h2>
             <p className="mt-4 text-xl font-bold tracking-[0.12em] sm:text-2xl">ファンと共に創るフェス</p>
             <p className="mt-5 text-sm leading-loose tracking-wider text-white/80">
@@ -223,7 +255,7 @@ export default async function HomePage() {
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link href="/fes" className="group bg-pop-yellow px-5 py-3 text-sm font-black tracking-wider text-ink transition hover:bg-white">
-                フェスについて <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">→</span>
+                フェスについて <ArrowRight {...ICON} className="size-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <span className="border border-white/40 px-4 py-2 text-sm font-bold tracking-wider">ただいま企画中</span>
             </div>
@@ -311,7 +343,7 @@ export default async function HomePage() {
           </p>
           <div className="mt-8">
             <Link href="/start" className={buttonClass("primary", "lg")}>
-              プロジェクトをはじめる <span aria-hidden>→</span>
+              プロジェクトをはじめる <ArrowRight {...ICON} className="size-4" />
             </Link>
           </div>
         </div>

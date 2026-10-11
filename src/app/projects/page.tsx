@@ -1,3 +1,5 @@
+import { Eyebrow } from "@/components/ui/section-heading";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getArtists, getPublicProjects } from "@/lib/data";
 import { BrowseNav } from "@/components/project/browse-nav";
@@ -11,10 +13,12 @@ export default async function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <p className="font-en text-xs font-medium tracking-wide text-stone-500">Projects</p>
+      <Eyebrow>Projects</Eyebrow>
       <h1 className="mt-1 text-2xl font-black tracking-[0.12em] sm:text-3xl">プロジェクトをさがす</h1>
       <BrowseNav />
-      <ProjectExplorer projects={projects} artists={artists} />
+      <Suspense>
+        <ProjectExplorer projects={projects} artists={artists} />
+      </Suspense>
     </div>
   );
 }

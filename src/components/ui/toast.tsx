@@ -11,7 +11,8 @@ export function toast(message: string) {
   listeners.forEach((l) => l(message));
 }
 
-const SHOW_MS = 2600;
+/** 表示する時間。長い知らせほど長く出す（読み終わる前に消えないように） */
+const showMs = (message: string) => Math.min(9000, 2600 + message.length * 60);
 
 /** レイアウトに1つだけ置く */
 export function Toaster() {
@@ -22,7 +23,7 @@ export function Toaster() {
     const listener: Listener = (message) => {
       const id = ++seq;
       setItems((prev) => [...prev.slice(-2), { id, message }]);
-      setTimeout(() => setItems((prev) => prev.filter((i) => i.id !== id)), SHOW_MS);
+      setTimeout(() => setItems((prev) => prev.filter((i) => i.id !== id)), showMs(message));
     };
     listeners.add(listener);
     return () => {

@@ -11,7 +11,7 @@ import { useDemo, useHydrated } from "@/lib/demo-store";
 export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-pop-pink font-bold text-white"
+      className="flex shrink-0 items-center justify-center rounded-full bg-brand font-bold text-white"
       style={{ width: size, height: size, fontSize: size * 0.42 }}
       aria-hidden
     >

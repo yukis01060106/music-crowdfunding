@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MobileMenu } from "./mobile-menu";
 import { AccountButton } from "./account-button";
+import { HeaderNav } from "./header-nav";
+import { ICON, Search } from "./ui/icon";
 
 const NAV = [
   { href: "/projects", label: "プロジェクトをさがす", en: "Projects" },
@@ -23,24 +25,14 @@ export function SiteHeader() {
             オトファンド
           </span>
         </Link>
-        <nav className="hidden gap-6 text-sm font-medium tracking-wider lg:flex">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="group relative py-1 transition hover:text-brand">
-              {n.label}
-              <span className="absolute inset-x-0 -bottom-0.5 h-0.5 origin-left scale-x-0 bg-brand transition-transform duration-300 group-hover:scale-x-100" aria-hidden />
-            </Link>
-          ))}
-        </nav>
+        <HeaderNav items={NAV} />
         <div className="ml-auto flex items-center gap-2 text-sm">
           <Link
-            href="/projects"
+            href="/projects?focus=1"
             aria-label="プロジェクトを検索"
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-stone-100 lg:hidden"
+            className="flex h-11 w-11 items-center justify-center hover:bg-stone-100"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
+            <Search {...ICON} className="size-5" />
           </Link>
           <AccountButton />
           <MobileMenu items={NAV} />

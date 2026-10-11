@@ -24,8 +24,8 @@ export function SideNav({ title, items }: { title: string; items: NavItem[] }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`block shrink-0 whitespace-nowrap px-3 py-2 text-sm transition ${
-              active ? "bg-brand-soft font-medium text-brand" : "text-stone-600 hover:bg-stone-100"
+            className={`flex min-h-11 shrink-0 items-center whitespace-nowrap px-3 py-2 text-sm transition ${
+              active ? "border-b-[3px] border-brand bg-brand-soft font-bold text-brand-dark md:border-b-0 md:border-l-[3px]" : "border-b-[3px] border-transparent text-stone-600 hover:bg-stone-100 md:border-b-0 md:border-l-[3px]"
             }`}
           >
             {item.label}

@@ -1,4 +1,15 @@
 import Link from "next/link";
+import { ArrowRight, ICON } from "@/components/ui/icon";
+
+/** 見出しの上に置く英字ラベル（黄色の四角つき）。暗い背景では dark で黄色にする */
+export function Eyebrow({ children, dark = false, className = "" }: { children: React.ReactNode; dark?: boolean; className?: string }) {
+  return (
+    <p className={`inline-flex items-center gap-2 font-en text-xs font-bold uppercase tracking-[0.2em] ${dark ? "text-pop-yellow" : "text-brand"} ${className}`}>
+      <span className="size-2 bg-pop-yellow" aria-hidden />
+      {children}
+    </p>
+  );
+}
 
 /** 小さな英字ラベル＋字間を広げた日本語見出し */
 export function SectionHeading({
@@ -14,8 +25,8 @@ export function SectionHeading({
 }) {
   return (
     <div data-reveal="up">
-      <p className={`font-en text-xs font-medium tracking-wide ${dark ? "text-white/70" : "text-stone-500"}`}>{en}</p>
-      <h2 className="mt-1 text-2xl font-bold tracking-[0.12em] sm:text-3xl">{ja}</h2>
+      <Eyebrow dark={dark}>{en}</Eyebrow>
+      <h2 className="mt-2 text-2xl font-bold tracking-[0.1em] sm:text-[1.75rem]">{ja}</h2>
       {lead && <p className={`mt-3 text-sm ${dark ? "text-white/80" : "text-stone-600"}`}>{lead}</p>}
     </div>
   );
@@ -54,7 +65,7 @@ export function CircleLink({
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${CIRCLE[color]} ${ARROW_ON[color]} text-lg transition-transform group-hover:translate-x-1 group-hover:scale-110`}
         aria-hidden
       >
-        →
+        <ArrowRight {...ICON} className="size-5" />
       </span>
     </Link>
   );

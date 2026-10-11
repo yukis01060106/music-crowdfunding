@@ -1,4 +1,5 @@
 import type { FundingModel } from "@/types";
+import { Check, ICON } from "@/components/ui/icon";
 
 /** 支援者の不安（信頼できるか・届くか・お金はどうなるか）に先回りして答える */
 export function TrustBox({ fundingModel, verified }: { fundingModel: FundingModel; verified: boolean }) {
@@ -14,14 +15,12 @@ export function TrustBox({ fundingModel, verified }: { fundingModel: FundingMode
   ];
 
   return (
-    <section className="border border-emerald-200 bg-emerald-50/60 p-5">
-      <h2 className="font-bold text-emerald-900">安心して支援するために</h2>
+    <section className="border-[3px] border-ink/10 bg-white p-5">
+      <h2 className="font-bold">安心して支援するために</h2>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (
           <li key={item.title} className="flex gap-2 text-sm">
-            <span aria-hidden className="text-emerald-600">
-              ✓
-            </span>
+            <Check {...ICON} className="mt-0.5 size-4 shrink-0 text-brand" />
             <span>
               <span className="font-medium text-stone-800">{item.title}</span>
               <span className="block text-xs text-stone-600">{item.body}</span>

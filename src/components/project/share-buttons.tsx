@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { Check, ICON, LineLogo, Link2, Share2, XLogo } from "@/components/ui/icon";
 import { assetPath } from "@/lib/asset-path";
 
 const noop = () => () => {};
@@ -44,24 +45,27 @@ export function ShareButtons({ title, path }: { title: string; path?: string }) 
     }
   }
 
-  const button = "flex min-h-11 flex-1 items-center justify-center border-2 border-ink bg-white text-xs font-bold text-ink transition hover:bg-ink hover:text-white";
+  const button = "flex min-h-11 flex-1 items-center justify-center whitespace-nowrap border-2 border-ink bg-white px-1 text-xs font-bold text-ink transition hover:bg-ink hover:text-white";
   return (
     <div>
       <p className="mb-2 text-xs text-stone-500">シェアして応援する</p>
       {canShare && (
         <button type="button" onClick={nativeShare} className="mb-2 flex min-h-11 w-full items-center justify-center gap-2 bg-ink text-sm font-bold text-white transition hover:bg-brand">
-          <span aria-hidden>↗</span> シェアする
+          <Share2 {...ICON} className="size-4" /> シェアする
         </button>
       )}
       <div className="flex gap-2">
         <button type="button" onClick={() => share("x")} className={button}>
-          X
+          <XLogo className="size-3.5" />
+          <span className="ml-1.5">X</span>
         </button>
         <button type="button" onClick={() => share("line")} className={button}>
-          LINE
+          <LineLogo className="size-4" />
+          <span className="ml-1.5">LINE</span>
         </button>
-        <button type="button" onClick={copy} className={button}>
-          {copied ? "コピーしました" : "リンクをコピー"}
+        <button type="button" onClick={copy} className={button} aria-label={copied ? "リンクをコピーしました" : "リンクをコピー"}>
+          {copied ? <Check {...ICON} className="size-4" /> : <Link2 {...ICON} className="size-4" />}
+          <span className="ml-1.5">{copied ? "コピー済み" : "コピー"}</span>
         </button>
       </div>
       <p className="sr-only" aria-live="polite">

@@ -4,6 +4,10 @@
   --color-brand: #6d3cff;
   --color-brand-dark: #5427d6;
   --color-brand-soft: #efe9ff;
+  /* ステッカー調のずらし影（ぼかさない）。押せるカードのホバーと、目立たせたい箱に使う */
+  --shadow-sticker: 5px 5px 0 0 var(--color-ink);
+  --shadow-sticker-sm: 3px 3px 0 0 var(--color-ink);
+  --shadow-sticker-brand: 5px 5px 0 0 var(--color-brand-dark);
   --color-ink: #222222;
   /* 写真と図形だけに使うポップな差し色 */
   --color-pop-yellow: #ffd23f;
@@ -47,6 +51,22 @@
   @keyframes line-in {
     from { opacity: 0; transform: translateY(105%); }
     to { opacity: 1; transform: none; }
+  }
+  /* 試聴の再生中のしるし（3本の棒） */
+  @keyframes eq {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+  /* 進み具合のバーが左から伸びる */
+  @keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  /* お気に入りのハートが弾む */
+  @keyframes pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.35); }
+    100% { transform: scale(1); }
   }
   /* ボタンの上を光が横切る */
   @keyframes shine {
@@ -198,11 +218,13 @@ label:has(> input[type="file"]:focus-visible) {
 
 /* 黒い背景の上では、紫の枠が見えにくいので黄色にする */
 footer :focus-visible,
-.bg-ink :focus-visible {
+.bg-ink :focus-visible,
+.bg-brand :focus-visible {
   outline-color: var(--color-pop-yellow);
 }
-/* 黒い背景の中にある白い区画（フェスのページなど）では、紫に戻す */
-.bg-ink .bg-white :focus-visible {
+/* 黒や紫の背景の中にある白い区画（フェスのページなど）では、紫に戻す */
+.bg-ink .bg-white :focus-visible,
+.bg-brand .bg-white :focus-visible {
   outline-color: var(--color-brand);
 }
 

@@ -2,6 +2,7 @@ import type { Project, Reward } from "@/types";
 import { REWARD_KIND_LABELS } from "@/types";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { buttonClass } from "@/components/ui/button";
+import { tagClass } from "@/components/ui/tag";
 import { SupportCta } from "./support-cta";
 
 /** 在庫が残りこの数以下になったら、残り数を強調する（「残りわずか」とはあおらない） */
@@ -21,14 +22,16 @@ export function RewardCard({
   const soldOut = remaining !== undefined && remaining <= 0;
 
   return (
-    <div className={`relative border-[3px] bg-white p-4 ${popular && !soldOut ? "border-brand" : "border-stone-200"} ${soldOut ? "opacity-60" : ""}`}>
+    <div
+      className={`relative border-[3px] p-4 transition duration-200 ${soldOut ? "border-stone-200 bg-stone-50" : popular ? "border-brand bg-white shadow-sticker-brand" : "border-ink/10 bg-white hover:border-ink hover:shadow-sticker-sm"}`}
+    >
       {popular && !soldOut && <span className="absolute -top-3 left-4 bg-brand px-2 py-0.5 text-xs font-bold tracking-wider text-white">いちばん人気</span>}
       <div className="flex items-start justify-between gap-2">
         <div>
           <span className="font-en text-2xl font-black">{formatPrice(reward.price)}</span>
           {reward.price > 0 && <span className="ml-1 text-xs text-stone-500">税込・送料込み</span>}
         </div>
-        <span className="shrink-0 bg-brand-soft px-2 py-0.5 text-xs font-bold text-brand">{REWARD_KIND_LABELS[reward.kind]}</span>
+        <span className={tagClass("brand")}>{REWARD_KIND_LABELS[reward.kind]}</span>
       </div>
       <h3 className="mt-2 font-bold leading-snug">{reward.title}</h3>
       <p className="mt-1 text-sm leading-relaxed text-stone-600">{reward.description}</p>
@@ -49,7 +52,8 @@ export function RewardCard({
       {soldOut ? (
         <p className="mt-4 bg-stone-100 py-2.5 text-center text-sm text-stone-600">受付終了</p>
       ) : (
-        <SupportCta project={project} href={`/projects/${project.slug}/support?reward=${reward.id}`} className={buttonClass("primary", "md", "mt-4 w-full")}>
+        // いちばん人気だけを強いボタンにして、主な行動をはっきりさせる
+        <SupportCta project={project} href={`/projects/${project.slug}/support?reward=${reward.id}`} className={buttonClass(popular ? "primary" : "secondary", "md", "mt-4 w-full")}>
           {reward.price === 0 ? "0円で参加する" : "このリターンで支援する"}
         </SupportCta>
       )}

@@ -102,6 +102,12 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         <Link href={`/genres/${project.genre}`} className="hover:text-brand">
           {GENRE_LABELS[project.genre]}
         </Link>
+        <span className="hidden sm:inline">
+          {" › "}
+          <span aria-current="page" className="text-stone-600">
+            {project.title.length > 30 ? `${project.title.slice(0, 30)}…` : project.title}
+          </span>
+        </span>
       </nav>
 
       <SuspendedNotice slug={project.slug} />
@@ -111,6 +117,25 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
         </div>
         <h1 className="mt-2 text-2xl font-black leading-snug tracking-[0.08em] sm:text-3xl">{project.title}</h1>
         <p className="mt-2 text-stone-600">{project.catchcopy}</p>
+        {/* スマホでは最初の画面に、支援の進み具合を1行で出す */}
+        <div className="mt-4 lg:hidden">
+          <p className="flex items-baseline justify-between gap-2 text-sm">
+            <span>
+              <span className="font-en text-xl font-black">
+                <LiveAmount project={project} />
+              </span>
+              <span className="ml-1 text-xs text-stone-500">/ 目標 {formatGoal(project)}</span>
+            </span>
+            <LivePercent project={project} className="font-en text-lg font-black" />
+          </p>
+          <div className="mt-1.5">
+            <LiveProgressBar project={project} size="md" />
+          </div>
+          <p className="mt-1.5 text-xs text-stone-500">
+            <LiveBackers project={project} />
+            人が支援・残り <DaysLeft endAt={project.endAt} />
+          </p>
+        </div>
         {artist && (
           <Link href={`/artists/${artist.id}`} className="mt-4 inline-flex items-center gap-3 group">
             <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
@@ -136,40 +161,24 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
             <Sticker shape="triangle" color="purple" size={40} className="-left-3 -top-3" />
           </div>
 
-          {/* スマホでは右カラムが本文の後ろに回るので、支援状況を先に見せる */}
-          <div className="space-y-3 border border-stone-200 bg-white p-4 lg:hidden">
-            <div className="flex items-end justify-between gap-2">
-              <p className="font-en text-2xl font-black tracking-tight">
-                <LiveAmount project={project} />
-              </p>
-              <p><LivePercent project={project} className="font-en text-lg font-black" /></p>
-            </div>
-            <LiveProgressBar project={project} />
-            <p className="text-xs text-stone-500">
-              目標 {formatGoal(project)}・<LiveBackers project={project} />人が支援・残り <DaysLeft endAt={project.endAt} />
-            </p>
+          <TrackList tracks={project.tracks} />
+
+          {/* スマホでは右カラムが本文の後ろに回るので、リターンへの入口と安心の材料を先に見せる */}
+          <div className="space-y-3 border-[3px] border-ink/10 bg-white p-4 lg:hidden">
             <a href="#rewards" className={buttonClass("secondary", "md", "w-full")}>
               リターンを見る（{project.rewards.length}種類）
             </a>
+            <FavoriteButton slug={project.slug} />
             <TrustLines project={project} />
-            <div className="flex flex-col gap-3 border-t border-stone-100 pt-3">
-              <FavoriteButton slug={project.slug} />
-              <ShareButtons title={project.title} />
-              <Link href={`/mypage/messages?to=${project.slug}`} className="flex min-h-11 items-center justify-center text-sm text-stone-600 underline hover:text-brand">
-                実行者に質問する
-              </Link>
-              <div className="text-center"><ReportButton slug={project.slug} title={project.title} /></div>
-            </div>
           </div>
 
-          <TrackList tracks={project.tracks} />
           <ProjectTabs slug={project.slug} updateCount={project.updates.length} commentCount={project.comments.length} />
           {children}
         </div>
 
         <aside className="space-y-4">
           {/* スマホでは上の要約の箱と同じ内容になるので、PC だけで出す */}
-          <div className="hidden space-y-4 border-[3px] border-brand bg-white p-5 lg:block">
+          <div className="hidden space-y-4 border-[3px] border-ink bg-white p-5 shadow-sticker lg:block">
             <div>
               <p className="text-xs text-stone-500">
                 {project.goalType === "participants" ? "参加人数" : "現在の支援総額"}
@@ -179,7 +188,7 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               </p>
               <p className="text-xs text-stone-500">目標 {formatGoal(project)}</p>
             </div>
-            <LiveProgressBar project={project} />
+            <LiveProgressBar project={project} size="lg" />
             <dl className="grid grid-cols-3 gap-2 text-center">
               <Stat label="達成率" value={<LivePercent project={project} />} />
               <Stat label="支援者" value={<><LiveBackers project={project} />人</>} />
@@ -217,19 +226,47 @@ export default async function ProjectLayout({ params, children }: LayoutProps<"/
               href={`/mypage/messages?to=${project.slug}`}
               className="block text-center text-xs text-stone-500 hover:text-brand"
             >
-              実行者に質問する
+              実行者に質問する（ログインが必要）
             </Link>
             <div className="text-center"><ReportButton slug={project.slug} title={project.title} /></div>
           </div>
 
-          <h2 id="rewards" className="scroll-mt-20 pt-2 font-bold">
+          {/* スマホでは、リターンの直前に最近の支援を出す（ほかの人も支援している安心） */}
+          {recentBackers.length > 0 && (
+            <div className="bg-stone-50 p-4 lg:hidden">
+              <p className="mb-2 text-xs font-bold text-stone-600">最近の支援</p>
+              <ul className="space-y-1.5 text-xs">
+                {recentBackers.map((c) => (
+                  <li key={c.id} className="flex justify-between gap-2">
+                    <span className="truncate">
+                      <span className="font-medium">{c.userName}</span>さんが支援しました
+                    </span>
+                    <span className="shrink-0 text-stone-500">{formatDate(c.createdAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <h2 id="rewards" className="flex scroll-mt-20 flex-wrap items-baseline gap-x-2 pt-2 font-bold">
             リターンを選ぶ
-            <span className="ml-2 text-xs font-normal text-stone-500">表示価格は税込・送料込み</span>
+            <span className="text-xs font-normal text-stone-500">
+              <LiveBackers project={project} />
+              人が支援中・表示価格は税込・送料込み
+            </span>
           </h2>
           <div className="space-y-4">
             {project.rewards.map((r) => (
               <RewardCard key={r.id} reward={r} project={project} popular={r.id === popularId} />
             ))}
+          </div>
+          <div className="space-y-3 border-t border-stone-200 pt-4 lg:hidden">
+            <ShareButtons title={project.title} />
+            <div className="flex items-center justify-between gap-2">
+              <Link href={`/mypage/messages?to=${project.slug}`} className="inline-flex min-h-11 items-center text-sm text-stone-600 underline hover:text-brand">
+                実行者に質問する（ログインが必要）
+              </Link>
+              <ReportButton slug={project.slug} title={project.title} />
+            </div>
           </div>
         </aside>
       </div>

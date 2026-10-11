@@ -8,7 +8,7 @@ const RIGHT = ["/images/plants-smile.jpg", "/images/ukulele-hat.jpg", "/images/v
 /** 2列の写真が上下逆向きにゆっくり流れるヒーロー */
 export function HeroPhotoColumns() {
   return (
-    <div className="relative h-[460px] overflow-hidden sm:h-[640px]">
+    <div className="relative h-[280px] overflow-hidden sm:h-[640px]">
       <div className="grid h-full grid-cols-2 gap-2 sm:gap-3">
         {[LEFT, RIGHT].map((photos, col) => (
           <div key={col} className="overflow-hidden">

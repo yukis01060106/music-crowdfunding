@@ -7,10 +7,11 @@
  * - danger：取り消しにくい操作の確定（返金・停止・差し戻しなど）
  * 大きさは size で選ぶ。タップしやすいよう、どれも高さ 44px 以上になる。
  */
-const BASE = "inline-flex min-h-11 items-center justify-center gap-1.5 text-center font-bold tracking-wider transition disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-white";
+// 押したときに少し沈む（動きを減らす設定では globals.css で止まる）
+const BASE = "inline-flex min-h-11 items-center justify-center gap-1.5 text-center font-bold tracking-wider transition active:translate-y-px active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-white disabled:active:scale-100";
 
 const VARIANTS = {
-  primary: "bg-brand text-white hover:bg-brand-dark",
+  primary: "bg-brand text-white hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-[0_4px_0_0_var(--color-ink)] disabled:hover:translate-y-0 disabled:hover:shadow-none",
   dark: "bg-ink text-white hover:bg-brand",
   secondary: "border-2 border-ink bg-white text-ink hover:bg-ink hover:text-white",
   onDark: "bg-pop-yellow text-ink hover:bg-white",
